@@ -1,6 +1,6 @@
 <?php
 /**
- * Wrap Credis to add namespace support and various helper methods.
+ * Wrap Predis to add namespace support and various helper methods.
  *
  * @package Resque/Redis
  * @author  Chris Boulton <chris@bigcommerce.com>
@@ -93,6 +93,11 @@ class Resque_Redis
     // renamenx
 
     /**
+     * @var object The underlying Redis driver.
+     */
+    private $driver = null;
+
+    /**
      * Set Redis namespace (prefix) default: resque
      * @param string $namespace
      */
@@ -105,124 +110,33 @@ class Resque_Redis
     }
 
     /**
-     * @param string|array $server A DSN or array
-     * @param int $database A database number to select. However, if we find a valid database number in the DSN the
-     *                      DSN-supplied value will be used instead and this parameter is ignored.
-     * @param object $client Optional Credis_Cluster or Credis_Client instance instantiated by you
+     * @param string|array $server A DSN or array. Special case: pass an array
+     *      with keys 'parameters' and 'options' to pass those separately to
+     *      the Predis\Client constructor
+     * @param int $database A database number to select.
      */
-    public function __construct($server, $database = null, $client = null)
+    public function __construct($server, $database = null)
     {
         try {
-            if (is_array($server)) {
-                $this->driver = new Credis_Cluster($server);
-            }
-            else if (is_object($client)) {
-                $this->driver = $client;
-            }
-            else {
-                list($host, $port, $dsnDatabase, $user, $password, $options) = self::parseDsn($server);
-                // $user is not used, only $password
-
-                // Look for known Credis_Client options
-                $timeout = isset($options['timeout']) ? intval($options['timeout']) : null;
-                $persistent = isset($options['persistent']) ? $options['persistent'] : '';
-                $maxRetries = isset($options['max_connect_retries']) ? $options['max_connect_retries'] : 0;
-
-                $this->driver = new Credis_Client($host, $port, $timeout, $persistent);
-                $this->driver->setMaxConnectRetries($maxRetries);
-                if ($password) {
-                    $this->driver->auth($password);
-                }
-
-                // If we have found a database in our DSN, use it instead of the `$database`
-                // value passed into the constructor.
-                if ($dsnDatabase !== false) {
-                    $database = $dsnDatabase;
-                }
+            if (isset($server) && is_array($server)
+                    && array_key_exists('parameters', $server)
+                    && array_key_exists('options', $server)) {
+                $this->driver = new Predis\Client($server['parameters'],
+                    $server['options']);
+            } else if (isset($server) && is_string($server)
+                    && (strpos($server, ',') > 0)) {
+                $this->driver = new Predis\Client(explode(',', $server));
+            } else {
+                $this->driver = new Predis\Client($server);
             }
 
-            if ($database !== null) {
+            if (isset($database)) {
                 $this->driver->select($database);
             }
         }
-        catch(CredisException $e) {
+        catch (Predis\PredisException $e) {
             throw new Resque_RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
-    }
-
-    /**
-     * Parse a DSN string, which can have one of the following formats:
-     *
-     * - host:port
-     * - redis://user:pass@host:port/db?option1=val1&option2=val2
-     * - tcp://user:pass@host:port/db?option1=val1&option2=val2
-     * - unix:///path/to/redis.sock
-     *
-     * Note: the 'user' part of the DSN is not used.
-     *
-     * @param string $dsn A DSN string
-     * @return array An array of DSN compotnents, with 'false' values for any unknown components. e.g.
-     *               [host, port, db, user, pass, options]
-     */
-    public static function parseDsn($dsn)
-    {
-        if ($dsn == '') {
-            // Use a sensible default for an empty DNS string
-            $dsn = 'redis://' . self::DEFAULT_HOST;
-        }
-        if (substr($dsn, 0, 7) === 'unix://') {
-            return array(
-                $dsn,
-                null,
-                false,
-                null,
-                null,
-                null,
-            );
-        }
-        $parts = parse_url($dsn);
-
-        // Check the URI scheme
-        $validSchemes = array('redis', 'tcp');
-        if (isset($parts['scheme']) && ! in_array($parts['scheme'], $validSchemes)) {
-            throw new \InvalidArgumentException("Invalid DSN. Supported schemes are " . implode(', ', $validSchemes));
-        }
-
-        // Allow simple 'hostname' format, which `parse_url` treats as a path, not host.
-        if ( ! isset($parts['host']) && isset($parts['path'])) {
-            $parts['host'] = $parts['path'];
-            unset($parts['path']);
-        }
-
-        // Extract the port number as an integer
-        $port = isset($parts['port']) ? intval($parts['port']) : self::DEFAULT_PORT;
-
-        // Get the database from the 'path' part of the URI
-        $database = false;
-        if (isset($parts['path'])) {
-            // Strip non-digit chars from path
-            $database = intval(preg_replace('/[^0-9]/', '', $parts['path']));
-        }
-
-        // Extract any 'user' and 'pass' values
-        $user = isset($parts['user']) ? $parts['user'] : false;
-        $pass = isset($parts['pass']) ? $parts['pass'] : false;
-
-        // Convert the query string into an associative array
-        $options = array();
-        if (isset($parts['query'])) {
-            // Parse the query string into an array
-            parse_str($parts['query'], $options);
-        }
-
-        return array(
-            $parts['host'],
-            $port,
-            $database,
-            $user,
-            $pass,
-            $options,
-        );
     }
 
     /**
@@ -248,7 +162,7 @@ class Resque_Redis
         try {
             return $this->driver->__call($name, $args);
         }
-        catch (CredisException $e) {
+        catch (Predis\PredisException $e) {
             throw new Resque_RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
     }
