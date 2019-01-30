@@ -33,15 +33,15 @@ Class content is :
 ```php
 class Resque_Job_Creator
 {
-	public static function createJob($className, $args) {
+    public static function createJob($className, $args) {
 
-		// $className is you job class name, the second arguments when enqueuing a job
-		// $args are the arguments passed to your jobs
+        // $className is you job class name, the second arguments when enqueuing a job
+        // $args are the arguments passed to your jobs
 
-		// Instanciate your class, and return the instance
+        // Instanciate your class, and return the instance
 
-		return new $className();
-	}
+        return new $className();
+    }
 }
 ```
 
@@ -59,19 +59,19 @@ Fresque is shipped by default to manage your workers. See [Fresque Documentation
 
 Clone the git repo
 
-	$ git clone git://github.com/kamisama/php-resque-ex.git
+    $ git clone git://github.com/kamisama/php-resque-ex.git
 
  `cd` into the folder you just cloned
 
-	$ cd ./php-resque-ex
+    $ cd ./php-resque-ex
 
 Download Composer
 
-	$ curl -s https://getcomposer.org/installer | php
+    $ curl -s https://getcomposer.org/installer | php
 
 Install dependencies
 
-	$ php composer.phar install
+    $ php composer.phar install
 
 #### Warning
 

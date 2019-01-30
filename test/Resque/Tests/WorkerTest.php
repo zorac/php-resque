@@ -4,9 +4,9 @@ require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bootstrap.php';
 /**
  * Resque_Worker tests.
  *
- * @package     Resque/Tests
- * @author      Chris Boulton <chris@bigcommerce.com>
- * @license     http://www.opensource.org/licenses/mit-license.php
+ * @package Resque/Tests
+ * @author  Chris Boulton <chris@bigcommerce.com>
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Resque_Tests_WorkerTest extends Resque_Tests_TestCase
 {
@@ -168,7 +168,7 @@ class Resque_Tests_WorkerTest extends Resque_Tests_TestCase
 
         $job = $worker->job();
         $this->assertEquals('jobs', $job['queue']);
-        if(!isset($job['run_at'])) {
+        if (!isset($job['run_at'])) {
             $this->fail('Job does not have run_at time');
         }
         $this->assertEquals($payload, $job['payload']);

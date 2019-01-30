@@ -1,39 +1,39 @@
 {
-	"name": "zorac/php-resque-ex",
-	"type": "library",
-	"description": "Redis backed library for creating background jobs and processing them later. PHP port based on resque for Ruby.",
-	"keywords": ["job", "background", "redis", "resque", "queue", "php"],
-	"homepage": "http://www.github.com/zorac/php-resque-ex/",
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "Wan Chen",
-			"email": "kami@kamisama.me",
-			"homepage": "http://www.kamisama.me"
-		},
-		{
-			"name": "Chris Boulton",
-			"email": "chris@bigcommerce.com"
-		}
-	],
-	"require": {
-		"php": ">=5.3.0",
-		"ext-pcntl": "*",
-		"colinmollenhour/credis": "~1.7",
-		"monolog/monolog": ">=1.2.0",
-		"kamisama/monolog-init": ">=0.1.1"
-	},
-	"autoload": {
-		"psr-0": {
-			"Resque": "lib"
-		}
-	},
-	"bin": [
-		"bin/resque"
-	],
-	"conflict": {
-		"chrisboulton/php-resque": "*",
-		"kamisama/php-resque-ex": "*",
-		"resque/php-resque": "*"
-	}
+    "name": "zorac/php-resque-ex",
+    "type": "library",
+    "description": "Redis backed library for creating background jobs and processing them later. PHP port based on resque for Ruby.",
+    "keywords": ["job", "background", "redis", "resque", "queue", "php"],
+    "homepage": "http://www.github.com/zorac/php-resque-ex/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Wan Chen",
+            "email": "kami@kamisama.me",
+            "homepage": "http://www.kamisama.me"
+        },
+        {
+            "name": "Chris Boulton",
+            "email": "chris@bigcommerce.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ext-pcntl": "*",
+        "colinmollenhour/credis": "~1.7",
+        "monolog/monolog": ">=1.2.0",
+        "kamisama/monolog-init": ">=0.1.1"
+    },
+    "autoload": {
+        "psr-0": {
+            "Resque": "lib"
+        }
+    },
+    "bin": [
+        "bin/resque"
+    ],
+    "conflict": {
+        "chrisboulton/php-resque": "*",
+        "kamisama/php-resque-ex": "*",
+        "resque/php-resque": "*"
+    }
 }
