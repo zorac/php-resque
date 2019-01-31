@@ -54,10 +54,10 @@ $logLevel = Resque\Worker::LOG_NONE;
 $LOGGING = getenv('LOGGING');
 $VERBOSE = getenv('VERBOSE');
 $VVERBOSE = getenv('VVERBOSE');
-if (!empty($LOGGING) || !empty($VERBOSE)) {
-    $logLevel = Resque\Worker::LOG_NORMAL;
-} elseif (!empty($VVERBOSE)) {
+if (!empty($VVERBOSE)) {
     $logLevel = Resque\Worker::LOG_VERBOSE;
+} elseif (!empty($LOGGING) || !empty($VERBOSE)) {
+    $logLevel = Resque\Worker::LOG_NORMAL;
 }
 
 $interval = 5;
