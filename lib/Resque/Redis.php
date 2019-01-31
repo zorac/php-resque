@@ -78,7 +78,10 @@ class Resque_Redis
         'zremrangebyscore',
         'sort',
         'rename',
-        'rpoplpush'
+        'rpoplpush',
+        'hget',
+        'hset',
+        'hdel'
     );
     // sinterstore
     // sunion
