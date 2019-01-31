@@ -110,15 +110,17 @@ class Resque_Redis
     }
 
     /**
-     * @param string|array $server A DSN or array. Special case: pass an array
-     *      with keys 'parameters' and 'options' to pass those separately to
-     *      the Predis\Client constructor
+     * @param string|array|callable $server A DSN, parameter array, or callable.
+     *      Special case: pass an array with keys 'parameters' and 'options' to
+     *      pass those separately to the Predis\Client constructor
      * @param int $database A database number to select.
      */
     public function __construct($server, $database = null)
     {
         try {
-            if (isset($server) && is_array($server)
+            if (is_callable($server)) {
+                $this->driver = call_user_func($server, $database);
+            } else if (isset($server) && is_array($server)
                     && array_key_exists('parameters', $server)
                     && array_key_exists('options', $server)) {
                 $this->driver = new Predis\Client($server['parameters'],
