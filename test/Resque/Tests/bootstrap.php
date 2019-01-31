@@ -18,7 +18,7 @@ define('REDIS_CONF', TEST_MISC . '/redis.conf');
 require_once CWD . '/TestCase.php';
 
 // Include Resque
-require_once RESQUE_LIB . 'Resque.php';
+require_once RESQUE_LIB . 'Resque/Resque.php';
 require_once RESQUE_LIB . 'Resque/Worker.php';
 require_once RESQUE_LIB . 'Resque/Redis.php';
 
@@ -48,7 +48,7 @@ define('REDIS_HOST', 'localhost:' . $matches[1]);
 define('REDIS_DATABASE', 7);
 define('REDIS_NAMESPACE', 'testResque');
 
-Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
+Resque\Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
 
 // Shutdown
 function killRedis($pid)

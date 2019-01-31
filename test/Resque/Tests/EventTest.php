@@ -2,7 +2,7 @@
 require_once dirname(__FILE__) . '/bootstrap.php';
 
 /**
- * Resque_Event tests.
+ * Resque\Event tests.
  *
  * @package Resque/Tests
  * @author  Chris Boulton <chris@bigcommerce.com>
@@ -17,13 +17,13 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         Test_Job::$called = false;
 
         // Register a worker to test with
-        $this->worker = new Resque_Worker('jobs');
+        $this->worker = new Resque\Worker('jobs');
         $this->worker->registerWorker();
     }
 
     public function tearDown()
     {
-        Resque_Event::clearListeners();
+        Resque\Event::clearListeners();
         $this->callbacksHit = array();
     }
 
@@ -36,7 +36,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
                 'somevar',
             ),
         );
-        $job = new Resque_Job('jobs', $payload);
+        $job = new Resque\Job('jobs', $payload);
         $job->worker = $this->worker;
         return $job;
     }
@@ -55,7 +55,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
      */
     public function testEventCallbacksFire($event, $callback)
     {
-        Resque_Event::listen($event, array($this, $callback));
+        Resque\Event::listen($event, array($this, $callback));
 
         $job = $this->getEventTestJob();
         $this->worker->perform($job);
@@ -69,8 +69,8 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $event = 'beforeFork';
         $callback = 'beforeForkEventCallback';
 
-        Resque_Event::listen($event, array($this, $callback));
-        Resque::enqueue('jobs', 'Test_Job', array(
+        Resque\Event::listen($event, array($this, $callback));
+        Resque\Resque::enqueue('jobs', 'Test_Job', array(
             'somevar'
         ));
         $job = $this->getEventTestJob();
@@ -81,13 +81,13 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
     public function testBeforePerformEventCanStopWork()
     {
         $callback = 'beforePerformEventDontPerformCallback';
-        Resque_Event::listen('beforePerform', array($this, $callback));
+        Resque\Event::listen('beforePerform', array($this, $callback));
 
         $job = $this->getEventTestJob();
 
         $this->assertFalse($job->perform());
         $this->assertContains($callback, $this->callbacksHit, $callback . ' callback was not called');
-        $this->assertFalse(Test_Job::$called, 'Job was still performed though Resque_Job_DontPerform was thrown');
+        $this->assertFalse(Test_Job::$called, 'Job was still performed though Resque\Job_DontPerform was thrown');
     }
 
     public function testAfterEnqueueEventCallbackFires()
@@ -95,8 +95,8 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $callback = 'afterEnqueueEventCallback';
         $event = 'afterEnqueue';
 
-        Resque_Event::listen($event, array($this, $callback));
-        Resque::enqueue('jobs', 'Test_Job', array(
+        Resque\Event::listen($event, array($this, $callback));
+        Resque\Resque::enqueue('jobs', 'Test_Job', array(
             'somevar'
         ));
         $this->assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
@@ -107,15 +107,15 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $callback = 'beforePerformEventCallback';
         $event = 'beforePerform';
 
-        Resque_Event::listen($event, array($this, $callback));
-        Resque_Event::stopListening($event, array($this, $callback));
+        Resque\Event::listen($event, array($this, $callback));
+        Resque\Event::stopListening($event, array($this, $callback));
 
         $job = $this->getEventTestJob();
         $this->worker->perform($job);
         $this->worker->work(0);
 
         $this->assertNotContains($callback, $this->callbacksHit,
-            $event . ' callback (' . $callback .') was called though Resque_Event::stopListening was called'
+            $event . ' callback (' . $callback .') was called though Resque\Event::stopListening was called'
         );
     }
 
@@ -123,14 +123,14 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
     public function beforePerformEventDontPerformCallback($instance)
     {
         $this->callbacksHit[] = __FUNCTION__;
-        throw new Resque_Job_DontPerform;
+        throw new Resque\Job_DontPerform;
     }
 
     public function assertValidEventCallback($function, $job)
     {
         $this->callbacksHit[] = $function;
-        if (!$job instanceof Resque_Job) {
-            $this->fail('Callback job argument is not an instance of Resque_Job');
+        if (!$job instanceof Resque\Job) {
+            $this->fail('Callback job argument is not an instance of Resque\Job');
         }
         $args = $job->getArguments();
         $this->assertEquals($args[0], 'somevar');

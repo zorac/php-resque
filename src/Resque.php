@@ -1,6 +1,6 @@
 <?php
-require_once dirname(__FILE__) . '/Resque/Event.php';
-require_once dirname(__FILE__) . '/Resque/Exception.php';
+
+namespace Resque;
 
 /**
  * Base Resque class.
@@ -14,7 +14,7 @@ class Resque
     const VERSION = '1.2.5';
 
     /**
-     * @var Resque_Redis Instance of Resque_Redis that talks to redis.
+     * @var Redis Instance of Resque\Redis that talks to redis.
      */
     public static $redis = null;
 
@@ -57,9 +57,9 @@ class Resque
     }
 
     /**
-     * Return an instance of the Resque_Redis class instantiated for Resque.
+     * Return an instance of the Resque\Redis class instantiated for Resque.
      *
-     * @return Resque_Redis Instance of Resque_Redis.
+     * @return Redis Instance of Resque\Redis.
      */
     public static function redis()
     {
@@ -75,14 +75,14 @@ class Resque
             return self::$redis;
         }
 
-        self::$redis = new Resque_Redis(self::$redisServer, self::$redisDatabase);
+        self::$redis = new Redis(self::$redisServer, self::$redisDatabase);
 
         if (!empty(self::$redisDatabase)) {
             self::$redis->select(self::$redisDatabase);
         }
 
         if (!empty(self::$namespace)) {
-            self::$redis->prefix(self::$namespace);
+            Redis::prefix(self::$namespace);
         }
 
         return self::$redis;
@@ -158,10 +158,9 @@ class Resque
      */
     public static function enqueue($queue, $class, $args = null, $trackStatus = false)
     {
-        require_once dirname(__FILE__) . '/Resque/Job.php';
-        $result = Resque_Job::create($queue, $class, $args, $trackStatus);
+        $result = Job::create($queue, $class, $args, $trackStatus);
         if ($result) {
-            Resque_Event::trigger('afterEnqueue', [
+            Event::trigger('afterEnqueue', [
                 'class' => $class,
                 'args'  => $args,
                 'queue' => $queue,
@@ -175,13 +174,11 @@ class Resque
      * Reserve and return the next available job in the specified queue.
      *
      * @param string $queue Queue to fetch next available job from.
-     * @return Resque_Job Instance of Resque_Job to be processed, false if none or error.
+     * @return Job Instance of Resque\Job to be processed, false if none or error.
      */
     public static function reserve($queue)
     {
-        require_once dirname(__FILE__) . '/Resque/Job.php';
-
-        return Resque_Job::reserve($queue);
+        return Job::reserve($queue);
     }
 
     /**

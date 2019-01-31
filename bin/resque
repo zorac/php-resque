@@ -47,17 +47,17 @@ $LOG_HANDLER_TARGET = getenv('LOGHANDLERTARGET');
 $logger = new MonologInit\MonologInit($LOG_HANDLER, $LOG_HANDLER_TARGET);
 
 if (!empty($REDIS_BACKEND)) {
-    Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
+    Resque\Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
 }
 
-$logLevel = Resque_Worker::LOG_NONE;
+$logLevel = Resque\Worker::LOG_NONE;
 $LOGGING = getenv('LOGGING');
 $VERBOSE = getenv('VERBOSE');
 $VVERBOSE = getenv('VVERBOSE');
 if (!empty($LOGGING) || !empty($VERBOSE)) {
-    $logLevel = Resque_Worker::LOG_NORMAL;
+    $logLevel = Resque\Worker::LOG_NORMAL;
 } elseif (!empty($VVERBOSE)) {
-    $logLevel = Resque_Worker::LOG_VERBOSE;
+    $logLevel = Resque\Worker::LOG_VERBOSE;
 }
 
 $interval = 5;
@@ -91,7 +91,6 @@ if ($count > 1) {
         }
     }
 } else { // Start a single worker
-
     if ($PIDFILE) {
         writePidFile($PIDFILE);
     }
@@ -102,7 +101,7 @@ if ($count > 1) {
 function startWorker($QUEUE, $logLevel, $logger, $interval)
 {
     $queues = explode(',', $QUEUE);
-    $worker = new Resque_Worker($queues);
+    $worker = new Resque\Worker($queues);
     $worker->registerLogger($logger);
     $worker->logLevel = $logLevel;
     $worker->work($interval);

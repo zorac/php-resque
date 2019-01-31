@@ -1,5 +1,8 @@
 <?php
-require_once dirname(__FILE__) . '/Failure/Interface.php';
+
+namespace Resque;
+
+use \Exception;
 
 /**
  * Failed Resque job.
@@ -8,7 +11,7 @@ require_once dirname(__FILE__) . '/Failure/Interface.php';
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Resque_Failure
+class Failure
 {
     /**
      * @var string Class name representing the backend to pass failed jobs off to.
@@ -18,12 +21,12 @@ class Resque_Failure
     /**
      * Create a new failed job on the backend.
      *
-     * @param object $payload        The contents of the job that has just failed.
-     * @param \Exception $exception  The exception generated when the job failed to run.
-     * @param \Resque_Worker $worker Instance of Resque_Worker that was running this job when it failed.
-     * @param string $queue          The name of the queue that this job was fetched from.
+     * @param object $payload The contents of the job that has just failed.
+     * @param Exception $exception The exception generated when the job failed to run.
+     * @param Worker $worker Instance of Resque\Worker that was running this job when it failed.
+     * @param string $queue The name of the queue that this job was fetched from.
      */
-    public static function create($payload, Exception $exception, Resque_Worker $worker, $queue)
+    public static function create($payload, Exception $exception, Worker $worker, $queue)
     {
         $backend = self::getBackend();
         new $backend($payload, $exception, $worker, $queue);
@@ -37,8 +40,7 @@ class Resque_Failure
     public static function getBackend()
     {
         if (self::$backend === null) {
-            require  dirname(__FILE__) . '/Failure/Redis.php';
-            self::$backend = 'Resque_Failure_Redis';
+            self::$backend = '\\Resque\\Failure\\RedisBackend';
         }
 
         return self::$backend;

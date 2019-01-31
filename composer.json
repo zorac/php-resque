@@ -17,15 +17,15 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.5.0",
         "ext-pcntl": "*",
         "predis/predis": "^1.1",
         "monolog/monolog": ">=1.2.0",
         "kamisama/monolog-init": ">=0.1.1"
     },
     "autoload": {
-        "psr-0": {
-            "Resque": "lib"
+        "psr-4": {
+            "Resque\\": "src/"
         }
     },
     "bin": [

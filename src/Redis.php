@@ -1,4 +1,10 @@
 <?php
+
+namespace Resque;
+
+use \Predis\Client;
+use \Predis\PredisException;
+
 /**
  * Wrap Predis to add namespace support and various helper methods.
  *
@@ -6,7 +12,7 @@
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Resque_Redis
+class Redis
 {
     /**
      * Redis namespace
@@ -126,21 +132,21 @@ class Resque_Redis
             } else if (isset($server) && is_array($server)
                     && array_key_exists('parameters', $server)
                     && array_key_exists('options', $server)) {
-                $this->driver = new Predis\Client($server['parameters'],
+                $this->driver = new Client($server['parameters'],
                     $server['options']);
             } else if (isset($server) && is_string($server)
                     && (strpos($server, ',') > 0)) {
-                $this->driver = new Predis\Client(explode(',', $server));
+                $this->driver = new Client(explode(',', $server));
             } else {
-                $this->driver = new Predis\Client($server);
+                $this->driver = new Client($server);
             }
 
             if (isset($database)) {
                 $this->driver->select($database);
             }
         }
-        catch (Predis\PredisException $e) {
-            throw new Resque_RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
+        catch (PredisException $e) {
+            throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -167,8 +173,8 @@ class Resque_Redis
         try {
             return $this->driver->__call($name, $args);
         }
-        catch (Predis\PredisException $e) {
-            throw new Resque_RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
+        catch (PredisException $e) {
+            throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
     }
 

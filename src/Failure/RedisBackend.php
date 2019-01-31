@@ -1,4 +1,9 @@
 <?php
+
+namespace Resque\Failure;
+
+use \Resque\Resque;
+
 /**
  * Redis backend for storing failed Resque jobs.
  *
@@ -6,15 +11,14 @@
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-
-class Resque_Failure_Redis implements Resque_Failure_Interface
+class RedisBackend implements Backend
 {
     /**
      * Initialize a failed job class and save it (where appropriate).
      *
      * @param object $payload Object containing details of the failed job.
      * @param object $exception Instance of the exception that was thrown by the failed job.
-     * @param object $worker Instance of Resque_Worker that received the job.
+     * @param object $worker Instance of Resque\Worker that received the job.
      * @param string $queue The name of the queue the job was fetched from.
      */
     public function __construct($payload, $exception, $worker, $queue)
@@ -27,12 +31,12 @@ class Resque_Failure_Redis implements Resque_Failure_Interface
         $data['backtrace'] = explode("\n", $exception->getTraceAsString());
         $data['worker'] = (string)$worker;
         $data['queue'] = $queue;
-        Resque::Redis()->setex('failed:'.$payload['id'], 3600*14, serialize($data));
+        Resque::redis()->setex('failed:'.$payload['id'], 3600*14, serialize($data));
     }
 
     static public function get($jobId)
     {
-        $data = Resque::Redis()->get('failed:' . $jobId);
+        $data = Resque::redis()->get('failed:' . $jobId);
         return unserialize($data);
     }
 }
