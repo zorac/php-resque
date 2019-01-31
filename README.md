@@ -1,22 +1,24 @@
-Php-Resque-ex: Resque for PHP [![Build Status](https://secure.travis-ci.org/wa0x6e/php-resque-ex.png)](http://travis-ci.org/wa0x6e/php-resque-ex)
-===========================================
+Resque for PHP
+==============
 
 Resque is a Redis-backed library for creating background jobs, placing
 those jobs on multiple queues, and processing them later.
 
 ## Background ##
 
-Php-Resque-Ex is a fork of [php-resque](https://github.com/chrisboulton/php-resque) by chrisboulton. See the [original README](https://github.com/chrisboulton/php-resque/blob/master/README.md) for more informations.
+This version of php-resque is a fork of [php-resque-ex](https://github.com/wa0x6e/php-resque-ex), which is in turn a fork of the original [php-resque](https://github.com/chrisboulton/php-resque) by chrisboulton. See the [original README](https://github.com/chrisboulton/php-resque/blob/master/README.md) for more information.
+
+This fork additionally switches to Predis for the backend, updates to use namespaced code and backports some other features from the lastest [php-resque](https://github.com/resque/php-resque).
 
 ## Additional features ##
 
 This fork provides some additional features :
 
-### Support of php-redis
+### Support of Predis
 
-Autodetect and use [phpredis](https://github.com/nicolasff/phpredis) to connect to Redis if available. Redisent is used as fallback.
+This port uses [Predis](https://github.com/nrk/predis) for its backend connection to Redis.
 
-### Powerfull logging
+### Powerful logging
 
 Instead of piping STDOUT output to a file, you can log directly to a database, or send them elsewhere via a socket. We use [Monolog](https://github.com/Seldaek/monolog) to manage all the logging. See their documentation to see all the available handlers.
 
@@ -51,27 +53,21 @@ This is pretty useful when your autoloader can not load the class, like when cla
 
 You can easily retrieve logs for a failed jobs in the redis database, their keys are named after their job ID. Each failed log will expire after 2 weeks to save space.
 
-### Command Line tool
-
-Fresque is shipped by default to manage your workers. See [Fresque Documentation](https://github.com/wa0x6e/Fresque) for usage.
-
 ## Installation
 
-Clone the git repo
+The easiest way is using composer, by adding the following to your `composer.json`:
 
-    $ git clone git://github.com/kamisama/php-resque-ex.git
-
- `cd` into the folder you just cloned
-
-    $ cd ./php-resque-ex
-
-Download Composer
-
-    $ curl -s https://getcomposer.org/installer | php
-
-Install dependencies
-
-    $ php composer.phar install
+```
+ "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/zorac/php-resque"
+        }
+    ],
+    "require": {
+        "zorac/php-resque": "^2.0"
+    }
+```
 
 #### Warning
 
@@ -94,17 +90,17 @@ If one of these two environement variable is missing, it will default to *Rotati
 
 ### Redis backend
 
-* `REDIS_BACKEND` : hostname of your Redis database
+* `REDIS_BACKEND` : hostname of your Redis database, or Predis DSN
 * `REDIS_DATABASE` : To select another redis database (default 0)
 * `REDIS_NAMESPACE` : To set a different namespace for the keys (default to *resque*)
-* `REDIS_PASSWORD` : If your Redis backend needs authentication
 
 ## Requirements ##
 
-* PHP 5.3+
+* PHP 5.5+
 * Redis 2.2+
 
 ## Contributors ##
 
 * [chrisboulton](https://github.com/chrisboulton/php-resque) for the original port
-* wa0x6e
+* [wa0x6e](https://github.com/wa0x6e/php-resque-ex) for php-resque-ex
+* zorac

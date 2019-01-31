@@ -2,6 +2,8 @@
 
 namespace Resque;
 
+use \Exception;
+
 /**
  * Resque exception.
  *

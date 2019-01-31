@@ -11,7 +11,7 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '1.2.5';
+    const VERSION = '2.0.0';
 
     /**
      * @var Redis Instance of Resque\Redis that talks to redis.

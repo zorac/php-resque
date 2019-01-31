@@ -1,9 +1,9 @@
 {
-    "name": "zorac/php-resque-ex",
+    "name": "zorac/php-resque",
     "type": "library",
     "description": "Redis backed library for creating background jobs and processing them later. PHP port based on resque for Ruby.",
     "keywords": ["job", "background", "redis", "resque", "queue", "php"],
-    "homepage": "http://www.github.com/zorac/php-resque-ex/",
+    "homepage": "https://www.github.com/zorac/php-resque/",
     "license": "MIT",
     "authors": [
         {
@@ -14,6 +14,11 @@
         {
             "name": "Chris Boulton",
             "email": "chris@bigcommerce.com"
+        },
+        {
+            "name": "Mark Rigby-Jones",
+            "email": "mark@rigby-jones.net",
+            "homepage": "https://mark.rigby-jones.net/"
         }
     ],
     "require": {
