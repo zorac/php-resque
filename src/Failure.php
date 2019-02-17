@@ -21,23 +21,27 @@ class Failure
     /**
      * Create a new failed job on the backend.
      *
-     * @param object $payload The contents of the job that has just failed.
+     * @param mixed[] $payload The contents of the job that has just failed.
      * @param Exception $exception The exception generated when the job failed to run.
      * @param Worker $worker Instance of Resque\Worker that was running this job when it failed.
      * @param string $queue The name of the queue that this job was fetched from.
      */
-    public static function create($payload, Exception $exception, Worker $worker, $queue)
+    public static function create(
+        array $payload,
+        Exception $exception,
+        Worker $worker,
+        string $queue)
     {
         $backend = self::getBackend();
         new $backend($payload, $exception, $worker, $queue);
     }
 
     /**
-     * Return an instance of the backend for saving job failures.
+     * Return the class name of the backend for saving job failures.
      *
-     * @return object Instance of backend object.
+     * @return string Class name of backend object.
      */
-    public static function getBackend()
+    public static function getBackend() : string
     {
         if (self::$backend === null) {
             self::$backend = '\\Resque\\Failure\\RedisBackend';
@@ -53,7 +57,7 @@ class Failure
      *
      * @param string $backend The class name of the backend to pipe failures to.
      */
-    public static function setBackend($backend)
+    public static function setBackend(string $backend)
     {
         self::$backend = $backend;
     }

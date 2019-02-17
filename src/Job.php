@@ -2,6 +2,7 @@
 
 namespace Resque;
 
+use \Exception;
 use \InvalidArgumentException;
 use \Resque\Job\DontPerform;
 use \Resque\Job\Status;
@@ -21,17 +22,17 @@ class Job
     public $queue;
 
     /**
-     * @var Worker Instance of the Resque worker running this job.
+     * @var Worker|null Instance of the Resque worker running this job.
      */
     public $worker;
 
     /**
-     * @var object Object containing details of the job.
+     * @var mixed[] Array containing details of the job.
      */
     public $payload;
 
     /**
-     * @var object Instance of the class performing work for this job.
+     * @var object|null Instance of the class performing work for this job.
      */
     private $instance;
 
@@ -39,9 +40,9 @@ class Job
      * Instantiate a new instance of a job.
      *
      * @param string $queue The queue that the job belongs to.
-     * @param array $payload array containing details of the job.
+     * @param mixed[] $payload array containing details of the job.
      */
-    public function __construct($queue, $payload)
+    public function __construct(string $queue, array $payload)
     {
         $this->queue = $queue;
         $this->payload = $payload;
@@ -51,14 +52,20 @@ class Job
      * Create a new job and save it to the specified queue.
      *
      * @param string $queue The name of the queue to place the job in.
-     * @param string $class The name of the class that contains the code to execute the job.
-     * @param array $args Any optional arguments that should be passed when the job is executed.
-     * @param boolean $monitor Set to true to be able to monitor the status of a job.
-     *
-     * @return string
+     * @param string $class The name of the class that contains the code to
+     *      execute the job.
+     * @param mixed[] $args Any optional arguments that should be passed when
+     *      the job is executed.
+     * @param boolean $monitor Set to true to be able to monitor the status of
+     *      a job.
+     * @return string The job ID.
      */
-    public static function create($queue, $class, $args = null, $monitor = false)
-    {
+    public static function create(
+        string $queue,
+        string $class,
+        array $args = null,
+        bool $monitor = false
+    ) : string {
         if ($args !== null && !is_array($args)) {
             throw new InvalidArgumentException(
                 'Supplied $args must be an array.'
@@ -66,6 +73,7 @@ class Job
         }
 
         $new = true;
+
         if (isset($args['id'])) {
             $id = $args['id'];
             unset($args['id']);
@@ -73,18 +81,19 @@ class Job
         } else {
             $id = md5(uniqid('', true));
         }
-        Resque::push($queue, array(
+
+        Resque::push($queue, [
             'class' => $class,
-            'args'  => array($args),
+            'args'  => [$args],
             'id'    => $id,
-        ));
+        ]);
 
         if ($monitor) {
             if ($new) {
                 Status::create($id);
             } else {
                 $statusInstance = new Status($id);
-                $statusInstance->update($id, Status::STATUS_WAITING);
+                $statusInstance->update(Status::STATUS_WAITING);
             }
         }
 
@@ -96,13 +105,15 @@ class Job
      * instance of Resque\Job for it.
      *
      * @param string $queue The name of the queue to check for a job in.
-     * @return null|object Null when there aren't any waiting jobs, instance of Resque\Job when a job was found.
+     * @return Job Null when there aren't any waiting jobs, instance of
+     *      Resque\Job when a job was found.
      */
-    public static function reserve($queue)
+    public static function reserve(string $queue) : ?Job
     {
         $payload = Resque::pop($queue);
+
         if (!is_array($payload)) {
-            return false;
+            return null;
         }
 
         return new Job($queue, $payload);
@@ -111,9 +122,10 @@ class Job
     /**
      * Update the status of the current job.
      *
-     * @param int $status Status constant from Resque\Job\Status indicating the current status of a job.
+     * @param int $status Status constant from Resque\Job\Status indicating the
+     *      current status of a job.
      */
-    public function updateStatus($status)
+    public function updateStatus(int $status)
     {
         if (empty($this->payload['id'])) {
             return;
@@ -126,23 +138,25 @@ class Job
     /**
      * Return the status of the current job.
      *
-     * @return int The status of the job as one of the Resque\Job\Status constants.
+     * @return int|bool The status of the job as one of the Resque\Job\Status
+     *      constants, or false if the status is not being monitored.
      */
     public function getStatus()
     {
         $status = new Status($this->payload['id']);
+
         return $status->get();
     }
 
     /**
      * Get the arguments supplied to this job.
      *
-     * @return array Array of arguments.
+     * @return mixed[] Array of arguments.
      */
-    public function getArguments()
+    public function getArguments() : array
     {
         if (!isset($this->payload['args'])) {
-            return array();
+            return [];
         }
 
         return $this->payload['args'][0];
@@ -153,7 +167,7 @@ class Job
      *
      * @return object Instance of the object that this job belongs to.
      */
-    public function getInstance()
+    public function getInstance() : object
     {
         if (!is_null($this->instance)) {
             return $this->instance;
@@ -179,6 +193,7 @@ class Job
         $this->instance->job = $this;
         $this->instance->args = $this->getArguments();
         $this->instance->queue = $this->queue;
+
         return $this->instance;
     }
 
@@ -186,12 +201,15 @@ class Job
      * Actually execute a job by calling the perform method on the class
      * associated with the job with the supplied arguments.
      *
-     * @return bool
-     * @throws ResqueException When the job's class could not be found or it does not contain a perform method.
+     * @return bool True if the job was performed, false if a DontPerform was
+     *      thrown.
+     * @throws ResqueException When the job's class could not be found or it
+     *      does not contain a perform method.
      */
-    public function perform()
+    public function perform() : bool
     {
         $instance = $this->getInstance();
+
         try {
             Event::trigger('beforePerform', $this);
 
@@ -206,9 +224,8 @@ class Job
             }
 
             Event::trigger('afterPerform', $this);
-        }
-        // beforePerform/setUp have said don't perform this job. Return.
-        catch(DontPerform $e) {
+        } catch(DontPerform $e) {
+            // beforePerform/setUp have said don't perform this job. Return.
             return false;
         }
 
@@ -218,34 +235,38 @@ class Job
     /**
      * Mark the current job as having failed.
      *
-     * @param $exception
+     * @param Exception $exception The exception which occurred.
      */
-    public function fail($exception)
+    public function fail(Exception $exception)
     {
-        Event::trigger('onFailure', array(
+        Event::trigger('onFailure', [
             'exception' => $exception,
             'job' => $this,
-        ));
+        ]);
 
         $this->updateStatus(Status::STATUS_FAILED);
+
         Failure::create(
             $this->payload,
             $exception,
             $this->worker,
             $this->queue
         );
+
         Stat::incr('failed');
         Stat::incr('failed:' . $this->worker);
     }
 
     /**
      * Re-queue the current job.
-     * @return string
+     *
+     * @return string The job ID.
      */
-    public function recreate()
+    public function recreate() : string
     {
         $status = new Status($this->payload['id']);
         $monitor = false;
+
         if ($status->isTracking()) {
             $monitor = true;
         }
@@ -260,11 +281,11 @@ class Job
      */
     public function __toString()
     {
-        return json_encode(array(
+        return json_encode([
             'queue' => $this->queue,
             'id'    => !empty($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
             'args'  => !empty($this->payload['args']) ? $this->payload['args'] : ''
-        ));
+        ]);
     }
 }

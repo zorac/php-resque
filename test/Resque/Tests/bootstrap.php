@@ -88,16 +88,14 @@ function killRedis($pid)
 }
 register_shutdown_function('killRedis', getmypid());
 
-if (function_exists('pcntl_signal')) {
-    // Override INT and TERM signals, so they do a clean shutdown and also
-    // clean up redis-server as well.
-    function sigint()
-    {
-         exit;
-    }
-    pcntl_signal(SIGINT, 'sigint');
-    pcntl_signal(SIGTERM, 'sigint');
+// Override INT and TERM signals, so they do a clean shutdown and also
+// clean up redis-server as well.
+function sigint()
+{
+     exit;
 }
+pcntl_signal(SIGINT, 'sigint');
+pcntl_signal(SIGTERM, 'sigint');
 
 class Test_Job
 {

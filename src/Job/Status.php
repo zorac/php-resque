@@ -32,17 +32,17 @@ class Status
     /**
      * @var array Array of statuses that are considered final/complete.
      */
-    private static $completeStatuses = array(
+    private static $completeStatuses = [
         self::STATUS_FAILED,
         self::STATUS_COMPLETE
-    );
+    ];
 
     /**
      * Setup a new instance of the job monitor class for the supplied job ID.
      *
      * @param string $id The ID of the job to manage the status for.
      */
-    public function __construct($id)
+    public function __construct(string $id)
     {
         $this->id = $id;
     }
@@ -52,24 +52,30 @@ class Status
      * all necessary keys in Redis to monitor the status of a job.
      *
      * @param string $id The ID of the job to monitor the status of.
+     * @param int $status The initial status of the job.
      */
-    public static function create($id, $status = self::STATUS_WAITING)
-    {
-        $statusPacket = array(
+    public static function create(
+        string $id,
+        int $status = self::STATUS_WAITING
+    ) {
+        $json = json_encode([
             'status' => $status,
             'updated' => time(),
             'started' => time(),
-        );
-        Resque::redis()->set('job:' . $id . ':status', json_encode($statusPacket));
+        ]);
+
+        if ($json !== false) {
+            Resque::redis()->set('job:' . $id . ':status', $json);
+        }
     }
 
     /**
      * Check if we're actually checking the status of the loaded job status
      * instance.
      *
-     * @return boolean True if the status is being monitored, false if not.
+     * @return bool True if the status is being monitored, false if not.
      */
-    public function isTracking()
+    public function isTracking() : bool
     {
         if ($this->isTracking === false) {
             return false;
@@ -87,19 +93,23 @@ class Status
     /**
      * Update the status indicator for the current job with a new status.
      *
-     * @param int The status of the job (see constants in Resque\Job\Status)
+     * @param int $status The status of the job (see constants in
+     *      Resque\Job\Status)
      */
-    public function update($status)
+    public function update(int $status)
     {
         if (!$this->isTracking()) {
             return;
         }
 
-        $statusPacket = array(
+        $json = json_encode([
             'status' => $status,
             'updated' => time(),
-        );
-        Resque::redis()->set((string)$this, json_encode($statusPacket));
+        ]);
+
+        if ($json !== false) {
+            Resque::redis()->set((string)$this, $json);
+        }
 
         // Expire the status for completed jobs after 24 hours
         if (in_array($status, self::$completeStatuses)) {
@@ -110,8 +120,9 @@ class Status
     /**
      * Fetch the status for the job being monitored.
      *
-     * @return mixed False if the status is not being monitored, otherwise the status as
-     *     as an integer, based on the Resque\Job\Status constants.
+     * @return int|bool False if the status is not being monitored, otherwise
+     *      the status as as an integer, based on the Resque\Job\Status
+     *      constants.
      */
     public function get()
     {
@@ -120,6 +131,7 @@ class Status
         }
 
         $statusPacket = json_decode(Resque::redis()->get((string)$this), true);
+
         if (!$statusPacket) {
             return false;
         }

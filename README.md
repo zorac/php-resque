@@ -4,13 +4,13 @@ Resque for PHP
 Resque is a Redis-backed library for creating background jobs, placing
 those jobs on multiple queues, and processing them later.
 
-## Background ##
+## Background
 
 This version of php-resque is a fork of [php-resque-ex](https://github.com/wa0x6e/php-resque-ex), which is in turn a fork of the original [php-resque](https://github.com/chrisboulton/php-resque) by chrisboulton. See the [original README](https://github.com/chrisboulton/php-resque/blob/master/README.md) for more information.
 
 This fork additionally switches to Predis for the backend, updates to use namespaced code and backports some other features from the lastest [php-resque](https://github.com/resque/php-resque).
 
-## Additional features ##
+## Additional features
 
 This fork provides some additional features :
 
@@ -57,7 +57,7 @@ You can easily retrieve logs for a failed jobs in the redis database, their keys
 
 The easiest way is using composer, by adding the following to your `composer.json`:
 
-```
+```json
  "repositories": [
         {
             "type": "git",
@@ -94,12 +94,12 @@ If one of these two environement variable is missing, it will default to *Rotati
 * `REDIS_DATABASE` : To select another redis database (default 0)
 * `REDIS_NAMESPACE` : To set a different namespace for the keys (default to *resque*)
 
-## Requirements ##
+## Requirements
 
 * PHP 5.5+
 * Redis 2.2+
 
-## Contributors ##
+## Contributors
 
 * [chrisboulton](https://github.com/chrisboulton/php-resque) for the original port
 * [wa0x6e](https://github.com/wa0x6e/php-resque-ex) for php-resque-ex

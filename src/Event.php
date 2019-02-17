@@ -12,21 +12,23 @@ namespace Resque;
 class Event
 {
     /**
-     * @var array Array containing all registered callbacks, indexked by event name.
+     * @var array Array containing all registered callbacks, indexked by event
+     *      name.
      */
-    private static $events = array();
+    private static $events = [];
 
     /**
      * Raise a given event with the supplied data.
      *
      * @param string $event Name of event to be raised.
-     * @param mixed $data Optional, any data that should be passed to each callback.
-     * @return true
+     * @param mixed $data Optional, any data that should be passed to each
+     *      callback.
+     * @return bool True
      */
-    public static function trigger($event, $data = null)
+    public static function trigger(string $event, $data = null) : bool
     {
         if (!is_array($data)) {
-            $data = array($data);
+            $data = [$data];
         }
 
         if (empty(self::$events[$event])) {
@@ -37,6 +39,7 @@ class Event
             if (!is_callable($callback)) {
                 continue;
             }
+
             call_user_func_array($callback, $data);
         }
 
@@ -47,16 +50,17 @@ class Event
      * Listen in on a given event to have a specified callback fired.
      *
      * @param string $event Name of event to listen on.
-     * @param mixed $callback Any callback callable by call_user_func_array.
-     * @return true
+     * @param callable $callback Any callback callable by call_user_func_array.
+     * @return bool True
      */
-    public static function listen($event, $callback)
+    public static function listen(string $event, callable $callback) : bool
     {
         if (!isset(self::$events[$event])) {
-            self::$events[$event] = array();
+            self::$events[$event] = [];
         }
 
         self::$events[$event][] = $callback;
+
         return true;
     }
 
@@ -64,16 +68,20 @@ class Event
      * Stop a given callback from listening on a specific event.
      *
      * @param string $event Name of event.
-     * @param mixed $callback The callback as defined when listen() was called.
-     * @return true
+     * @param callable $callback The callback as defined when listen() was
+     *      called.
+     * @return bool True
      */
-    public static function stopListening($event, $callback)
-    {
+    public static function stopListening(
+        string $event,
+        callable $callback
+    ) : bool {
         if (!isset(self::$events[$event])) {
             return true;
         }
 
         $key = array_search($callback, self::$events[$event]);
+
         if ($key !== false) {
             unset(self::$events[$event][$key]);
         }
@@ -86,6 +94,6 @@ class Event
      */
     public static function clearListeners()
     {
-        self::$events = array();
+        self::$events = [];
     }
 }

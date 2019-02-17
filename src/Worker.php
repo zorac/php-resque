@@ -22,7 +22,6 @@ class Worker
     const LOG_NORMAL = 1;
     const LOG_VERBOSE = 2;
 
-
     const LOG_TYPE_DEBUG = 100;
     const LOG_TYPE_INFO = 200;
     const LOG_TYPE_WARNING = 300;
@@ -38,9 +37,9 @@ class Worker
     public $logLevel = self::LOG_NONE;
 
     /**
-     * @var array Array of all associated queues for this worker.
+     * @var string[] Array of all associated queues for this worker.
      */
-    protected $queues = array();
+    protected $queues = [];
 
     /**
      * @var string The hostname of this worker.
@@ -48,12 +47,12 @@ class Worker
     protected $hostname;
 
     /**
-     * @var boolean True if on the next iteration, the worker should shutdown.
+     * @var bool True if on the next iteration, the worker should shutdown.
      */
     protected $shutdown = false;
 
     /**
-     * @var boolean True if this worker is paused.
+     * @var bool True if this worker is paused.
      */
     protected $paused = false;
 
@@ -63,13 +62,12 @@ class Worker
     protected $id;
 
     /**
-     * @var Job Current job, if any, being processed by this worker.
-     *
+     * @var Job|null Current job, if any, being processed by this worker.
      */
     protected $currentJob = null;
 
     /**
-     * @var int Process ID of child worker processes.
+     * @var int|null Process ID of child worker processes.
      */
     protected $child = null;
 
@@ -77,19 +75,27 @@ class Worker
 
     /**
      * Return all workers known to Resque as instantiated instances.
-     * @return array
+     *
+     * @return Worker[] The workers.
      */
-    public static function all()
+    public static function all() : array
     {
         $workers = Resque::redis()->smembers('workers');
+
         if (!is_array($workers)) {
-            $workers = array();
+            $workers = [];
         }
 
-        $instances = array();
+        $instances = [];
+
         foreach ($workers as $workerId) {
-            $instances[] = self::find($workerId);
+            $worker = self::find($workerId);
+
+            if (isset($worker)) {
+                $instances[] = $worker;
+            }
         }
+
         return $instances;
     }
 
@@ -97,23 +103,24 @@ class Worker
      * Given a worker ID, check if it is registered/valid.
      *
      * @param string $workerId ID of the worker.
-     * @return boolean True if the worker exists, false if not.
+     * @return bool True if the worker exists, false if not.
      */
-    public static function exists($workerId)
+    public static function exists(string $workerId) : bool
     {
         return (bool)Resque::redis()->sismember('workers', $workerId);
     }
 
     /**
-     * Given a worker ID, find it and return an instantiated worker class for it.
+     * Given a worker ID, find it and return an instantiated worker class for
+     * it.
      *
      * @param string $workerId The ID of the worker.
-     * @return Worker Instance of the worker. False if the worker does not exist.
+     * @return Worker Instance of the worker. Null if the worker does not exist.
      */
-    public static function find($workerId)
+    public static function find(string $workerId) : ?Worker
     {
         if (!self::exists($workerId) || false === strpos($workerId, ":")) {
-            return false;
+            return null;
         }
 
         list($hostname, $pid, $queues) = explode(':', $workerId, 3);
@@ -129,35 +136,33 @@ class Worker
      *
      * @param string $workerId ID for the worker.
      */
-    public function setId($workerId)
+    public function setId(string $workerId)
     {
         $this->id = $workerId;
     }
 
     /**
-     * Instantiate a new worker, given a list of queues that it should be working
-     * on. The list of queues should be supplied in the priority that they should
-     * be checked for jobs (first come, first served)
+     * Instantiate a new worker, given a list of queues that it should be
+     * working on. The list of queues should be supplied in the priority that
+     * they should be checked for jobs (first come, first served)
      *
-     * Passing a single '*' allows the worker to work on all queues in alphabetical
-     * order. You can easily add new queues dynamically and have them worked on using
-     * this method.
+     * Passing a single '*' allows the worker to work on all queues in
+     * alphabetical order. You can easily add new queues dynamically and have
+     * them worked on using this method.
      *
-     * @param string|array $queues String with a single queue name, array with multiple.
+     * @param string|array $queues String with a single queue name, array with
+     *      multiple.
      */
     public function __construct($queues)
     {
         if (!is_array($queues)) {
-            $queues = array($queues);
+            $queues = [$queues];
         }
 
+        $hostname = gethostname();
+
         $this->queues = $queues;
-        if (function_exists('gethostname')) {
-            $hostname = gethostname();
-        } else {
-            $hostname = php_uname('n');
-        }
-        $this->hostname = $hostname;
+        $this->hostname = is_string($hostname) ? $hostname : 'localhost';
         $this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
     }
 
@@ -169,7 +174,7 @@ class Worker
      *
      * @param int $interval How often to check for new jobs across the queues.
      */
-    public function work($interval = 5)
+    public function work(int $interval = 5)
     {
         $this->updateProcLine('Starting');
         $this->startup();
@@ -180,33 +185,56 @@ class Worker
             }
 
             // Attempt to find and reserve a job
-            $job = false;
+            $job = null;
+
             if (!$this->paused) {
                 try {
                     $job = $this->reserve();
-                }
-                catch (RedisException $e) {
-                    $this->log(array('message' => 'Redis exception caught: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'time' => time())), self::LOG_TYPE_ALERT);
+                } catch (RedisException $e) {
+                    $this->log([
+                        'message' => 'Redis exception caught: ' . $e->getMessage(),
+                        'data' => [
+                            'type' => 'fail',
+                            'log' => $e->getMessage(),
+                            'time' => time()
+                        ]
+                    ], self::LOG_TYPE_ALERT);
                 }
             }
 
-            if (!$job) {
+            if (!isset($job)) {
                 // For an interval of 0, break now - helps with unit testing etc
                 if ($interval == 0) {
                     break;
                 }
+
                 // If no job was found, we sleep for $interval before continuing and checking again
-                $this->log(array('message' => 'Sleeping for ' . $interval, 'data' => array('type' => 'sleep', 'second' => $interval)), self::LOG_TYPE_DEBUG);
+                $this->log([
+                    'message' => 'Sleeping for ' . $interval,
+                    'data' => [
+                        'type' => 'sleep',
+                        'second' => $interval
+                    ]
+                ], self::LOG_TYPE_DEBUG);
+
                 if ($this->paused) {
                     $this->updateProcLine('Paused');
                 } else {
                     $this->updateProcLine('Waiting for ' . implode(',', $this->queues));
                 }
+
                 usleep($interval * 1000000);
                 continue;
             }
 
-            $this->log(array('message' => 'got ' . $job, 'data' => array('type' => 'got', 'args' => $job)), self::LOG_TYPE_INFO);
+            $this->log([
+                'message' => 'got ' . $job,
+                'data' => [
+                    'type' => 'got',
+                    'args' => $job
+                ]
+            ], self::LOG_TYPE_INFO);
+
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
 
@@ -215,25 +243,42 @@ class Worker
             $this->child = $this->fork();
 
             // Forked and we're the child. Run the job.
-            if ($this->child === 0 || $this->child === false) {
+            if ($this->child === 0) {
                 $status = 'Processing ID:' . $job->payload['id'] .  ' in ' . $job->queue;
                 $this->updateProcLine($status);
-                $this->log(array('message' => $status, 'data' => array('type' => 'process', 'worker' => $workerName, 'job_id' => $job->payload['id'])), self::LOG_TYPE_INFO);
+
+                $this->log([
+                    'message' => $status,
+                    'data' => [
+                        'type' => 'process',
+                        'worker' => $workerName,
+                        'job_id' => $job->payload['id']
+                    ]
+                ], self::LOG_TYPE_INFO);
+
                 $this->perform($job);
-                if ($this->child === 0) {
-                    exit(0);
-                }
+
+                exit(0);
             }
 
             if ($this->child > 0) {
                 // Parent process, sit and wait
                 $status = 'Forked ' . $this->child . ' for ID:' . $job->payload['id'];
                 $this->updateProcLine($status);
-                $this->log(array('message' => $status, 'data' => array('type' => 'fork', 'worker' => $workerName, 'job_id' => $job->payload['id'])), self::LOG_TYPE_DEBUG);
+
+                $this->log([
+                    'message' => $status,
+                    'data' => [
+                        'type' => 'fork',
+                        'worker' => $workerName,
+                        'job_id' => $job->payload['id']
+                    ]
+                ], self::LOG_TYPE_DEBUG);
 
                 // Wait until the child process finishes before continuing
                 pcntl_wait($status);
                 $exitStatus = pcntl_wexitstatus($status);
+
                 if ($exitStatus !== 0) {
                     $job->fail(new DirtyExitException('Job exited with exit code ' . $exitStatus));
                 }
@@ -254,13 +299,32 @@ class Worker
     public function perform(Job $job)
     {
         $startTime = microtime(true);
+
         try {
             Event::trigger('afterFork', $job);
             $job->perform();
-            $this->log(array('message' => 'done ID:' . $job->payload['id'], 'data' => array('type' => 'done', 'job_id' => $job->payload['id'], 'time' => round(microtime(true) - $startTime, 3) * 1000)), self::LOG_TYPE_INFO);
+
+            $this->log([
+                'message' => 'done ID:' . $job->payload['id'],
+                'data' => [
+                    'type' => 'done',
+                    'job_id' => $job->payload['id'],
+                    'time' => round(microtime(true) - $startTime, 3) * 1000
+                ]
+            ], self::LOG_TYPE_INFO);
         } catch (Exception $e) {
-            $this->log(array('message' => $job . ' failed: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'job_id' => $job->payload['id'], 'time' => round(microtime(true) - $startTime, 3) * 1000)), self::LOG_TYPE_ERROR);
+            $this->log([
+                'message' => $job . ' failed: ' . $e->getMessage(),
+                'data' => [
+                    'type' => 'fail',
+                    'log' => $e->getMessage(),
+                    'job_id' => $job->payload['id'],
+                    'time' => round(microtime(true) - $startTime, 3) * 1000
+                ]
+            ], self::LOG_TYPE_ERROR);
+
             $job->fail($e);
+
             return;
         }
 
@@ -270,24 +334,41 @@ class Worker
     /**
      * Attempt to find a job from the top of one of the queues for this worker.
      *
-     * @return object|boolean Instance of Resque\Job if a job is found, false if not.
+     * @return Job Instance of Resque\Job if a job is found, null if not.
      */
-    public function reserve()
+    public function reserve() : ?Job
     {
         $queues = $this->queues();
+
         if (!is_array($queues)) {
-            return;
+            return null;
         }
+
         foreach ($queues as $queue) {
-            $this->log(array('message' => 'Checking ' . $queue, 'data' => array('type' => 'check', 'queue' => $queue)), self::LOG_TYPE_DEBUG);
+            $this->log([
+                'message' => 'Checking ' . $queue,
+                'data' => [
+                    'type' => 'check',
+                    'queue' => $queue
+                ]
+            ], self::LOG_TYPE_DEBUG);
+
             $job = Job::reserve($queue);
+
             if ($job) {
-                $this->log(array('message' => 'Found job on ' . $queue, 'data' => array('type' => 'found', 'queue' => $queue)), self::LOG_TYPE_DEBUG);
+                $this->log([
+                    'message' => 'Found job on ' . $queue,
+                    'data' => [
+                        'type' => 'found',
+                        'queue' => $queue
+                    ]
+                ], self::LOG_TYPE_DEBUG);
+
                 return $job;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -314,18 +395,15 @@ class Worker
 
     /**
      * Attempt to fork a child process from the parent to run a job in.
-     *
      * Return values are those of pcntl_fork().
      *
-     * @return int -1 if the fork failed, 0 for the forked child, the PID of the child for the parent.
+     * @return int -1 if the fork failed, 0 for the forked child, the PID of
+     *      the child for the parent.
      */
-    protected function fork()
+    protected function fork() : int
     {
-        if (!function_exists('pcntl_fork')) {
-            return false;
-        }
-
         $pid = pcntl_fork();
+
         if ($pid === -1) {
             throw new RuntimeException('Unable to fork child worker.');
         }
@@ -338,7 +416,13 @@ class Worker
      */
     protected function startup()
     {
-        $this->log(array('message' => 'Starting worker ' . $this, 'data' => array('type' => 'start', 'worker' => (string) $this)), self::LOG_TYPE_INFO);
+        $this->log([
+            'message' => 'Starting worker ' . $this,
+            'data' => [
+                'type' => 'start',
+                'worker' => (string)$this
+            ]
+        ], self::LOG_TYPE_INFO);
 
         $this->registerSigHandlers();
         $this->pruneDeadWorkers();
@@ -353,7 +437,7 @@ class Worker
      *
      * @param string $status The updated process title.
      */
-    protected function updateProcLine($status)
+    protected function updateProcLine(string $status)
     {
         cli_set_process_title('resque-' . Resque::VERSION . ': ' . $status);
     }
@@ -368,20 +452,22 @@ class Worker
      */
     protected function registerSigHandlers()
     {
-        if (!function_exists('pcntl_signal')) {
-            $this->log(array('message' => 'Signals handling is unsupported', 'data' => array('type' => 'signal')), self::LOG_TYPE_WARNING);
-            return;
-        }
-
         declare(ticks = 1);
-        pcntl_signal(SIGTERM, array($this, 'shutDownNow'));
-        pcntl_signal(SIGINT, array($this, 'shutDownNow'));
-        pcntl_signal(SIGQUIT, array($this, 'shutdown'));
-        pcntl_signal(SIGUSR1, array($this, 'killChild'));
-        pcntl_signal(SIGUSR2, array($this, 'pauseProcessing'));
-        pcntl_signal(SIGCONT, array($this, 'unPauseProcessing'));
-        pcntl_signal(SIGPIPE, array($this, 'reestablishRedisConnection'));
-        $this->log(array('message' => 'Registered signals', 'data' => array('type' => 'signal')), self::LOG_TYPE_DEBUG);
+
+        pcntl_signal(SIGTERM, [$this, 'shutDownNow']);
+        pcntl_signal(SIGINT, [$this, 'shutDownNow']);
+        pcntl_signal(SIGQUIT, [$this, 'shutdown']);
+        pcntl_signal(SIGUSR1, [$this, 'killChild']);
+        pcntl_signal(SIGUSR2, [$this, 'pauseProcessing']);
+        pcntl_signal(SIGCONT, [$this, 'unPauseProcessing']);
+        pcntl_signal(SIGPIPE, [$this, 'reestablishRedisConnection']);
+
+        $this->log([
+            'message' => 'Registered signals',
+            'data' => [
+                'type' => 'signal'
+            ]
+        ], self::LOG_TYPE_DEBUG);
     }
 
     /**
@@ -389,7 +475,13 @@ class Worker
      */
     public function pauseProcessing()
     {
-        $this->log(array('message' => 'USR2 received; pausing job processing', 'data' => array('type' => 'pause')), self::LOG_TYPE_INFO);
+        $this->log([
+            'message' => 'USR2 received; pausing job processing',
+            'data' => [
+                'type' => 'pause'
+            ]
+        ], self::LOG_TYPE_INFO);
+
         $this->paused = true;
     }
 
@@ -399,7 +491,13 @@ class Worker
      */
     public function unPauseProcessing()
     {
-        $this->log(array('message' => 'CONT received; resuming job processing', 'data' => array('type' => 'resume')), self::LOG_TYPE_INFO);
+        $this->log([
+            'message' => 'CONT received; resuming job processing',
+            'data' => [
+                'type' => 'resume'
+            ]
+        ], self::LOG_TYPE_INFO);
+
         $this->paused = false;
     }
 
@@ -409,8 +507,14 @@ class Worker
      */
     public function reestablishRedisConnection()
     {
-        $this->log(array('message' => 'SIGPIPE received; attempting to reconnect', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
-        Resque::redis()->establishConnection();
+        $this->log([
+            'message' => 'SIGPIPE received; attempting to reconnect',
+            'data' => [
+                'type' => 'reconnect'
+            ]
+        ], self::LOG_TYPE_INFO);
+
+        Resque::redis()->connect();
     }
 
     /**
@@ -420,7 +524,13 @@ class Worker
     public function shutdown()
     {
         $this->shutdown = true;
-        $this->log(array('message' => 'Exiting...', 'data' => array('type' => 'shutdown')), self::LOG_TYPE_INFO);
+
+        $this->log([
+            'message' => 'Exiting...',
+            'data' => [
+                'type' => 'shutdown'
+            ]
+        ], self::LOG_TYPE_INFO);
     }
 
     /**
@@ -440,17 +550,45 @@ class Worker
     public function killChild()
     {
         if (!$this->child) {
-            $this->log(array('message' => 'No child to kill.', 'data' => array('type' => 'kill', 'child' => null)), self::LOG_TYPE_DEBUG);
+            $this->log([
+                'message' => 'No child to kill.',
+                'data' => [
+                    'type' => 'kill',
+                    'child' => null
+                ]
+            ], self::LOG_TYPE_DEBUG);
+
             return;
         }
 
-        $this->log(array('message' => 'Killing child at ' . $this->child, 'data' => array('type' => 'kill', 'child' => $this->child)), self::LOG_TYPE_DEBUG);
+        $this->log([
+            'message' => 'Killing child at ' . $this->child,
+            'data' => [
+                'type' => 'kill',
+                'child' => $this->child
+            ]
+        ], self::LOG_TYPE_DEBUG);
+
         if (exec('ps -o pid,state -p ' . $this->child, $output, $returnCode) && $returnCode != 1) {
-            $this->log(array('message' => 'Killing child at ' . $this->child, 'data' => array('type' => 'kill', 'child' => $this->child)), self::LOG_TYPE_DEBUG);
+            $this->log([
+                'message' => 'Killing child at ' . $this->child,
+                'data' => [
+                    'type' => 'kill',
+                    'child' => $this->child
+                ]
+            ], self::LOG_TYPE_DEBUG);
+
             posix_kill($this->child, SIGKILL);
             $this->child = null;
         } else {
-            $this->log(array('message' => 'Child ' . $this->child . ' not found, restarting.', 'data' => array('type' => 'kill', 'child' => $this->child)), self::LOG_TYPE_ERROR);
+            $this->log([
+                'message' => 'Child ' . $this->child . ' not found, restarting.',
+                'data' => [
+                    'type' => 'kill',
+                    'child' => $this->child
+                ]
+            ], self::LOG_TYPE_ERROR);
+
             $this->shutdown();
         }
     }
@@ -467,13 +605,22 @@ class Worker
     {
         $workerPids = $this->workerPids();
         $workers = self::all();
+
         foreach ($workers as $worker) {
             if (is_object($worker)) {
                 list($host, $pid, $queues) = explode(':', (string)$worker, 3);
+
                 if ($host != $this->hostname || in_array($pid, $workerPids) || $pid == getmypid()) {
                     continue;
                 }
-                $this->log(array('message' => 'Pruning dead worker: ' . (string)$worker, 'data' => array('type' => 'prune')), self::LOG_TYPE_DEBUG);
+
+                $this->log([
+                    'message' => 'Pruning dead worker: ' . (string)$worker,
+                    'data' => [
+                        'type' => 'prune'
+                    ]
+                ], self::LOG_TYPE_DEBUG);
+
                 $worker->unregisterWorker();
             }
         }
@@ -487,11 +634,13 @@ class Worker
      */
     public function workerPids()
     {
-        $pids = array();
+        $pids = [];
         exec('ps -A -o pid,comm | grep [r]esque', $cmdOutput);
+
         foreach ($cmdOutput as $line) {
             list($pids[]) = explode(' ', trim($line), 2);
         }
+
         return $pids;
     }
 
@@ -525,21 +674,22 @@ class Worker
     /**
      * Tell Redis which job we're currently working on.
      *
-     * @param object $job Resque\Job instance containing the job we're working on.
+     * @param Job $job Resque\Job instance containing the job we're working on.
      */
     public function workingOn(Job $job)
     {
         $job->worker = $this;
         $this->currentJob = $job;
         $job->updateStatus(Status::STATUS_RUNNING);
-        $data = json_encode(
-            array(
-                'queue' => $job->queue,
-                'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
-                'payload' => $job->payload
-            )
-        );
-        Resque::redis()->set('worker:' . $job->worker, $data);
+        $json = json_encode([
+            'queue' => $job->queue,
+            'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
+            'payload' => $job->payload
+        ]);
+
+        if ($json !== false) {
+            Resque::redis()->set('worker:' . $job->worker, $json);
+        }
     }
 
     /**
@@ -567,8 +717,9 @@ class Worker
     /**
      * Output a given log message to STDOUT.
      *
-     * @param string $message Message to output.
-     * @return  boolean True if the message is logged
+     * @param mixed[] $message Message to output.
+     * @param int $code A log type code.
+     * @return bool True if the message is logged
      */
     public function log($message, $code = self::LOG_TYPE_INFO)
     {
@@ -586,7 +737,7 @@ class Worker
             }
             return true;
         } else {*/
-        $extra = array();
+        $extra = [];
 
         if (is_array($message)) {
             $extra = $message['data'];
@@ -644,7 +795,11 @@ class Worker
     public function registerLogger($logger = null)
     {
         $this->logger = $logger->getInstance();
-        Resque::redis()->hset('workerLogger', (string)$this, json_encode(array($logger->handler, $logger->target)));
+        $json = json_encode([$logger->handler, $logger->target]);
+
+        if ($json !== false) {
+            Resque::redis()->hset('workerLogger', (string)$this, $json);
+        }
     }
 
     public function getLogger($workerId)
@@ -657,13 +812,14 @@ class Worker
     /**
      * Return an object describing the job this worker is currently working on.
      *
-     * @return object Object with details of current job.
+     * @return mixed[] Object with details of current job.
      */
-    public function job()
+    public function job() : array
     {
         $job = Resque::redis()->get('worker:' . $this);
+
         if (!$job) {
-            return array();
+            return [];
         } else {
             return json_decode($job, true);
         }
@@ -675,7 +831,7 @@ class Worker
      * @param string $stat Statistic to fetch.
      * @return int Statistic value.
      */
-    public function getStat($stat)
+    public function getStat(string $stat) : int
     {
         return Stat::get($stat . ':' . $this);
     }

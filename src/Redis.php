@@ -11,12 +11,40 @@ use \Predis\PredisException;
  * @package Resque/Redis
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
+ *
+ * @method void connect()
+ * @method int decrby(string $key, int $decrement)
+ * @method int del(string $key)
+ * @method int exists(string $key)
+ * @method int expire(string $key, int $seconds)
+ * @method string get(string $key)
+ * @method int hdel(string $key, string $field)
+ * @method string hget(string $key, string $field)
+ * @method int hset(string $key, string $field, string $value)
+ * @method int incrby(string $key, int $increment)
+ * @method string[] keys(string $pattern)
+ * @method int llen(string $key)
+ * @method string lpop(string $key)
+ * @method int lrem(string $key, int $count, string $value)
+ * @method string rpop(string $key)
+ * @method string rpoplpush(string $source, string $destination)
+ * @method int rpush(string $key, string $value)
+ * @method int set(string $key, string $value)
+ * @method int sadd($key, string $member)
+ * @method mixed select(int $database)
+ * @method int setex(string $key, int $seconds, string $value)
+ * @method int sismember(string $key, string $member)
+ * @method string[] smembers(string $key)
+ * @method int srem(string $key, string $member)
+ * @method int zadd(string $key, array $membersAndScoresDictionary)
+ * @method int zcard(string $key)
+ * @method int zrem(string $key, string $member)
+ * @method string[] zrangebyscore(string $key, string|int $min, string|int $max, mixed[] $options = null)
  */
 class Redis
 {
     /**
-     * Redis namespace
-     * @var string
+     * @var string Redis namespace.
      */
     private static $defaultNamespace = 'resque:';
 
@@ -36,10 +64,10 @@ class Redis
     const DEFAULT_DATABASE = 0;
 
     /**
-     * @var array List of all commands in Redis that supply a key as their
+     * @var string[] List of all commands in Redis that supply a key as their
      *    first argument. Used to prefix keys with the Resque namespace.
      */
-    private $keyCommands = array(
+    private $keyCommands = [
         'exists',
         'del',
         'type',
@@ -87,8 +115,8 @@ class Redis
         'rpoplpush',
         'hget',
         'hset',
-        'hdel'
-    );
+        'hdel',
+    ];
     // sinterstore
     // sunion
     // sunionstore
@@ -102,19 +130,21 @@ class Redis
     // renamenx
 
     /**
-     * @var object The underlying Redis driver.
+     * @var Client The underlying Redis driver.
      */
     private $driver = null;
 
     /**
-     * Set Redis namespace (prefix) default: resque
-     * @param string $namespace
+     * Set Redis namespace (prefix) default: resque.
+     *
+     * @param string $namespace The prefix to use.
      */
-    public static function prefix($namespace)
+    public static function prefix(string $namespace)
     {
         if (substr($namespace, -1) !== ':' && $namespace != '') {
             $namespace .= ':';
         }
+
         self::$defaultNamespace = $namespace;
     }
 
@@ -124,17 +154,17 @@ class Redis
      *      pass those separately to the Predis\Client constructor
      * @param int $database A database number to select.
      */
-    public function __construct($server, $database = null)
+    public function __construct($server, int $database = null)
     {
         try {
             if (is_callable($server)) {
                 $this->driver = call_user_func($server, $database);
-            } else if (isset($server) && is_array($server)
+            } else if (is_array($server)
                     && array_key_exists('parameters', $server)
                     && array_key_exists('options', $server)) {
                 $this->driver = new Client($server['parameters'],
                     $server['options']);
-            } else if (isset($server) && is_string($server)
+            } else if (is_string($server)
                     && (strpos($server, ',') > 0)) {
                 $this->driver = new Client(explode(',', $server));
             } else {
@@ -144,8 +174,7 @@ class Redis
             if (isset($database)) {
                 $this->driver->select($database);
             }
-        }
-        catch (PredisException $e) {
+        } catch (PredisException $e) {
             throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
     }
@@ -156,7 +185,7 @@ class Redis
      *
      * @param string $name The name of the method called.
      * @param array $args Array of supplied arguments to the method.
-     * @return mixed Return value from Resident::call() based on the command.
+     * @return mixed Return value from Client->__call() based on the command.
      */
     public function __call($name, $args)
     {
@@ -172,24 +201,35 @@ class Redis
         }
         try {
             return $this->driver->__call($name, $args);
-        }
-        catch (PredisException $e) {
+        } catch (PredisException $e) {
             throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
         }
     }
 
-    public static function getPrefix()
+    /**
+     * Fetch the prefix/namespace.
+     *
+     * @return string The prefix.
+     */
+    public static function getPrefix() : string
     {
         return self::$defaultNamespace;
     }
 
-    public static function removePrefix($string)
+    /**
+     * Remove the current prefix from a string.
+     *
+     * @param string $string A string.
+     * @return string The string with the prefix removed.
+     */
+    public static function removePrefix(string $string) : string
     {
-        $prefix=self::getPrefix();
+        $prefix = self::getPrefix();
 
         if (substr($string, 0, strlen($prefix)) == $prefix) {
-            $string = substr($string, strlen($prefix), strlen($string) );
+            $string = substr($string, strlen($prefix), strlen($string));
         }
+
         return $string;
     }
 }

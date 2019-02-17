@@ -2,6 +2,9 @@
 
 namespace Resque\Failure;
 
+use \Exception;
+use \Resque\Worker;
+
 /**
  * Interface that all failure backends should implement.
  *
@@ -14,17 +17,24 @@ interface Backend
     /**
      * Initialize a failed job class and save it (where appropriate).
      *
-     * @param object $payload Object containing details of the failed job.
-     * @param object $exception Instance of the exception that was thrown by the failed job.
-     * @param object $worker Instance of Resque\Worker that received the job.
+     * @param mixed[] $payload Object containing details of the failed job.
+     * @param Exception $exception Instance of the exception that was thrown by
+     *      the failed job.
+     * @param Worker $worker Instance of Resque\Worker that received the job.
      * @param string $queue The name of the queue the job was fetched from.
      */
-    public function __construct($payload, $exception, $worker, $queue);
+    public function __construct(
+        array $payload,
+        Exception $exception,
+        Worker $worker,
+        string $queue
+    );
 
     /**
-     * Return details about a failed jobs
-     * @param  string   job Id
-     * @return object   Object containing details of the failed job.
+     * Return details about a failed job.
+     *
+     * @param string $jobId A Job ID.
+     * @return mixed[] Array containing details of the failed job.
      */
-    static public function get($jobId);
+    static public function get(string $jobId) : array;
 }
