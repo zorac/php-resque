@@ -22,7 +22,7 @@ class Job
     public $queue;
 
     /**
-     * @var Worker|null Instance of the Resque worker running this job.
+     * @var Worker Instance of the Resque worker running this job.
      */
     public $worker;
 
@@ -56,8 +56,8 @@ class Job
      *      execute the job.
      * @param mixed[] $args Any optional arguments that should be passed when
      *      the job is executed.
-     * @param boolean $monitor Set to true to be able to monitor the status of
-     *      a job.
+     * @param bool $monitor Set to true to be able to monitor the status of the
+     *      job.
      * @return string The job ID.
      */
     public static function create(
@@ -174,7 +174,8 @@ class Job
         }
 
         if (class_exists('Resque_Job_Creator')) {
-            $this->instance = Resque_Job_Creator::createJob($this->payload['class'], $this->getArguments());
+            $this->instance = Resque_Job_Creator::createJob(
+                $this->payload['class'], $this->getArguments());
         } else {
             if (!class_exists($this->payload['class'])) {
                 throw new ResqueException(
@@ -184,7 +185,8 @@ class Job
 
             if (!method_exists($this->payload['class'], 'perform')) {
                 throw new ResqueException(
-                    'Job class ' . $this->payload['class'] . ' does not contain a perform method.'
+                    'Job class ' . $this->payload['class']
+                        . ' does not contain a perform method.'
                 );
             }
             $this->instance = new $this->payload['class']();
@@ -271,7 +273,8 @@ class Job
             $monitor = true;
         }
 
-        return self::create($this->queue, $this->payload['class'], $this->payload['args'], $monitor);
+        return self::create($this->queue, $this->payload['class'],
+            $this->payload['args'], $monitor);
     }
 
     /**
@@ -281,11 +284,13 @@ class Job
      */
     public function __toString()
     {
-        return json_encode([
+        $json = json_encode([
             'queue' => $this->queue,
             'id'    => !empty($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
             'args'  => !empty($this->payload['args']) ? $this->payload['args'] : ''
         ]);
+
+        return is_string($json) ? $json : '';
     }
 }

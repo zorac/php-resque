@@ -1,3 +1,13 @@
+## 2.0.1 (2019-02-18)
+
+* Cleanup and fixes from static analysis checks
+
+## 2.0.0 (2019-01-31)
+
+* Use Predis for tha back-end Redis connections
+* Migrate to fully-namespaced classes
+* Assorted cleanup and fixes
+
 ## 1.3.0 (2014-01-28)
 
 * Fix #8: Performing a DB select when the DB is set to default '0' is not necessary and breaks Twemproxy

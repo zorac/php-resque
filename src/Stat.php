@@ -12,7 +12,8 @@ namespace Resque;
 class Stat
 {
     /**
-     * Get the value of the supplied statistic counter for the specified statistic.
+     * Get the value of the supplied statistic counter for the specified
+     * statistic.
      *
      * @param string $stat The name of the statistic to get the stats for.
      * @return int Value of the statistic.
@@ -23,11 +24,12 @@ class Stat
     }
 
     /**
-     * Increment the value of the specified statistic by a certain amount (default is 1)
+     * Increment the value of the specified statistic by a certain amount
+     * (default is 1)
      *
      * @param string $stat The name of the statistic to increment.
      * @param int $by The amount to increment the statistic by.
-     * @return boolean True if successful, false if not.
+     * @return bool True if successful, false if not.
      */
     public static function incr(string $stat, int $by = 1) : bool
     {
@@ -35,11 +37,12 @@ class Stat
     }
 
     /**
-     * Decrement the value of the specified statistic by a certain amount (default is 1)
+     * Decrement the value of the specified statistic by a certain amount
+     * (default is 1)
      *
      * @param string $stat The name of the statistic to decrement.
      * @param int $by The amount to decrement the statistic by.
-     * @return boolean True if successful, false if not.
+     * @return bool True if successful, false if not.
      */
     public static function decr(string $stat, int $by = 1) : bool
     {
@@ -50,7 +53,7 @@ class Stat
      * Delete a statistic with the given name.
      *
      * @param string $stat The name of the statistic to delete.
-     * @return boolean True if successful, false if not.
+     * @return bool True if successful, false if not.
      */
     public static function clear(string $stat) : bool
     {

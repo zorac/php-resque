@@ -14,7 +14,8 @@ use \Exception;
 class Failure
 {
     /**
-     * @var string Class name representing the backend to pass failed jobs off to.
+     * @var string Class name representing the backend to pass failed jobs off
+     *      to.
      */
     private static $backend;
 
@@ -22,9 +23,12 @@ class Failure
      * Create a new failed job on the backend.
      *
      * @param mixed[] $payload The contents of the job that has just failed.
-     * @param Exception $exception The exception generated when the job failed to run.
-     * @param Worker $worker Instance of Resque\Worker that was running this job when it failed.
-     * @param string $queue The name of the queue that this job was fetched from.
+     * @param Exception $exception The exception generated when the job failed
+     *      to run.
+     * @param Worker $worker Instance of Resque\Worker that was running this
+     *      job when it failed.
+     * @param string $queue The name of the queue that this job was fetched
+     *      from.
      */
     public static function create(
         array $payload,

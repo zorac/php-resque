@@ -175,7 +175,8 @@ class Redis
                 $this->driver->select($database);
             }
         } catch (PredisException $e) {
-            throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
+            throw new RedisException('Error communicating with Redis: '
+                . $e->getMessage(), 0, $e);
         }
     }
 
@@ -202,7 +203,8 @@ class Redis
         try {
             return $this->driver->__call($name, $args);
         } catch (PredisException $e) {
-            throw new RedisException('Error communicating with Redis: ' . $e->getMessage(), 0, $e);
+            throw new RedisException('Error communicating with Redis: '
+                . $e->getMessage(), 0, $e);
         }
     }
 

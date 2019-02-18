@@ -11,7 +11,7 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '2.0.0';
+    const VERSION = '2.0.1';
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to redis.
@@ -239,14 +239,16 @@ class Resque
         $finished = false;
 
         while (!$finished) {
-            $string = self::redis()->rpoplpush($originalQueue, self::redis()->getPrefix() . $tempQueue);
+            $string = self::redis()->rpoplpush($originalQueue,
+                self::redis()->getPrefix() . $tempQueue);
 
             if (!empty($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
-                    self::redis()->rpoplpush($tempQueue, self::redis()->getPrefix() . $requeueQueue);
+                    self::redis()->rpoplpush($tempQueue,
+                        self::redis()->getPrefix() . $requeueQueue);
                 }
             } else {
                 $finished = true;
@@ -257,7 +259,8 @@ class Resque
         $finished = false;
 
         while (!$finished) {
-            $string = self::redis()->rpoplpush($requeueQueue, self::redis()->getPrefix() . $originalQueue);
+            $string = self::redis()->rpoplpush($requeueQueue,
+                self::redis()->getPrefix() . $originalQueue);
 
             if (empty($string)) {
                 $finished = true;
@@ -293,7 +296,8 @@ class Resque
             } elseif (is_array($val)) {
                 $decodedArgs = (array)$decoded['args'][0];
                 if ($decoded['class'] == $key &&
-                    count($decodedArgs) > 0 && count(array_diff($decodedArgs, $val)) == 0
+                    count($decodedArgs) > 0 && count(array_diff($decodedArgs,
+                        $val)) == 0
                 ) {
                     return true;
                 }

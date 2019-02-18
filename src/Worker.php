@@ -4,6 +4,7 @@ namespace Resque;
 
 use \Exception;
 use \MonologInit\MonologInit;
+use \Monolog\Logger;
 use \Resque\Job\DirtyExitException;
 use \Resque\Job\Status;
 use \RuntimeException;
@@ -378,8 +379,8 @@ class Worker
      * If * is found in the list of queues, every queue will be searched in
      * alphabetic order. (@see $fetch)
      *
-     * @param boolean $fetch If true, and the queue is set to *, will fetch
-     * all queue names from redis.
+     * @param bool $fetch If true, and the queue is set to *, will fetch all
+     *      queue names from redis.
      * @return array Array of associated queues.
      */
     public function queues($fetch = true)
@@ -748,7 +749,7 @@ class Worker
             if ($this->child > 0) {
                 $extra['worker'] = $this->hostname . ':' . getmypid();
             } else {
-                list($host, $pid, $queues) = explode(':', (string) $this, 3);
+                list($host, $pid, $queues) = explode(':', (string)$this, 3);
                 $extra['worker'] = $host . ':' . $pid;
             }
         }
@@ -775,9 +776,6 @@ class Worker
                         $this->logger->addAlert($message, $extra);
                 }
             }
-
-
-
         } else if ($code === self::LOG_TYPE_DEBUG && $this->logLevel === self::LOG_VERBOSE) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
@@ -788,11 +786,16 @@ class Worker
             return false;
         }
 
-         return true;
+        return true;
         //}
     }
 
-    public function registerLogger($logger = null)
+    /**
+     * Register a logger for this worker.
+     *
+     * @param MonologInit $logger A logger.
+     */
+    public function registerLogger(MonologInit $logger)
     {
         $this->logger = $logger->getInstance();
         $json = json_encode([$logger->handler, $logger->target]);
@@ -802,9 +805,16 @@ class Worker
         }
     }
 
-    public function getLogger($workerId)
+    /**
+     * Fetch the logger for a given worker.
+     *
+     * @param string $workerId A worker ID.
+     * @return Logger The logger, or null for internal logging.
+     */
+    public function getLogger(string $workerId) : ?Logger
     {
-        $settings = json_decode(Resque::redis()->hget('workerLogger', (string)$workerId));
+        $settings = json_decode(Resque::redis()->hget('workerLogger',
+            $workerId));
         $logger = new MonologInit($settings[0], $settings[1]);
         return $logger->getInstance();
     }

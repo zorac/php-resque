@@ -1,12 +1,12 @@
 #!/usr/bin/env php
 <?php
 // Find and initialize Composer
-$files = array(
+$files = [
     __DIR__ . '/../../vendor/autoload.php',
     __DIR__ . '/../../../autoload.php',
     __DIR__ . '/../../../../autoload.php',
     __DIR__ . '/../vendor/autoload.php',
-);
+];
 
 foreach ($files as $file) {
     if (file_exists($file)) {
@@ -47,7 +47,8 @@ $LOG_HANDLER_TARGET = getenv('LOGHANDLERTARGET');
 $logger = new MonologInit\MonologInit($LOG_HANDLER, $LOG_HANDLER_TARGET);
 
 if (!empty($REDIS_BACKEND)) {
-    Resque\Resque::setBackend($REDIS_BACKEND, $REDIS_DATABASE, $REDIS_NAMESPACE);
+    Resque\Resque::setBackend($REDIS_BACKEND, (int)$REDIS_DATABASE,
+        $REDIS_NAMESPACE);
 }
 
 $logLevel = Resque\Worker::LOG_NONE;
@@ -112,5 +113,8 @@ function writePidFile($fullPath, $pid = null)
     if (is_null($pid)) {
         $pid = getmypid();
     }
-    file_put_contents($fullPath, $pid) or die('Could not write PID information to ' . $fullPath);
+
+    if (!file_put_contents($fullPath, $pid)) {
+        die('Could not write PID information to ' . $fullPath);
+    }
 }
