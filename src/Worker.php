@@ -148,7 +148,7 @@ class Worker
      * they should be checked for jobs (first come, first served)
      *
      * Passing a single '*' allows the worker to work on all queues in
-     * alphabetical order. You can easily add new queues dynamically and have
+     * a random order. You can easily add new queues dynamically and have
      * them worked on using this method.
      *
      * @param string|array $queues String with a single queue name, array with
@@ -377,7 +377,7 @@ class Worker
      * when searching for jobs.
      *
      * If * is found in the list of queues, every queue will be searched in
-     * alphabetic order. (@see $fetch)
+     * a random order. (@see $fetch)
      *
      * @param bool $fetch If true, and the queue is set to *, will fetch all
      *      queue names from redis.
@@ -390,7 +390,7 @@ class Worker
         }
 
         $queues = Resque::queues();
-        sort($queues);
+        shuffle($queues);
         return $queues;
     }
 
