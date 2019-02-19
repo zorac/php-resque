@@ -63,7 +63,7 @@ class Status
             'status' => $status,
             'updated' => time(),
             'started' => time(),
-        ]);
+        ], Resque::JSON_ENCODE);
 
         if ($json !== false) {
             Resque::redis()->set('job:' . $id . ':status', $json);
@@ -106,7 +106,7 @@ class Status
         $json = json_encode([
             'status' => $status,
             'updated' => time(),
-        ]);
+        ], Resque::JSON_ENCODE);
 
         if ($json !== false) {
             Resque::redis()->set((string)$this, $json);

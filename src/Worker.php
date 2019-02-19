@@ -686,7 +686,7 @@ class Worker
             'queue' => $job->queue,
             'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
             'payload' => $job->payload
-        ]);
+        ], Resque::JSON_ENCODE);
 
         if ($json !== false) {
             Resque::redis()->set('worker:' . $job->worker, $json);
@@ -798,7 +798,10 @@ class Worker
     public function registerLogger(MonologInit $logger)
     {
         $this->logger = $logger->getInstance();
-        $json = json_encode([$logger->handler, $logger->target]);
+        $json = json_encode([
+            $logger->handler,
+            $logger->target
+        ], Resque::JSON_ENCODE);
 
         if ($json !== false) {
             Resque::redis()->hset('workerLogger', (string)$this, $json);

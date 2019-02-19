@@ -11,7 +11,8 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '2.0.1';
+    const VERSION = '2.0.2';
+    const JSON_ENCODE = JSON_UNESCAPED_SLASHES; // TODO others?
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to redis.
@@ -104,7 +105,7 @@ class Resque
      */
     public static function push(string $queue, array $item)
     {
-        $json = json_encode($item);
+        $json = json_encode($item, self::JSON_ENCODE);
 
         if ($json !== false ) { // TODO or throw?
             self::redis()->sadd('queues', $queue);
