@@ -1,3 +1,8 @@
+## 2.1.0 (2019-02-19)
+
+* Process all queues in random order
+* Store errors in JSON
+
 ## 2.0.1 (2019-02-18)
 
 * Cleanup and fixes from static analysis checks

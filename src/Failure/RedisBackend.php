@@ -30,7 +30,7 @@ class RedisBackend implements Backend
         Worker $worker,
         string $queue
     ) {
-        $data = [
+        $json = json_encode([
             'failed_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
             'payload' => $payload,
             'exception' => get_class($exception),
@@ -38,10 +38,11 @@ class RedisBackend implements Backend
             'backtrace' => explode("\n", $exception->getTraceAsString()),
             'worker' => (string)$worker,
             'queue' => $queue,
-        ];
+        ], Resque::JSON_ENCODE);
 
-        Resque::redis()->setex('failed:' . $payload['id'], 3600 * 14,
-            serialize($data));
+        if ($json !== false) {
+            Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
+        }
     }
 
     /**
@@ -53,6 +54,6 @@ class RedisBackend implements Backend
     static public function get(string $jobId) : array
     {
         $data = Resque::redis()->get('failed:' . $jobId);
-        return unserialize($data);
+        return json_decode($data, true);
     }
 }

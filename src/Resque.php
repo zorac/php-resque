@@ -11,7 +11,7 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '2.0.2';
+    const VERSION = '2.1.0';
     const JSON_ENCODE = JSON_UNESCAPED_SLASHES; // TODO others?
 
     /**
