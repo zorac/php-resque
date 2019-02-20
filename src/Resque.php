@@ -11,7 +11,7 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '2.1.0';
+    const VERSION = '2.1.1';
     const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE; // TODO | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
     const JSON_DECODE_DEPTH = 512;
     const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY; // TODO | JSON_THROW_ON_ERROR
@@ -51,8 +51,8 @@ class Resque
      * @param string|array|callable $server Host/port combination separated by
      *      a colon, or a nested array of servers with host/port pairs, or a
      *      callable which returns a redis connection.
-     * @param int $database The Redis database to use
-     * @param string $namespace A namespace/prefix for Redis keys
+     * @param int $database The Redis database to use.
+     * @param string $namespace A namespace/prefix for Redis keys.
      */
     public static function setBackend(
         $server,
@@ -157,7 +157,7 @@ class Resque
     /**
      * Return the size (number of pending jobs) of the specified queue.
      *
-     * @param string $queue name of the queue to be checked for pending jobs
+     * @param string $queue name of the queue to be checked for pending jobs.
      * @return int The size of the queue.
      */
     public static function size(string $queue) : int
@@ -217,6 +217,7 @@ class Resque
     public static function queues()
     {
         $queues = self::redis()->smembers('queues');
+
         if (!is_array($queues)) {
             $queues = [];
         }
@@ -229,8 +230,6 @@ class Resque
      * Safely moving each item to a temporary queue before processing it
      * If the Job matches, counts otherwise puts it in a requeue_queue
      * which at the end eventually be copied back into the original queue
-     *
-     * @private
      *
      * @param string $queue The name of the queue
      * @param array $items

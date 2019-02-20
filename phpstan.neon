@@ -1,5 +1,5 @@
 parameters:
   ignoreErrors:
-    - '#Method Resque\\Worker::getLogger\(\) should return Monolog\\Logger\|null but returns MonologInit\\Monolog\\Logger#'
+    - '#MonologInit\\Monolog\\Logger#'
     - '#Call to static method createJob\(\) on an unknown class Resque\\Resque_Job_Creator#'
     - '#Call to an undefined method object::perform\(\)#'

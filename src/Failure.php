@@ -56,8 +56,8 @@ class Failure
 
     /**
      * Set the backend to use for raised job failures. The supplied backend
-     * should be the name of a class to be instantiated when a job fails.
-     * It is your responsibility to have the backend class loaded (or autoloaded)
+     * should be the name of a class to be instantiated when a job fails. It is
+     * your responsibility to have the backend class loaded (or autoloaded.)
      *
      * @param string $backend The class name of the backend to pipe failures to.
      */

@@ -79,7 +79,7 @@ class Job
             unset($args['id']);
             $new = false;
         } else {
-            $id = md5(uniqid('', true));
+            $id = Resque::generateJobId();
         }
 
         Resque::push($queue, [
@@ -112,11 +112,11 @@ class Job
     {
         $payload = Resque::pop($queue);
 
-        if (!is_array($payload)) {
+        if (empty($payload)) {
             return null;
+        } else {
+            return new Job($queue, $payload);
         }
-
-        return new Job($queue, $payload);
     }
 
     /**
@@ -129,10 +129,10 @@ class Job
     {
         if (empty($this->payload['id'])) {
             return;
+        } else {
+            $statusInstance = new Status($this->payload['id']);
+            $statusInstance->update($status);
         }
-
-        $statusInstance = new Status($this->payload['id']);
-        $statusInstance->update($status);
     }
 
     /**
@@ -155,11 +155,11 @@ class Job
      */
     public function getArguments() : array
     {
-        if (!isset($this->payload['args'])) {
+        if (empty($this->payload['args'])) {
             return [];
+        } else {
+            return $this->payload['args'][0];
         }
-
-        return $this->payload['args'][0];
     }
 
     /**
@@ -169,7 +169,7 @@ class Job
      */
     public function getInstance() : object
     {
-        if (!is_null($this->instance)) {
+        if (isset($this->instance)) {
             return $this->instance;
         }
 
@@ -291,6 +291,10 @@ class Job
             'args'  => !empty($this->payload['args']) ? $this->payload['args'] : ''
         ], Resque::JSON_ENCODE_OPTIONS);
 
-        return is_string($json) ? $json : '';
+        if ($json !== false) {
+            return $json;
+        } else {
+            return ''; // TODO really?
+        }
     }
 }

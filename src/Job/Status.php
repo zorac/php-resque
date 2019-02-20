@@ -24,9 +24,9 @@ class Status
     private $id;
 
     /**
-     * @var mixed Cache variable if the status of this job is being monitored
-     *      or not. True/false when checked at least once or null if not
-     *      checked yet.
+     * @var bool|null Cache variable if the status of this job is being
+     *      monitored or not. True/false when checked at least once or null if
+     *      not checked yet.
      */
     private $isTracking = null;
 

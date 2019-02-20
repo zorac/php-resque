@@ -72,6 +72,9 @@ class Worker
      */
     protected $child = null;
 
+    /**
+     * @var Logger|null A logger to use for this worker.
+     */
     protected $logger = null;
 
     /**

@@ -1,3 +1,7 @@
+## 2.1.1 (2019-02-20)
+
+* Minor fixes and cleanup
+
 ## 2.1.0 (2019-02-19)
 
 * Process all queues in random order
