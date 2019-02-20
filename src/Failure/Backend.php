@@ -34,7 +34,8 @@ interface Backend
      * Return details about a failed job.
      *
      * @param string $jobId A Job ID.
-     * @return mixed[] Array containing details of the failed job.
+     * @return mixed[] Array containing details of the failed job, or null if
+     *      not found.
      */
-    static public function get(string $jobId) : array;
+    static public function get(string $jobId) : ?array;
 }

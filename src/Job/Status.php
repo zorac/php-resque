@@ -63,7 +63,7 @@ class Status
             'status' => $status,
             'updated' => time(),
             'started' => time(),
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {
             Resque::redis()->set('job:' . $id . ':status', $json);
@@ -106,7 +106,7 @@ class Status
         $json = json_encode([
             'status' => $status,
             'updated' => time(),
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {
             Resque::redis()->set((string)$this, $json);
@@ -127,17 +127,20 @@ class Status
      */
     public function get()
     {
-        if (!$this->isTracking()) {
-            return false;
+        if ($this->isTracking()) {
+            $json = Resque::redis()->get((string)$this);
+
+            if (!empty($json)) {
+                $status = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
+                    Resque::JSON_DECODE_OPTIONS);
+
+                if (!empty($status)) {
+                    return $status['status'];
+                }
+            }
         }
 
-        $statusPacket = json_decode(Resque::redis()->get((string)$this), true);
-
-        if (!$statusPacket) {
-            return false;
-        }
-
-        return $statusPacket['status'];
+        return false;
     }
 
     /**

@@ -686,7 +686,7 @@ class Worker
             'queue' => $job->queue,
             'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
             'payload' => $job->payload
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {
             Resque::redis()->set('worker:' . $job->worker, $json);
@@ -798,10 +798,11 @@ class Worker
     public function registerLogger(MonologInit $logger)
     {
         $this->logger = $logger->getInstance();
+
         $json = json_encode([
             $logger->handler,
             $logger->target
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {
             Resque::redis()->hset('workerLogger', (string)$this, $json);
@@ -816,10 +817,20 @@ class Worker
      */
     public function getLogger(string $workerId) : ?Logger
     {
-        $settings = json_decode(Resque::redis()->hget('workerLogger',
-            $workerId));
-        $logger = new MonologInit($settings[0], $settings[1]);
-        return $logger->getInstance();
+        $json = Resque::redis()->hget('workerLogger', $workerId);
+
+        if (!empty($json)) {
+            $settings = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS);
+
+            if (!empty($settings)) {
+                $logger = new MonologInit($settings[0], $settings[1]);
+
+                return $logger->getInstance();
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -829,13 +840,18 @@ class Worker
      */
     public function job() : array
     {
-        $job = Resque::redis()->get('worker:' . $this);
+        $json = Resque::redis()->get('worker:' . $this);
 
-        if (!$job) {
-            return [];
-        } else {
-            return json_decode($job, true);
+        if (!empty($json)) {
+            $job = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS);
+
+            if (!empty($job)) {
+                return $job;
+            }
         }
+
+        return [];
     }
 
     /**

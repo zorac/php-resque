@@ -289,7 +289,7 @@ class Job
             'id'    => !empty($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
             'args'  => !empty($this->payload['args']) ? $this->payload['args'] : ''
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         return is_string($json) ? $json : '';
     }

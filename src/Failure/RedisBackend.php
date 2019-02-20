@@ -38,7 +38,7 @@ class RedisBackend implements Backend
             'backtrace' => explode("\n", $exception->getTraceAsString()),
             'worker' => (string)$worker,
             'queue' => $queue,
-        ], Resque::JSON_ENCODE);
+        ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {
             Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
@@ -49,11 +49,22 @@ class RedisBackend implements Backend
      * Return details about a failed job.
      *
      * @param string $jobId A Job ID.
-     * @return mixed[] Array containing details of the failed job.
+     * @return mixed[] Array containing details of the failed job, or null if
+     *      not found.
      */
-    static public function get(string $jobId) : array
+    static public function get(string $jobId) : ?array
     {
-        $data = Resque::redis()->get('failed:' . $jobId);
-        return json_decode($data, true);
+        $json = Resque::redis()->get('failed:' . $jobId);
+
+        if (!empty($json)) {
+            $failure = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS);
+
+            if (!empty($failure)) {
+                return $failure;
+            }
+        }
+
+        return null;
     }
 }

@@ -12,7 +12,9 @@ namespace Resque;
 class Resque
 {
     const VERSION = '2.1.0';
-    const JSON_ENCODE = JSON_UNESCAPED_SLASHES; // TODO others?
+    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE; // TODO | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
+    const JSON_DECODE_DEPTH = 512;
+    const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY; // TODO | JSON_THROW_ON_ERROR
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to redis.
@@ -105,7 +107,7 @@ class Resque
      */
     public static function push(string $queue, array $item)
     {
-        $json = json_encode($item, self::JSON_ENCODE);
+        $json = json_encode($item, self::JSON_ENCODE_OPTIONS);
 
         if ($json !== false ) { // TODO or throw?
             self::redis()->sadd('queues', $queue);
@@ -122,13 +124,18 @@ class Resque
      */
     public static function pop(string $queue) : ?array
     {
-        $item = self::redis()->lpop('queue:' . $queue);
+        $json = self::redis()->lpop('queue:' . $queue);
 
-        if (!$item) {
-            return null;
+        if (!empty($json)) {
+            $item = json_decode($json, true, self::JSON_DECODE_DEPTH,
+                self::JSON_DECODE_OPTIONS);
+
+            if (!empty($item)) {
+                return $item;
+            }
         }
 
-        return json_decode($item, true);
+        return null;
     }
 
     /**
@@ -285,7 +292,8 @@ class Resque
      */
     private static function matchItem(string $string, array $items) : bool
     {
-        $decoded = json_decode($string, true);
+        $decoded = json_decode($string, true, self::JSON_DECODE_DEPTH,
+            self::JSON_DECODE_OPTIONS); // TODO how to handle failure
 
         foreach ($items as $key => $val) {
             # class name only  ex: item[0] = ['class']
