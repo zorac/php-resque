@@ -13,9 +13,24 @@ use \Resque\Resque;
  */
 class Status
 {
+    /**
+     * @var int The status code for a job which is waiting to be started.`
+     */
     const STATUS_WAITING = 1;
+
+    /**
+     * @var int The status code for a job which is currently running.
+     */
     const STATUS_RUNNING = 2;
+
+    /**
+     * @var int The status code for a job which failed.
+     */
     const STATUS_FAILED = 3;
+
+    /**
+     * @var int The status code for a job which successfully completed.
+     */
     const STATUS_COMPLETE = 4;
 
     /**

@@ -11,10 +11,27 @@ namespace Resque;
  */
 class Resque
 {
-    const VERSION = '2.1.1';
-    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE; // TODO | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
+    /**
+     * @var string Current version of php-resque.
+     */
+    const VERSION = '2.2.0';
+
+    /**
+     * @var int Options to pass to json_encode.
+     */
+    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+    // TODO | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
+
+    /**
+     * @var int Depth to pass to json_decode.
+     */
     const JSON_DECODE_DEPTH = 512;
-    const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY; // TODO | JSON_THROW_ON_ERROR
+
+    /**
+     * @var int Options to pass to json_decode.
+     */
+    const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY;
+    // TODO | JSON_THROW_ON_ERROR
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to redis.

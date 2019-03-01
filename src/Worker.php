@@ -19,17 +19,54 @@ use \RuntimeException;
  */
 class Worker
 {
+    /**
+     * @var int Log level for no logging.
+     */
     const LOG_NONE = 0;
+
+    /**
+     * @var int Log level for normal logging.
+     */
     const LOG_NORMAL = 1;
+
+    /**
+     * @var int Log level for verbose logging.
+     */
     const LOG_VERBOSE = 2;
 
+    /**
+     * @var int Log type for a debug message.
+     */
     const LOG_TYPE_DEBUG = 100;
+
+    /**
+     * @var int Log type for an informational message.
+     */
     const LOG_TYPE_INFO = 200;
+
+    /**
+     * @var int Log type for a warning message.
+     */
     const LOG_TYPE_WARNING = 300;
+
+    /**
+     * @var int Log type for an error message.
+     */
     const LOG_TYPE_ERROR = 400;
+
+    /**
+     * @var int Log type for a critical error message.
+     */
     const LOG_TYPE_CRITICAL = 500;
+
+    /**
+     * @var int Log type for an alert message.
+     */
     const LOG_TYPE_ALERT = 550;
 
+    /**
+     * @var resource The handle to write logs to.
+     */
     public $logOutput = STDOUT;
 
     /**

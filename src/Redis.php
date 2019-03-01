@@ -49,17 +49,17 @@ class Redis
     private static $defaultNamespace = 'resque:';
 
     /**
-     * A default host to connect to
+     * @var string A default host to connect to
      */
     const DEFAULT_HOST = 'localhost';
 
     /**
-     * The default Redis port
+     * @var int The default Redis port
      */
     const DEFAULT_PORT = 6379;
 
     /**
-     * The default Redis Database number
+     * @var int The default Redis Database number
      */
     const DEFAULT_DATABASE = 0;
 

@@ -1,3 +1,8 @@
+## 2.2.0 (2019-03-01)
+
+* Allow specifying the hostname and PID for workers
+* Store failure timestamps in a more useful format
+
 ## 2.1.1 (2019-02-20)
 
 * Minor fixes and cleanup
