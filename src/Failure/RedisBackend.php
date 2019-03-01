@@ -31,7 +31,7 @@ class RedisBackend implements Backend
         string $queue
     ) {
         $json = json_encode([
-            'failed_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
+            'failed_at' => strftime('%F %T'),
             'payload' => $payload,
             'exception' => get_class($exception),
             'error' => $exception->getMessage(),
