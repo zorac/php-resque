@@ -129,8 +129,7 @@ class Worker
 
         list($hostname, $pid, $queues) = explode(':', $workerId, 3);
         $queues = explode(',', $queues);
-        $worker = new self($queues);
-        $worker->setId($workerId);
+        $worker = new self($queues, $hostname, (int)$pid);
         $worker->logger = $worker->getLogger($workerId);
         return $worker;
     }
@@ -139,6 +138,7 @@ class Worker
      * Set the ID of this worker to a given ID string.
      *
      * @param string $workerId ID for the worker.
+     * @deprecated Specify the hotsname and PID in the constructor.
      */
     public function setId(string $workerId)
     {
@@ -148,7 +148,7 @@ class Worker
     /**
      * Instantiate a new worker, given a list of queues that it should be
      * working on. The list of queues should be supplied in the priority that
-     * they should be checked for jobs (first come, first served)
+     * they should be checked for jobs (first come, first served.)
      *
      * Passing a single '*' allows the worker to work on all queues in
      * a random order. You can easily add new queues dynamically and have
@@ -156,18 +156,35 @@ class Worker
      *
      * @param string|array $queues String with a single queue name, array with
      *      multiple.
+     * @param string $hostname A hostname to use for this worker; defaults to
+     *      the result of gethostname().
+     * @param int $pid A process ID to use for this worker; defaults to the
+     *      result of getmypid().
      */
-    public function __construct($queues)
-    {
+    public function __construct(
+        $queues,
+        string $hostname = null,
+        int $pid = null
+    ) {
         if (!is_array($queues)) {
             $queues = [$queues];
         }
 
-        $hostname = gethostname();
+        if (empty($hostname)) {
+            $hostname = gethostname();
+
+            if (empty($hostname)) {
+                $hostname = 'localhost';
+            }
+        }
+
+        if (!isset($pid)) {
+            $pid = getmypid();
+        }
 
         $this->queues = $queues;
-        $this->hostname = is_string($hostname) ? $hostname : 'localhost';
-        $this->id = $this->hostname . ':'.getmypid() . ':' . implode(',', $this->queues);
+        $this->hostname = $hostname;
+        $this->id = $hostname . ':' . $pid . ':' . implode(',', $this->queues);
     }
 
     /**
