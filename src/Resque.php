@@ -14,13 +14,14 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    const VERSION = '2.2.0';
+    const VERSION = '2.3.0';
 
     /**
      * @var int Options to pass to json_encode.
      */
-    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
-    // TODO | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
+    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        | ((PHP_VERSION >= '5.6.6') ? JSON_PRESERVE_ZERO_FRACTION : 0);
+    // TODO PHP 7.3 | JSON_THROW_ON_ERROR
 
     /**
      * @var int Depth to pass to json_decode.
@@ -31,7 +32,7 @@ class Resque
      * @var int Options to pass to json_decode.
      */
     const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY;
-    // TODO | JSON_THROW_ON_ERROR
+    // TODO PHP 7.3 | JSON_THROW_ON_ERROR
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to redis.

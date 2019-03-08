@@ -115,6 +115,11 @@ class Worker
     protected $logger = null;
 
     /**
+     * @var int Number of seconds to wait for a child in a graceful shutdown.
+     */
+    protected $gracefulDelay = 5;
+
+    /**
      * Return all workers known to Resque as instantiated instances.
      *
      * @return Worker[] The workers.
@@ -333,8 +338,9 @@ class Worker
                     ]
                 ], self::LOG_TYPE_DEBUG);
 
-                // Wait until the child process finishes before continuing
-                pcntl_wait($status);
+                // Wait until the child process finishes before continuing.
+                // We use a loop to continue waiting after we get a signal.
+                while (pcntl_wait($status) < 0);
                 $exitStatus = pcntl_wexitstatus($status);
 
                 if ($exitStatus !== 0) {
@@ -510,12 +516,17 @@ class Worker
      */
     protected function registerSigHandlers()
     {
-        declare(ticks = 1);
+        if (PHP_VERSION >= '7.1') {
+            pcntl_async_signals(true);
+        } else {
+            declare(ticks = 1);
+        }
 
-        pcntl_signal(SIGTERM, [$this, 'shutDownNow']);
-        pcntl_signal(SIGINT, [$this, 'shutDownNow']);
+        pcntl_signal(SIGTERM, [$this, 'shutdownGraceful'], false);
+        pcntl_signal(SIGALRM, [$this, 'killChild'], false);
+        pcntl_signal(SIGINT, [$this, 'shutDownNow'], false);
         pcntl_signal(SIGQUIT, [$this, 'shutdown']);
-        pcntl_signal(SIGUSR1, [$this, 'killChild']);
+        pcntl_signal(SIGUSR1, [$this, 'killChild'], false);
         pcntl_signal(SIGUSR2, [$this, 'pauseProcessing']);
         pcntl_signal(SIGCONT, [$this, 'unPauseProcessing']);
         pcntl_signal(SIGPIPE, [$this, 'reestablishRedisConnection']);
@@ -599,6 +610,16 @@ class Worker
     {
         $this->shutdown();
         $this->killChild();
+    }
+
+    /**
+     * Force an graceful shutdown of the worker, killing any child jobs
+     * after a brief grace period.
+     */
+    public function shutdownGraceful()
+    {
+        $this->shutdown();
+        pcntl_alarm($this->gracefulDelay);
     }
 
     /**

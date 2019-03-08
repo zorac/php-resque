@@ -1,3 +1,8 @@
+## 2.3.0 (2019-03-08)
+
+* Update signal handling to improve perormance and work while waiting on child
+* Change SIGTERM behaviour to kill off the child after a brief grace period
+
 ## 2.2.0 (2019-03-01)
 
 * Allow specifying the hostname and PID for workers
@@ -21,6 +26,7 @@
 * Use Predis for tha back-end Redis connections
 * Migrate to fully-namespaced classes
 * Assorted cleanup and fixes
+* Require PHP 5.5
 
 ## 1.3.0 (2014-01-28)
 
@@ -30,7 +36,6 @@
 * Fix #17: Catch redis connection issue
 * Fix #24: Use getmypid to specify a persistent connection unique identifier
 * Add redis authentication support
-
 
 ## 1.2.7 (2013-10-15)
 
@@ -47,7 +52,6 @@
 * Drop .php extension in resque bin filename
 
 > If you're starting your workers manually, use `php bin/resque` instead of `php bin/resque.php`
-
 
 ## 1.2.4 (2013-04-141) ##
 
@@ -66,7 +70,6 @@
 * Moved top-level resque.php to bin folder
 * Detect composer autoloader up to 3 directory level, and fail gracefully if not found
 * Change some functions scope to allow inheritance
-
 
 ## 1.0.15 (2012-01-23) ##
 
@@ -93,7 +96,6 @@
 
 * Update Composer.json
 
-
 ## 1.0.9 (2012-09-20) ##
 
 * Delegate all the MonologHandler creation to MonologInit. (requires a composer update).
@@ -110,7 +112,6 @@
 ## 1.0.6 (2012-09-10) ##
 
 * Merge latest commits from php-resque
-
 
 ## 1.0.5 (2012-08-29) ##
 
