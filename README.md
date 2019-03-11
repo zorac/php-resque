@@ -58,9 +58,9 @@ You can easily retrieve logs for a failed jobs in the redis database, their keys
 The easiest way is using composer, by adding the following to your `composer.json`:
 
 ```json
- "repositories": [
+    "repositories": [
         {
-            "type": "git",
+            "type": "github",
             "url": "https://github.com/zorac/php-resque"
         }
     ],

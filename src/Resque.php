@@ -2,6 +2,8 @@
 
 namespace Resque;
 
+use \Resque\Job\DontCreate;
+
 /**
  * Base Resque class.
  *
@@ -14,7 +16,12 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    const VERSION = '2.3.0';
+    const VERSION = '2.4.0';
+
+    /**
+     * @var int Default interval (in seconds) for workers to check for jobs.
+     */
+    const DEFAULT_INTERVAL = 5;
 
     /**
      * @var int Options to pass to json_encode.
@@ -35,7 +42,7 @@ class Resque
     // TODO PHP 7.3 | JSON_THROW_ON_ERROR
 
     /**
-     * @var Redis|null Instance of Resque\Redis that talks to redis.
+     * @var Redis|null Instance of Resque\Redis that talks to Redis.
      */
     public static $redis = null;
 
@@ -193,26 +200,36 @@ class Resque
      *      the job is executed.
      * @param bool $trackStatus Set to true to be able to monitor the status of
      *      a job.
-     *
-     * @return string
+     * @return string The Job ID, or null if job creation was cancelled.
      */
     public static function enqueue(
         string $queue,
         string $class,
         array $args = null,
         bool $trackStatus = false
-    ) {
-        $result = Job::create($queue, $class, $args, $trackStatus);
+    ) : ?string {
+        $id = Resque::generateJobId();
+        $event_args = [
+            'class' => $class,
+            'args'  => $args,
+            'queue' => $queue,
+            'id'    => $id,
+        ];
 
-        if ($result) {
-            Event::trigger('afterEnqueue', [
-                'class' => $class,
-                'args'  => $args,
-                'queue' => $queue,
-            ]);
+        try {
+            Event::trigger('beforeEnqueue', $event_args);
+        } catch (DontCreate $e) {
+            return null;
         }
 
-        return $result;
+        $id = Job::create($queue, $class, $args, $trackStatus, $id);
+
+        if ($id) {
+            $event_args['id'] = $id;
+            Event::trigger('afterEnqueue', $event_args);
+        }
+
+        return $id;
     }
 
     /**

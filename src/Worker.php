@@ -237,7 +237,7 @@ class Worker
      *
      * @param int $interval How often to check for new jobs across the queues.
      */
-    public function work(int $interval = 5)
+    public function work(int $interval = Resque::DEFAULT_INTERVAL)
     {
         $this->updateProcLine('Starting');
         $this->startup();

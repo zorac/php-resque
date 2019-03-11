@@ -1,3 +1,7 @@
+## 2.4.0 (2019-03-11)
+
+* Add beforeEnqueue, and pass job ID to afterEnqueue event callbacks.
+
 ## 2.3.0 (2019-03-08)
 
 * Update signal handling to improve perormance and work while waiting on child

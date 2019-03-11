@@ -58,27 +58,24 @@ class Job
      *      the job is executed.
      * @param bool $monitor Set to true to be able to monitor the status of the
      *      job.
+	 * @param string $id Unique identifier for tracking the job. Generated if
+     *      not supplied.
      * @return string The job ID.
      */
     public static function create(
         string $queue,
         string $class,
         array $args = null,
-        bool $monitor = false
+        bool $monitor = false,
+        string $id = null
     ) : string {
-        if ($args !== null && !is_array($args)) {
-            throw new InvalidArgumentException(
-                'Supplied $args must be an array.'
-            );
-        }
-
         $new = true;
 
         if (isset($args['id'])) {
             $id = $args['id'];
             unset($args['id']);
             $new = false;
-        } else {
+        } elseif (empty($id)) {
             $id = Resque::generateJobId();
         }
 
