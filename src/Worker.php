@@ -117,7 +117,12 @@ class Worker
     /**
      * @var int Number of seconds to wait for a child in a graceful shutdown.
      */
-    protected $gracefulDelay = 5;
+    public $gracefulDelay = 5;
+
+    /**
+     * @var bool Whether dead workers should be pruned on startup.
+     */
+    public $pruneDeadWorkersOnStartup = true;
 
     /**
      * Return all workers known to Resque as instantiated instances.
@@ -201,7 +206,8 @@ class Worker
      * @param string $hostname A hostname to use for this worker; defaults to
      *      the result of gethostname().
      * @param int $pid A process ID to use for this worker; defaults to the
-     *      result of getmypid().
+     *      result of getmypid(). Setting this will automatically disable
+     *      dead worker pruning on startup.
      */
     public function __construct(
         $queues,
@@ -222,6 +228,8 @@ class Worker
 
         if (!isset($pid)) {
             $pid = getmypid();
+        } else {
+            $this->pruneDeadWorkersOnStartup = false;
         }
 
         $this->queues = $queues;
@@ -489,7 +497,11 @@ class Worker
         ], self::LOG_TYPE_INFO);
 
         $this->registerSigHandlers();
-        $this->pruneDeadWorkers();
+
+        if ($this->pruneDeadWorkersOnStartup) {
+            $this->pruneDeadWorkers();
+        }
+
         Event::trigger('beforeFirstFork', $this);
         $this->registerWorker();
     }

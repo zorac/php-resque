@@ -1,3 +1,8 @@
+## 2.4.1 (2019-03-28)
+
+* Add pruneDeadWorkersOnStartup option; defaults to rue unless a custom PID is
+  given when the worker is created.
+
 ## 2.4.0 (2019-03-11)
 
 * Add beforeEnqueue, and pass job ID to afterEnqueue event callbacks.
@@ -34,7 +39,8 @@
 
 ## 1.3.0 (2014-01-28)
 
-* Fix #8: Performing a DB select when the DB is set to default '0' is not necessary and breaks Twemproxy
+* Fix #8: Performing a DB select when the DB is set to default '0' is not
+  necessary and breaks Twemproxy
 * Fix #13: Added PIDFILE writing when child COUNT > 1
 * Fix #14: Add bin/resque to composer
 * Fix #17: Catch redis connection issue
@@ -55,7 +61,8 @@
 * Use ISO-8601 formatted date in log
 * Drop .php extension in resque bin filename
 
-> If you're starting your workers manually, use `php bin/resque` instead of `php bin/resque.php`
+> If you're starting your workers manually, use `php bin/resque` instead of
+  `php bin/resque.php`
 
 ## 1.2.4 (2013-04-141) ##
 
@@ -72,7 +79,8 @@
 ## 1.2.1 (2012-01-30) ##
 
 * Moved top-level resque.php to bin folder
-* Detect composer autoloader up to 3 directory level, and fail gracefully if not found
+* Detect composer autoloader up to 3 directory level, and fail gracefully if
+  not found
 * Change some functions scope to allow inheritance
 
 ## 1.0.15 (2012-01-23) ##
@@ -102,7 +110,8 @@
 
 ## 1.0.9 (2012-09-20) ##
 
-* Delegate all the MonologHandler creation to MonologInit. (requires a composer update).
+* Delegate all the MonologHandler creation to MonologInit. (requires a composer
+  update).
 * Fix stop event that was not logged
 
 ## 1.0.8 (2012-09-19) ##
