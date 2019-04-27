@@ -2,15 +2,14 @@
 
 namespace Resque;
 
-use \Exception;
-use \InvalidArgumentException;
-use \Resque\Job\DontPerform;
-use \Resque\Job\Status;
+use Exception;
+use InvalidArgumentException;
+use Resque\Job\DontPerform;
+use Resque\Job\Status;
 
 /**
  * Resque job.
  *
- * @package Resque/Job
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

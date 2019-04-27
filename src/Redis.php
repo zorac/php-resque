@@ -2,13 +2,12 @@
 
 namespace Resque;
 
-use \Predis\Client;
-use \Predis\PredisException;
+use Predis\Client;
+use Predis\PredisException;
 
 /**
  * Wrap Predis to add namespace support and various helper methods.
  *
- * @package Resque/Redis
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  *

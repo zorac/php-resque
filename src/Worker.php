@@ -2,18 +2,17 @@
 
 namespace Resque;
 
-use \Exception;
-use \MonologInit\MonologInit;
-use \Monolog\Logger;
-use \Resque\Job\DirtyExitException;
-use \Resque\Job\Status;
-use \RuntimeException;
+use Exception;
+use MonologInit\MonologInit;
+use Monolog\Logger;
+use Resque\Job\DirtyExitException;
+use Resque\Job\Status;
+use RuntimeException;
 
 /**
  * Resque worker that handles checking queues for jobs, fetching them
  * off the queues, running them and handling the result.
  *
- * @package Resque/Worker
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

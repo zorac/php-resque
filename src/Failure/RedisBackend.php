@@ -2,14 +2,13 @@
 
 namespace Resque\Failure;
 
-use \Exception;
-use \Resque\Resque;
-use \Resque\Worker;
+use Exception;
+use Resque\Resque;
+use Resque\Worker;
 
 /**
  * Redis backend for storing failed Resque jobs.
  *
- * @package Resque/Failure
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

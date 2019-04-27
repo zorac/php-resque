@@ -2,12 +2,11 @@
 
 namespace Resque;
 
-use \Resque\Job\DontCreate;
+use Resque\Job\DontCreate;
 
 /**
  * Base Resque class.
  *
- * @package Resque
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

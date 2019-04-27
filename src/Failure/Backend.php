@@ -2,13 +2,12 @@
 
 namespace Resque\Failure;
 
-use \Exception;
-use \Resque\Worker;
+use Exception;
+use Resque\Worker;
 
 /**
  * Interface that all failure backends should implement.
  *
- * @package Resque/Failure
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

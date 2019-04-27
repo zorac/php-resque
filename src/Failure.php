@@ -2,12 +2,11 @@
 
 namespace Resque;
 
-use \Exception;
+use Exception;
 
 /**
  * Failed Resque job.
  *
- * @package Resque/Failure
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

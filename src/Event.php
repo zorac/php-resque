@@ -5,7 +5,6 @@ namespace Resque;
 /**
  * Resque event/plugin system class
  *
- * @package Resque/Event
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
