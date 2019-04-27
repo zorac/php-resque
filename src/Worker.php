@@ -514,7 +514,9 @@ class Worker
      */
     protected function updateProcLine(string $status)
     {
-        cli_set_process_title('resque-' . Resque::VERSION . ': ' . $status);
+        if (PHP_OS != 'Darwin') { // Not suppotted on macOS
+            cli_set_process_title('resque-' . Resque::VERSION . ': ' . $status);
+        }
     }
 
     /**

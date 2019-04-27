@@ -37,6 +37,11 @@
             "Resque\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Resque\\": "test/"
+        }
+    },
     "bin": [
         "bin/resque"
     ],

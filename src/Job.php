@@ -80,7 +80,7 @@ class Job
 
         Resque::push($queue, [
             'class' => $class,
-            'args'  => [$args],
+            'args'  => isset($args) ? [$args] : null,
             'id'    => $id,
         ]);
 

@@ -1,42 +1,50 @@
 <?php
-require_once dirname(__FILE__) . '/bootstrap.php';
+
+namespace Resque;
+
+use Resque\Job\DontPerform;
+use Resque\Test\TestCase;
+use Resque\Test\TestJob;
 
 /**
  * Resque\Event tests.
  *
- * @package Resque/Tests
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Resque_Tests_EventTest extends Resque_Tests_TestCase
+class EventTest extends TestCase
 {
-    private $callbacksHit = array();
+    /** @var string[] */
+    private $callbacksHit = [];
+    /** @var Worker */
+    private $worker;
 
-    public function setUp()
+    public function setUp() : void
     {
-        Test_Job::$called = false;
+        parent::setUp();
+        TestJob::$called = false;
 
         // Register a worker to test with
-        $this->worker = new Resque\Worker('jobs');
+        $this->worker = new Worker('jobs');
         $this->worker->registerWorker();
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
-        Resque\Event::clearListeners();
-        $this->callbacksHit = array();
+        Event::clearListeners();
+        $this->callbacksHit = [];
     }
 
     public function getEventTestJob()
     {
-        $payload = array(
-            'class' => 'Test_Job',
-            'id' => 'randomId',
-            'args' => array(
-                'somevar',
-            ),
-        );
-        $job = new Resque\Job('jobs', $payload);
+        $payload = [
+            'class' => '\\Resque\\Test\\TestJob',
+            'id'    => 'randomId',
+            'args'  => [
+                [ 'somevar' ],
+            ],
+        ];
+        $job = new Job('jobs', $payload);
         $job->worker = $this->worker;
         return $job;
     }
@@ -55,7 +63,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
      */
     public function testEventCallbacksFire($event, $callback)
     {
-        Resque\Event::listen($event, array($this, $callback));
+        Event::listen($event, array($this, $callback));
 
         $job = $this->getEventTestJob();
         $this->worker->perform($job);
@@ -69,10 +77,10 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $event = 'beforeFork';
         $callback = 'beforeForkEventCallback';
 
-        Resque\Event::listen($event, array($this, $callback));
-        Resque\Resque::enqueue('jobs', 'Test_Job', array(
+        Event::listen($event, array($this, $callback));
+        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', [
             'somevar'
-        ));
+        ]);
         $job = $this->getEventTestJob();
         $this->worker->work(0);
         $this->assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
@@ -81,13 +89,13 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
     public function testBeforePerformEventCanStopWork()
     {
         $callback = 'beforePerformEventDontPerformCallback';
-        Resque\Event::listen('beforePerform', array($this, $callback));
+        Event::listen('beforePerform', array($this, $callback));
 
         $job = $this->getEventTestJob();
 
         $this->assertFalse($job->perform());
         $this->assertContains($callback, $this->callbacksHit, $callback . ' callback was not called');
-        $this->assertFalse(Test_Job::$called, 'Job was still performed though Resque\Job_DontPerform was thrown');
+        $this->assertFalse(TestJob::$called, 'Job was still performed though DontPerform was thrown');
     }
 
     public function testAfterEnqueueEventCallbackFires()
@@ -95,10 +103,10 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $callback = 'afterEnqueueEventCallback';
         $event = 'afterEnqueue';
 
-        Resque\Event::listen($event, array($this, $callback));
-        Resque\Resque::enqueue('jobs', 'Test_Job', array(
+        Event::listen($event, array($this, $callback));
+        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', [
             'somevar'
-        ));
+        ]);
         $this->assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
     }
 
@@ -107,15 +115,15 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
         $callback = 'beforePerformEventCallback';
         $event = 'beforePerform';
 
-        Resque\Event::listen($event, array($this, $callback));
-        Resque\Event::stopListening($event, array($this, $callback));
+        Event::listen($event, array($this, $callback));
+        Event::stopListening($event, array($this, $callback));
 
         $job = $this->getEventTestJob();
         $this->worker->perform($job);
         $this->worker->work(0);
 
         $this->assertNotContains($callback, $this->callbacksHit,
-            $event . ' callback (' . $callback .') was called though Resque\Event::stopListening was called'
+            $event . ' callback (' . $callback .') was called though Event::stopListening was called'
         );
     }
 
@@ -123,14 +131,14 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
     public function beforePerformEventDontPerformCallback($instance)
     {
         $this->callbacksHit[] = __FUNCTION__;
-        throw new Resque\Job_DontPerform;
+        throw new DontPerform;
     }
 
     public function assertValidEventCallback($function, $job)
     {
         $this->callbacksHit[] = $function;
-        if (!$job instanceof Resque\Job) {
-            $this->fail('Callback job argument is not an instance of Resque\Job');
+        if (!$job instanceof Job) {
+            $this->fail('Callback job argument is not an instance of Job');
         }
         $args = $job->getArguments();
         $this->assertEquals($args[0], 'somevar');
@@ -139,7 +147,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
     public function afterEnqueueEventCallback($class, $args)
     {
         $this->callbacksHit[] = __FUNCTION__;
-        $this->assertEquals('Test_Job', $class);
+        $this->assertEquals('\\Resque\\Test\\TestJob', $class);
         $this->assertEquals(array(
             'somevar',
         ), $args);

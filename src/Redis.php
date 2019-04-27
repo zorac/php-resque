@@ -13,9 +13,10 @@ use Predis\PredisException;
  *
  * @method void connect()
  * @method int decrby(string $key, int $decrement)
- * @method int del(string $key)
+ * @method int del(string|string[] $key)
  * @method int exists(string $key)
  * @method int expire(string $key, int $seconds)
+ * @method string flushDb()
  * @method string get(string $key)
  * @method int hdel(string $key, string $field)
  * @method string hget(string $key, string $field)

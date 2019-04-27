@@ -1,6 +1,8 @@
 Resque for PHP
 ==============
 
+[![Build Status](https://travis-ci.com/zorac/php-resque.svg?branch=master)](https://travis-ci.com/zorac/php-resque)
+
 Resque is a Redis-backed library for creating background jobs, placing
 those jobs on multiple queues, and processing them later.
 
