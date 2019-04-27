@@ -33,8 +33,8 @@ class Failure
         array $payload,
         Exception $exception,
         Worker $worker,
-        string $queue)
-    {
+        string $queue
+    ) : void {
         $backend = self::getBackend();
         new $backend($payload, $exception, $worker, $queue);
     }
@@ -60,7 +60,7 @@ class Failure
      *
      * @param string $backend The class name of the backend to pipe failures to.
      */
-    public static function setBackend(string $backend)
+    public static function setBackend(string $backend) : void
     {
         self::$backend = $backend;
     }

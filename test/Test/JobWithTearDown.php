@@ -4,14 +4,14 @@ namespace Resque\Test;
 
 class JobWithTearDown
 {
+    /** @var bool */
     public static $called = false;
-    public $args = false;
 
-    public function perform()
+    public function perform() : void
     {
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
         self::$called = true;
     }

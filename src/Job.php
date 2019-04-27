@@ -74,7 +74,7 @@ class Job
             $id = $args['id'];
             unset($args['id']);
             $new = false;
-        } elseif (empty($id)) {
+        } elseif (!isset($id)) {
             $id = Resque::generateJobId();
         }
 
@@ -108,10 +108,10 @@ class Job
     {
         $payload = Resque::pop($queue);
 
-        if (empty($payload)) {
-            return null;
-        } else {
+        if (isset($payload)) {
             return new Job($queue, $payload);
+        } else {
+            return null;
         }
     }
 
@@ -121,11 +121,9 @@ class Job
      * @param int $status Status constant from Resque\Job\Status indicating the
      *      current status of a job.
      */
-    public function updateStatus(int $status)
+    public function updateStatus(int $status) : void
     {
-        if (empty($this->payload['id'])) {
-            return;
-        } else {
+        if (isset($this->payload['id'])) {
             $statusInstance = new Status($this->payload['id']);
             $statusInstance->update($status);
         }
@@ -151,7 +149,7 @@ class Job
      */
     public function getArguments() : array
     {
-        if (empty($this->payload['args'])) {
+        if (!isset($this->payload['args'])) {
             return [];
         } else {
             return $this->payload['args'][0];
@@ -235,7 +233,7 @@ class Job
      *
      * @param Exception $exception The exception which occurred.
      */
-    public function fail(Exception $exception)
+    public function fail(Exception $exception) : void
     {
         Event::trigger('onFailure', [
             'exception' => $exception,
@@ -282,9 +280,9 @@ class Job
     {
         $json = json_encode([
             'queue' => $this->queue,
-            'id'    => !empty($this->payload['id']) ? $this->payload['id'] : '',
+            'id'    => isset($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
-            'args'  => !empty($this->payload['args']) ? $this->payload['args'] : ''
+            'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]]
         ], Resque::JSON_ENCODE_OPTIONS);
 
         if ($json !== false) {

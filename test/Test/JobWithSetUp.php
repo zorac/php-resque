@@ -4,15 +4,15 @@ namespace Resque\Test;
 
 class JobWithSetUp
 {
+    /** @var bool */
     public static $called = false;
-    public $args = false;
 
-    public function setUp()
+    public function setUp() : void
     {
         self::$called = true;
     }
 
-    public function perform()
+    public function perform() : void
     {
     }
 }

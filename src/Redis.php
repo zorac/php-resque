@@ -17,25 +17,26 @@ use Predis\PredisException;
  * @method int exists(string $key)
  * @method int expire(string $key, int $seconds)
  * @method string flushDb()
- * @method string get(string $key)
+ * @method ?string get(string $key)
  * @method int hdel(string $key, string $field)
- * @method string hget(string $key, string $field)
+ * @method ?string hget(string $key, string $field)
  * @method int hset(string $key, string $field, string $value)
  * @method int incrby(string $key, int $increment)
  * @method string[] keys(string $pattern)
  * @method int llen(string $key)
- * @method string lpop(string $key)
+ * @method ?string lpop(string $key)
+ * @method int lpush(string $key, string|string[] $value)
  * @method int lrem(string $key, int $count, string $value)
- * @method string rpop(string $key)
- * @method string rpoplpush(string $source, string $destination)
- * @method int rpush(string $key, string $value)
- * @method int set(string $key, string $value)
- * @method int sadd($key, string $member)
+ * @method ?string rpop(string $key)
+ * @method ?string rpoplpush(string $source, string $destination)
+ * @method int rpush(string $key, string|string[] $value)
+ * @method string set(string $key, string $value)
+ * @method int sadd($key, string|string[] $member)
  * @method mixed select(int $database)
  * @method int setex(string $key, int $seconds, string $value)
  * @method int sismember(string $key, string $member)
  * @method string[] smembers(string $key)
- * @method int srem(string $key, string $member)
+ * @method int srem(string $key, string|string[] $member)
  * @method int zadd(string $key, array $membersAndScoresDictionary)
  * @method int zcard(string $key)
  * @method int zrem(string $key, string $member)
@@ -139,7 +140,7 @@ class Redis
      *
      * @param string $namespace The prefix to use.
      */
-    public static function prefix(string $namespace)
+    public static function prefix(string $namespace) : void
     {
         if (substr($namespace, -1) !== ':' && $namespace != '') {
             $namespace .= ':';
@@ -190,7 +191,7 @@ class Redis
      */
     public function __call($name, $args)
     {
-        if (in_array(strtolower($name), $this->keyCommands)) {
+        if (in_array(strtolower($name), $this->keyCommands, true)) {
             if (is_array($args[0])) {
                 foreach ($args[0] AS $i => $v) {
                     $args[0][$i] = self::$defaultNamespace . $v;

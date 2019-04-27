@@ -45,7 +45,7 @@ class Status
     private $isTracking = null;
 
     /**
-     * @var array Array of statuses that are considered final/complete.
+     * @var int[] Array of statuses that are considered final/complete.
      */
     private static $completeStatuses = [
         self::STATUS_FAILED,
@@ -72,7 +72,7 @@ class Status
     public static function create(
         string $id,
         int $status = self::STATUS_WAITING
-    ) {
+) : void {
         $json = json_encode([
             'status' => $status,
             'updated' => time(),
@@ -96,7 +96,7 @@ class Status
             return false;
         }
 
-        if (!Resque::redis()->exists((string)$this)) {
+        if (Resque::redis()->exists((string)$this) === 0) {
             $this->isTracking = false;
             return false;
         }
@@ -111,7 +111,7 @@ class Status
      * @param int $status The status of the job (see constants in
      *      Resque\Job\Status)
      */
-    public function update(int $status)
+    public function update(int $status) : void
     {
         if (!$this->isTracking()) {
             return;
@@ -127,7 +127,7 @@ class Status
         }
 
         // Expire the status for completed jobs after 24 hours
-        if (in_array($status, self::$completeStatuses)) {
+        if (in_array($status, self::$completeStatuses, true)) {
             Resque::redis()->expire((string)$this, 86400);
         }
     }
@@ -144,11 +144,11 @@ class Status
         if ($this->isTracking()) {
             $json = Resque::redis()->get((string)$this);
 
-            if (!empty($json)) {
+            if (isset($json)) {
                 $status = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
                     Resque::JSON_DECODE_OPTIONS);
 
-                if (!empty($status)) {
+                if (isset($status)) {
                     return $status['status'];
                 }
             }
@@ -160,7 +160,7 @@ class Status
     /**
      * Stop tracking the status of a job.
      */
-    public function stop()
+    public function stop() : void
     {
         Resque::redis()->del((string)$this);
     }

@@ -22,24 +22,22 @@ class Event
      * @param string $event Name of event to be raised.
      * @param mixed $data Optional, any data that should be passed to each
      *      callback.
-     * @return bool True
+     * @return true
      */
     public static function trigger(string $event, $data = null) : bool
     {
-        if (!is_array($data)) {
-            $data = [$data];
-        }
-
-        if (empty(self::$events[$event])) {
-            return true;
-        }
-
-        foreach (self::$events[$event] as $callback) {
-            if (!is_callable($callback)) {
-                continue;
+        if (isset(self::$events[$event])) {
+            if (!is_array($data)) {
+                $data = [$data];
             }
 
-            call_user_func_array($callback, $data);
+            foreach (self::$events[$event] as $callback) {
+                if (!is_callable($callback)) {
+                    continue;
+                }
+
+                call_user_func_array($callback, $data);
+            }
         }
 
         return true;
@@ -50,7 +48,7 @@ class Event
      *
      * @param string $event Name of event to listen on.
      * @param callable $callback Any callback callable by call_user_func_array.
-     * @return bool True
+     * @return true
      */
     public static function listen(string $event, callable $callback) : bool
     {
@@ -69,7 +67,7 @@ class Event
      * @param string $event Name of event.
      * @param callable $callback The callback as defined when listen() was
      *      called.
-     * @return bool True
+     * @return true
      */
     public static function stopListening(
         string $event,
@@ -79,7 +77,7 @@ class Event
             return true;
         }
 
-        $key = array_search($callback, self::$events[$event]);
+        $key = array_search($callback, self::$events[$event], true);
 
         if ($key !== false) {
             unset(self::$events[$event][$key]);
@@ -91,7 +89,7 @@ class Event
     /**
      * Call all registered listeners.
      */
-    public static function clearListeners()
+    public static function clearListeners() : void
     {
         self::$events = [];
     }

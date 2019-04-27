@@ -55,11 +55,11 @@ class RedisBackend implements Backend
     {
         $json = Resque::redis()->get('failed:' . $jobId);
 
-        if (!empty($json)) {
+        if (isset($json)) {
             $failure = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
                 Resque::JSON_DECODE_OPTIONS);
 
-            if (!empty($failure)) {
+            if (isset($failure)) {
                 return $failure;
             }
         }

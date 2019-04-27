@@ -15,7 +15,7 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    const VERSION = '2.4.1';
+    const VERSION = '2.5.0';
 
     /**
      * @var int Default interval (in seconds) for workers to check for jobs.
@@ -26,7 +26,7 @@ class Resque
      * @var int Options to pass to json_encode.
      */
     const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-        | ((PHP_VERSION >= '5.6.6') ? JSON_PRESERVE_ZERO_FRACTION : 0);
+        | JSON_PRESERVE_ZERO_FRACTION;
     // TODO PHP 7.3 | JSON_THROW_ON_ERROR
 
     /**
@@ -82,7 +82,7 @@ class Resque
         $server,
         int $database = 0,
         string $namespace = 'resque'
-    ) {
+    ) : void {
         self::$redisServer = $server;
         self::$redisDatabase = $database;
         self::$redis = null;
@@ -111,11 +111,11 @@ class Resque
 
         self::$redis = new Redis(self::$redisServer, self::$redisDatabase);
 
-        if (!empty(self::$redisDatabase)) {
+        if (isset(self::$redisDatabase)) {
             self::$redis->select(self::$redisDatabase);
         }
 
-        if (!empty(self::$namespace)) {
+        if (isset(self::$namespace)) {
             Redis::prefix(self::$namespace);
         }
 
@@ -129,7 +129,7 @@ class Resque
      * @param string $queue The name of the queue to add the job to.
      * @param mixed[] $item Job description as an array to be JSON encoded.
      */
-    public static function push(string $queue, array $item)
+    public static function push(string $queue, array $item) : void
     {
         $json = json_encode($item, self::JSON_ENCODE_OPTIONS);
 
@@ -150,11 +150,11 @@ class Resque
     {
         $json = self::redis()->lpop('queue:' . $queue);
 
-        if (!empty($json)) {
+        if (isset($json)) {
             $item = json_decode($json, true, self::JSON_DECODE_DEPTH,
                 self::JSON_DECODE_OPTIONS);
 
-            if (!empty($item)) {
+            if (isset($item)) {
                 return $item;
             }
         }
@@ -223,10 +223,8 @@ class Resque
 
         $id = Job::create($queue, $class, $args, $trackStatus, $id);
 
-        if ($id) {
-            $event_args['id'] = $id;
-            Event::trigger('afterEnqueue', $event_args);
-        }
+        $event_args['id'] = $id;
+        Event::trigger('afterEnqueue', $event_args);
 
         return $id;
     }
@@ -246,17 +244,11 @@ class Resque
     /**
      * Get an array of all known queues.
      *
-     * @return array Array of queues.
+     * @return string[] Array of queues.
      */
     public static function queues()
     {
-        $queues = self::redis()->smembers('queues');
-
-        if (!is_array($queues)) {
-            $queues = [];
-        }
-
-        return $queues;
+        return self::redis()->smembers('queues');
     }
 
     /**
@@ -281,15 +273,15 @@ class Resque
 
         while (!$finished) {
             $string = self::redis()->rpoplpush($originalQueue,
-                self::redis()->getPrefix() . $tempQueue);
+                Redis::getPrefix() . $tempQueue);
 
-            if (!empty($string)) {
+            if (isset($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
                     self::redis()->rpoplpush($tempQueue,
-                        self::redis()->getPrefix() . $requeueQueue);
+                        Redis::getPrefix() . $requeueQueue);
                 }
             } else {
                 $finished = true;
@@ -301,9 +293,9 @@ class Resque
 
         while (!$finished) {
             $string = self::redis()->rpoplpush($requeueQueue,
-                self::redis()->getPrefix() . $originalQueue);
+                Redis::getPrefix() . $originalQueue);
 
-            if (empty($string)) {
+            if (!isset($string)) {
                 $finished = true;
             }
         }

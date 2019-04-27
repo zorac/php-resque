@@ -12,16 +12,16 @@ use Resque\Test\TestCase;
  */
 class WorkerTest extends TestCase
 {
-    public function testWorkerRegistersInList()
+    public function testWorkerRegistersInList() : void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
 
         // Make sure the worker is in the list
-        $this->assertTrue((bool)self::$redis->sismember('workers', (string)$worker));
+        self::assertTrue((bool)self::$redis->sismember('workers', (string)$worker));
     }
 
-    public function testGetAllWorkers()
+    public function testGetAllWorkers() : void
     {
         $num = 3;
 
@@ -32,80 +32,73 @@ class WorkerTest extends TestCase
         }
 
         // Now try to get them
-        $this->assertEquals($num, count(Worker::all()));
+        self::assertEquals($num, count(Worker::all()));
     }
 
-    public function testGetWorkerById()
+    public function testGetWorkerById() : void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
 
         $newWorker = Worker::find((string)$worker);
-        $this->assertEquals((string)$worker, (string)$newWorker);
+        self::assertEquals((string)$worker, (string)$newWorker);
     }
 
-    public function testInvalidWorkerDoesNotExist()
+    public function testInvalidWorkerDoesNotExist() : void
     {
-        $this->assertFalse(Worker::exists('blah'));
+        self::assertFalse(Worker::exists('blah'));
     }
 
-    public function testWorkerCanUnregister()
+    public function testWorkerCanUnregister() : void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
         $worker->unregisterWorker();
 
-        $this->assertFalse(Worker::exists((string)$worker));
-        $this->assertEquals([], Worker::all());
-        $this->assertEquals([], self::$redis->smembers('resque:workers'));
+        self::assertFalse(Worker::exists((string)$worker));
+        self::assertEquals([], Worker::all());
+        self::assertEquals([], self::$redis->smembers('resque:workers'));
     }
 
-    public function testPausedWorkerDoesNotPickUpJobs()
+    public function testPausedWorkerDoesNotPickUpJobs() : void
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
         $worker->work(0);
         $worker->work(0);
-        $this->assertEquals(0, Stat::get('processed'));
+        self::assertEquals(0, Stat::get('processed'));
     }
 
-    public function testResumedWorkerPicksUpJobs()
+    public function testResumedWorkerPicksUpJobs() : void
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
         $worker->work(0);
-        $this->assertEquals(0, Stat::get('processed'));
+        self::assertEquals(0, Stat::get('processed'));
         $worker->unPauseProcessing();
         $worker->work(0);
-        $this->assertEquals(1, Stat::get('processed'));
+        self::assertEquals(1, Stat::get('processed'));
     }
 
-    public function testWorkerCanWorkOverMultipleQueues()
+    public function testWorkerCanWorkOverMultipleQueues() : void
     {
-        $worker = new Worker(array(
-            'queue1',
-            'queue2'
-        ));
+        $worker = new Worker([ 'queue1', 'queue2' ]);
         $worker->registerWorker();
         Resque::enqueue('queue1', '\\Resque\\Test\\TestJob1');
         Resque::enqueue('queue2', '\\Resque\\Test\\TestJob2');
 
         $job = $worker->reserve();
-        $this->assertEquals('queue1', $job->queue);
+        self::assertEquals('queue1', $job->queue);
 
         $job = $worker->reserve();
-        $this->assertEquals('queue2', $job->queue);
+        self::assertEquals('queue2', $job->queue);
     }
 
-    public function testWorkerWorksQueuesInSpecifiedOrder()
+    public function testWorkerWorksQueuesInSpecifiedOrder() : void
     {
-        $worker = new Worker(array(
-            'high',
-            'medium',
-            'low'
-        ));
+        $worker = new Worker([ 'high', 'medium', 'low' ]);
         $worker->registerWorker();
 
         // Queue the jobs in a different order
@@ -115,16 +108,16 @@ class WorkerTest extends TestCase
 
         // Now check we get the jobs back in the right order
         $job = $worker->reserve();
-        $this->assertEquals('high', $job->queue);
+        self::assertEquals('high', $job->queue);
 
         $job = $worker->reserve();
-        $this->assertEquals('medium', $job->queue);
+        self::assertEquals('medium', $job->queue);
 
         $job = $worker->reserve();
-        $this->assertEquals('low', $job->queue);
+        self::assertEquals('low', $job->queue);
     }
 
-    public function testWildcardQueueWorkerWorksAllQueues()
+    public function testWildcardQueueWorkerWorksAllQueues() : void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
@@ -136,49 +129,47 @@ class WorkerTest extends TestCase
         $job2 = $worker->reserve();
         $queues = [ $job1->queue, $job2->queue ];
 
-        $this->assertContains('queue1', $queues);
-        $this->assertContains('queue2', $queues);
+        self::assertContains('queue1', $queues);
+        self::assertContains('queue2', $queues);
     }
 
-    public function testWorkerDoesNotWorkOnUnknownQueues()
+    public function testWorkerDoesNotWorkOnUnknownQueues() : void
     {
         $worker = new Worker('queue1');
         $worker->registerWorker();
         Resque::enqueue('queue2', '\\Resque\\Test\\TestJob');
 
-        $this->assertNull($worker->reserve());
+        self::assertNull($worker->reserve());
     }
 
-    public function testWorkerClearsItsStatusWhenNotWorking()
+    public function testWorkerClearsItsStatusWhenNotWorking() : void
     {
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
         $worker = new Worker('jobs');
         $job = $worker->reserve();
         $worker->workingOn($job);
         $worker->doneWorking();
-        $this->assertEquals([], $worker->job());
+        self::assertEquals([], $worker->job());
     }
 
-    public function testWorkerRecordsWhatItIsWorkingOn()
+    public function testWorkerRecordsWhatItIsWorkingOn() : void
     {
         $worker = new Worker('jobs');
         $worker->registerWorker();
 
-        $payload = array(
-            'class' => '\\Resque\\Test\\TestJob'
-        );
+        $payload = [ 'class' => '\\Resque\\Test\\TestJob' ];
         $job = new Job('jobs', $payload);
         $worker->workingOn($job);
 
         $job = $worker->job();
-        $this->assertEquals('jobs', $job['queue']);
+        self::assertEquals('jobs', $job['queue']);
         if (!isset($job['run_at'])) {
-            $this->fail('Job does not have run_at time');
+            self::fail('Job does not have run_at time');
         }
-        $this->assertEquals($payload, $job['payload']);
+        self::assertEquals($payload, $job['payload']);
     }
 
-    public function testWorkerErasesItsStatsWhenShutdown()
+    public function testWorkerErasesItsStatsWhenShutdown() : void
     {
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
         Resque::enqueue('jobs', '\\Resque\\Test\\InvalidJob');
@@ -187,11 +178,11 @@ class WorkerTest extends TestCase
         $worker->work(0);
         $worker->work(0);
 
-        $this->assertEquals(0, $worker->getStat('processed'));
-        $this->assertEquals(0, $worker->getStat('failed'));
+        self::assertEquals(0, $worker->getStat('processed'));
+        self::assertEquals(0, $worker->getStat('failed'));
     }
 
-    public function testWorkerCleansUpDeadWorkersOnStartup()
+    public function testWorkerCleansUpDeadWorkersOnStartup() : void
     {
         // Register a good worker
         $goodWorker = new Worker('jobs');
@@ -203,19 +194,19 @@ class WorkerTest extends TestCase
         $worker->setId($workerId[0].':1:jobs');
         $worker->registerWorker();
 
-        $worker = new Worker(array('high', 'low'));
+        $worker = new Worker(['high', 'low']);
         $worker->setId($workerId[0].':2:high,low');
         $worker->registerWorker();
 
-        $this->assertEquals(3, count(Worker::all()));
+        self::assertEquals(3, count(Worker::all()));
 
         $goodWorker->pruneDeadWorkers();
 
         // There should only be $goodWorker left now
-        $this->assertEquals(1, count(Worker::all()));
+        self::assertEquals(1, count(Worker::all()));
     }
 
-    public function testDeadWorkerCleanUpDoesNotCleanUnknownWorkers()
+    public function testDeadWorkerCleanUpDoesNotCleanUnknownWorkers() : void
     {
         // Register a bad worker on this machine
         $worker = new Worker('jobs');
@@ -228,34 +219,34 @@ class WorkerTest extends TestCase
         $worker->setId('my.other.host:1:jobs');
         $worker->registerWorker();
 
-        $this->assertEquals(2, count(Worker::all()));
+        self::assertEquals(2, count(Worker::all()));
 
         $worker->pruneDeadWorkers();
 
         // my.other.host should be left
         $workers = Worker::all();
-        $this->assertEquals(1, count($workers));
-        $this->assertEquals((string)$worker, (string)$workers[0]);
+        self::assertEquals(1, count($workers));
+        self::assertEquals((string)$worker, (string)$workers[0]);
     }
 
-    public function testWorkerFailsUncompletedJobsOnExit()
+    public function testWorkerFailsUncompletedJobsOnExit() : void
     {
         $worker = new Worker('jobs');
         $worker->registerWorker();
 
-        $payload = array(
+        $payload = [
             'class' => '\\Resque\\Test\\TestJob',
-            'id' => 'randomId'
-        );
+            'id'    => 'randomId'
+        ];
         $job = new Job('jobs', $payload);
 
         $worker->workingOn($job);
         $worker->unregisterWorker();
 
-        $this->assertEquals(1, Stat::get('failed'));
+        self::assertEquals(1, Stat::get('failed'));
     }
 
-    public function testWorkerLogAllMessageOnVerbose()
+    public function testWorkerLogAllMessageOnVerbose() : void
     {
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_VERBOSE;
@@ -263,21 +254,21 @@ class WorkerTest extends TestCase
 
         $message = ['message' => 'x', 'data' => []];
 
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_DEBUG));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
         rewind($worker->logOutput);
         $output = stream_get_contents($worker->logOutput);
 
         $lines = explode("\n", $output);
-        $this->assertEquals(6, count($lines) -1);
+        self::assertEquals(6, count($lines) -1);
     }
 
-    public function testWorkerLogOnlyInfoMessageOnNonVerbose()
+    public function testWorkerLogOnlyInfoMessageOnNonVerbose() : void
     {
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
@@ -285,21 +276,21 @@ class WorkerTest extends TestCase
 
         $message = ['message' => 'x', 'data' => []];
 
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
         rewind($worker->logOutput);
         $output = stream_get_contents($worker->logOutput);
 
         $lines = explode("\n", $output);
-        $this->assertEquals(5, count($lines) -1);
+        self::assertEquals(5, count($lines) -1);
     }
 
-    public function testWorkerLogNothingWhenLogNone()
+    public function testWorkerLogNothingWhenLogNone() : void
     {
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NONE;
@@ -307,21 +298,21 @@ class WorkerTest extends TestCase
 
         $message = ['message' => 'x', 'data' => []];
 
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_INFO));
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        $this->assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ALERT));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_INFO));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_WARNING));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ERROR));
+        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
         rewind($worker->logOutput);
         $output = stream_get_contents($worker->logOutput);
 
         $lines = explode("\n", $output);
-        $this->assertEquals(0, count($lines) -1);
+        self::assertEquals(0, count($lines) -1);
     }
 
-    public function testWorkerLogWithISOTime()
+    public function testWorkerLogWithISOTime() : void
     {
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
@@ -330,13 +321,13 @@ class WorkerTest extends TestCase
         $message = ['message' => 'x', 'data' => []];
 
         $now = date('c');
-        $this->assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
+        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
 
         rewind($worker->logOutput);
         $output = stream_get_contents($worker->logOutput);
 
         $lines = explode("\n", $output);
-        $this->assertEquals(1, count($lines) -1);
-        $this->assertEquals('[' . $now . '] x', $lines[0]);
+        self::assertEquals(1, count($lines) -1);
+        self::assertEquals('[' . $now . '] x', $lines[0]);
     }
 }

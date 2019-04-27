@@ -12,41 +12,41 @@ use Resque\Test\TestCase;
  */
 class StatTest extends TestCase
 {
-    public function testStatCanBeIncremented()
+    public function testStatCanBeIncremented() : void
     {
         Stat::incr('test_incr');
-        $this->assertEquals(1, self::$redis->get('stat:test_incr'));
+        self::assertEquals(1, self::$redis->get('stat:test_incr'));
     }
 
-    public function testStatCanBeIncrementedByX()
+    public function testStatCanBeIncrementedByX() : void
     {
         self::$redis->set('stat:test_incrX', '10');
         Stat::incr('test_incrX', 11);
-        $this->assertEquals(21, self::$redis->get('stat:test_incrX'));
+        self::assertEquals(21, self::$redis->get('stat:test_incrX'));
     }
 
-    public function testStatCanBeDecremented()
+    public function testStatCanBeDecremented() : void
     {
         self::$redis->set('stat:test_decr', '22');
         Stat::decr('test_decr');
-        $this->assertEquals(21, self::$redis->get('stat:test_decr'));
+        self::assertEquals(21, self::$redis->get('stat:test_decr'));
     }
 
-    public function testStatCanBeDecrementedByX()
+    public function testStatCanBeDecrementedByX() : void
     {
         self::$redis->set('stat:test_decrX', '22');
         Stat::decr('test_decrX', 11);
-        $this->assertEquals(11, self::$redis->get('stat:test_decrX'));
+        self::assertEquals(11, self::$redis->get('stat:test_decrX'));
     }
 
-    public function testGetStatByName()
+    public function testGetStatByName() : void
     {
         self::$redis->set('stat:test_get', '100');
-        $this->assertEquals(100, Stat::get('test_get'));
+        self::assertEquals(100, Stat::get('test_get'));
     }
 
-    public function testGetUnknownStatReturns0()
+    public function testGetUnknownStatReturns0() : void
     {
-        $this->assertEquals(0, Stat::get('test_get_unknown'));
+        self::assertEquals(0, Stat::get('test_get_unknown'));
     }
 }

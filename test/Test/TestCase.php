@@ -13,9 +13,9 @@ class TestCase extends PHPUnitTestCase
     /** @var bool */
     private static $lastNamespaceWasCustom = false;
 
-    public static function connect(string $namespace = null)
+    public static function connect(string $namespace = null) : void
     {
-        if (self::$lastNamespaceWasCustom && empty($namespace)) {
+        if (self::$lastNamespaceWasCustom && !isset($namespace)) {
             self::$lastNamespaceWasCustom = false;
             unset(self::$redis);
         }
