@@ -1,11 +1,19 @@
+## 2.5.0 (2019-04-27)
+
+* **PHP 7.1 or later is now required.**
+* Refactored the PHPUnit tests to work with the namespaced code
+* Got Travis CI working again
+* Added PHP CodeSniffer and additional PHPStan rules
+* Lots of code cleanup
+
 ## 2.4.1 (2019-03-28)
 
 * Add pruneDeadWorkersOnStartup option; defaults to rue unless a custom PID is
-  given when the worker is created.
+  given when the worker is created
 
 ## 2.4.0 (2019-03-11)
 
-* Add beforeEnqueue, and pass job ID to afterEnqueue event callbacks.
+* Add beforeEnqueue, and pass job ID to afterEnqueue event callbacks
 
 ## 2.3.0 (2019-03-08)
 
@@ -32,10 +40,10 @@
 
 ## 2.0.0 (2019-01-31)
 
+* **PHP 5.5 or later is now required.**
 * Use Predis for tha back-end Redis connections
 * Migrate to fully-namespaced classes
 * Assorted cleanup and fixes
-* Require PHP 5.5
 
 ## 1.3.0 (2014-01-28)
 
