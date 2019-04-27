@@ -30,7 +30,8 @@ class JobTest extends TestCase
 
     public function testJobCanBeQueued() : void
     {
-        self::assertTrue((bool)Resque::enqueue('jobs', '\\Resque\\Test\\TestJob'));
+        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
+        self::assertIsString($token);
     }
 
     public function testQeueuedJobCanBeReserved() : void
@@ -38,9 +39,7 @@ class JobTest extends TestCase
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
 
         $job = Job::reserve('jobs');
-        if ($job == false) {
-            self::fail('Job could not be reserved.');
-        }
+        self::assertNotNull($job);
         self::assertEquals('jobs', $job->queue);
         self::assertEquals('\\Resque\\Test\\TestJob', $job->payload['class']);
     }
@@ -66,9 +65,11 @@ class JobTest extends TestCase
                 'key2' => 'value2',
             ],
         ];
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', $args);
-        $job = Job::reserve('jobs');
 
+        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', $args);
+
+        $job = Job::reserve('jobs');
+        self::assertNotNull($job);
         self::assertEquals($args, $job->getArguments());
     }
 
@@ -94,12 +95,15 @@ class JobTest extends TestCase
         ];
 
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', $args);
+
         $job = Job::reserve('jobs');
+        self::assertNotNull($job);
 
         // Now recreate it
         $job->recreate();
 
         $newJob = Job::reserve('jobs');
+        self::assertNotNull($newJob);
         self::assertEquals($job->payload['class'], $newJob->payload['class']);
         self::assertEquals($job->payload['args'], $newJob->getArguments());
     }
@@ -124,8 +128,12 @@ class JobTest extends TestCase
     public function testJobWithoutPerformMethodThrowsException() : void
     {
         Resque::enqueue('jobs', '\\Resque\\Test\\JobWithoutPerformMethod');
+
         $job = $this->worker->reserve();
+        self::assertNotNull($job);
+
         $job->worker = $this->worker;
+
         $this->expectException(ResqueException::class);
         $job->perform();
     }
@@ -133,8 +141,12 @@ class JobTest extends TestCase
     public function testInvalidJobThrowsException() : void
     {
         Resque::enqueue('jobs', '\\Resque\\Test\\InvalidJob');
+
         $job = $this->worker->reserve();
+        self::assertNotNull($job);
+
         $job->worker = $this->worker;
+
         $this->expectException(ResqueException::class);
         $job->perform();
     }
@@ -148,6 +160,7 @@ class JobTest extends TestCase
                 'somevar2',
             ]],
         ];
+
         $job = new Job('jobs', $payload);
         $job->perform();
 
@@ -163,6 +176,7 @@ class JobTest extends TestCase
                 'somevar2',
             ]],
         ];
+
         $job = new Job('jobs', $payload);
         $job->perform();
 

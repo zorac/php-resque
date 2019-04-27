@@ -90,9 +90,11 @@ class WorkerTest extends TestCase
         Resque::enqueue('queue2', '\\Resque\\Test\\TestJob2');
 
         $job = $worker->reserve();
+        self::assertNotNull($job);
         self::assertEquals('queue1', $job->queue);
 
         $job = $worker->reserve();
+        self::assertNotNull($job);
         self::assertEquals('queue2', $job->queue);
     }
 
@@ -108,12 +110,15 @@ class WorkerTest extends TestCase
 
         // Now check we get the jobs back in the right order
         $job = $worker->reserve();
+        self::assertNotNull($job);
         self::assertEquals('high', $job->queue);
 
         $job = $worker->reserve();
+        self::assertNotNull($job);
         self::assertEquals('medium', $job->queue);
 
         $job = $worker->reserve();
+        self::assertNotNull($job);
         self::assertEquals('low', $job->queue);
     }
 
@@ -126,7 +131,11 @@ class WorkerTest extends TestCase
         Resque::enqueue('queue2', '\\Resque\\Test\\TestJob2');
 
         $job1 = $worker->reserve();
+        self::assertNotNull($job1);
+
         $job2 = $worker->reserve();
+        self::assertNotNull($job2);
+
         $queues = [ $job1->queue, $job2->queue ];
 
         self::assertContains('queue1', $queues);
@@ -146,7 +155,10 @@ class WorkerTest extends TestCase
     {
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
         $worker = new Worker('jobs');
+
         $job = $worker->reserve();
+        self::assertNotNull($job);
+
         $worker->workingOn($job);
         $worker->doneWorking();
         self::assertEquals([], $worker->job());
@@ -248,9 +260,12 @@ class WorkerTest extends TestCase
 
     public function testWorkerLogAllMessageOnVerbose() : void
     {
+        $memory = fopen('php://memory', 'r+');
+        self::assertNotFalse($memory);
+
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_VERBOSE;
-        $worker->logOutput = fopen('php://memory', 'r+');
+        $worker->logOutput = $memory;
 
         $message = ['message' => 'x', 'data' => []];
 
@@ -261,8 +276,9 @@ class WorkerTest extends TestCase
         self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
         self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
-        rewind($worker->logOutput);
-        $output = stream_get_contents($worker->logOutput);
+        rewind($memory);
+        $output = stream_get_contents($memory);
+        self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
         self::assertEquals(6, count($lines) -1);
@@ -270,9 +286,12 @@ class WorkerTest extends TestCase
 
     public function testWorkerLogOnlyInfoMessageOnNonVerbose() : void
     {
+        $memory = fopen('php://memory', 'r+');
+        self::assertNotFalse($memory);
+
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
-        $worker->logOutput = fopen('php://memory', 'r+');
+        $worker->logOutput = $memory;
 
         $message = ['message' => 'x', 'data' => []];
 
@@ -283,8 +302,9 @@ class WorkerTest extends TestCase
         self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
         self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
-        rewind($worker->logOutput);
-        $output = stream_get_contents($worker->logOutput);
+        rewind($memory);
+        $output = stream_get_contents($memory);
+        self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
         self::assertEquals(5, count($lines) -1);
@@ -292,9 +312,12 @@ class WorkerTest extends TestCase
 
     public function testWorkerLogNothingWhenLogNone() : void
     {
+        $memory = fopen('php://memory', 'r+');
+        self::assertNotFalse($memory);
+
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NONE;
-        $worker->logOutput = fopen('php://memory', 'r+');
+        $worker->logOutput = $memory;
 
         $message = ['message' => 'x', 'data' => []];
 
@@ -305,8 +328,9 @@ class WorkerTest extends TestCase
         self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ERROR));
         self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ALERT));
 
-        rewind($worker->logOutput);
-        $output = stream_get_contents($worker->logOutput);
+        rewind($memory);
+        $output = stream_get_contents($memory);
+        self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
         self::assertEquals(0, count($lines) -1);
@@ -314,17 +338,21 @@ class WorkerTest extends TestCase
 
     public function testWorkerLogWithISOTime() : void
     {
+        $memory = fopen('php://memory', 'r+');
+        self::assertNotFalse($memory);
+
         $worker = new Worker('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
-        $worker->logOutput = fopen('php://memory', 'r+');
+        $worker->logOutput = $memory;
 
         $message = ['message' => 'x', 'data' => []];
 
         $now = date('c');
         self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
 
-        rewind($worker->logOutput);
-        $output = stream_get_contents($worker->logOutput);
+        rewind($memory);
+        $output = stream_get_contents($memory);
+        self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
         self::assertEquals(1, count($lines) -1);

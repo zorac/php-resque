@@ -24,20 +24,20 @@ class TestCase extends PHPUnitTestCase
             $backend = getenv('REDIS_BACKEND');
             $database = getenv('REDIS_DATABASE');
 
-            if (empty($backend)) {
+            if ($backend === false) {
                 $backend = 'localhost:6379';
             }
 
-            if (empty($database)) {
+            if ($database === false) {
                 $database = 7;
             } else {
                 $database = (int)$database;
             }
 
-            if (empty($namespace)) {
+            if (!isset($namespace)) {
                 $namespace = getenv('REDIS_NAMESPACE');
 
-                if (empty($namespace)) {
+                if ($namespace === false) {
                     $namespace = 'testResque';
                 }
             } else {
