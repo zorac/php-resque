@@ -203,11 +203,11 @@ class WorkerTest extends TestCase
 
         // Register some bad workers
         $worker = new Worker('jobs');
-        $worker->setId($workerId[0].':1:jobs');
+        $worker->setId($workerId[0] . ':1:jobs');
         $worker->registerWorker();
 
         $worker = new Worker(['high', 'low']);
-        $worker->setId($workerId[0].':2:high,low');
+        $worker->setId($workerId[0] . ':2:high,low');
         $worker->registerWorker();
 
         self::assertEquals(3, count(Worker::all()));
@@ -223,7 +223,7 @@ class WorkerTest extends TestCase
         // Register a bad worker on this machine
         $worker = new Worker('jobs');
         $workerId = explode(':', $worker);
-        $worker->setId($workerId[0].':1:jobs');
+        $worker->setId($workerId[0] . ':1:jobs');
         $worker->registerWorker();
 
         // Register some other false workers
@@ -281,7 +281,7 @@ class WorkerTest extends TestCase
         self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
-        self::assertEquals(6, count($lines) -1);
+        self::assertEquals(6, count($lines) - 1);
     }
 
     public function testWorkerLogOnlyInfoMessageOnNonVerbose() : void
@@ -307,7 +307,7 @@ class WorkerTest extends TestCase
         self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
-        self::assertEquals(5, count($lines) -1);
+        self::assertEquals(5, count($lines) - 1);
     }
 
     public function testWorkerLogNothingWhenLogNone() : void
@@ -333,7 +333,7 @@ class WorkerTest extends TestCase
         self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
-        self::assertEquals(0, count($lines) -1);
+        self::assertEquals(0, count($lines) - 1);
     }
 
     public function testWorkerLogWithISOTime() : void
@@ -355,7 +355,7 @@ class WorkerTest extends TestCase
         self::assertNotFalse($output);
 
         $lines = explode("\n", $output);
-        self::assertEquals(1, count($lines) -1);
+        self::assertEquals(1, count($lines) - 1);
         self::assertEquals('[' . $now . '] x', $lines[0]);
     }
 }

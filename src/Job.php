@@ -57,7 +57,7 @@ class Job
      *      the job is executed.
      * @param bool $monitor Set to true to be able to monitor the status of the
      *      job.
-	 * @param string $id Unique identifier for tracking the job. Generated if
+     * @param string $id Unique identifier for tracking the job. Generated if
      *      not supplied.
      * @return string The job ID.
      */
@@ -169,7 +169,9 @@ class Job
 
         if (class_exists('Resque_Job_Creator')) {
             $this->instance = Resque_Job_Creator::createJob(
-                $this->payload['class'], $this->getArguments());
+                $this->payload['class'],
+                $this->getArguments()
+            );
         } else {
             if (!class_exists($this->payload['class'])) {
                 throw new ResqueException(
@@ -220,7 +222,7 @@ class Job
             }
 
             Event::trigger('afterPerform', $this);
-        } catch(DontPerform $e) {
+        } catch (DontPerform $e) {
             // beforePerform/setUp have said don't perform this job. Return.
             return false;
         }
@@ -267,8 +269,12 @@ class Job
             $monitor = true;
         }
 
-        return self::create($this->queue, $this->payload['class'],
-            $this->payload['args'], $monitor);
+        return self::create(
+            $this->queue,
+            $this->payload['class'],
+            $this->payload['args'],
+            $monitor
+        );
     }
 
     /**

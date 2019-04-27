@@ -72,7 +72,7 @@ class Status
     public static function create(
         string $id,
         int $status = self::STATUS_WAITING
-) : void {
+    ) : void {
         $json = json_encode([
             'status' => $status,
             'updated' => time(),
@@ -145,8 +145,12 @@ class Status
             $json = Resque::redis()->get((string)$this);
 
             if (isset($json)) {
-                $status = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
-                    Resque::JSON_DECODE_OPTIONS);
+                $status = json_decode(
+                    $json,
+                    true,
+                    Resque::JSON_DECODE_DEPTH,
+                    Resque::JSON_DECODE_OPTIONS
+                );
 
                 if (isset($status)) {
                     return $status['status'];

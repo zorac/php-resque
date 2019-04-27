@@ -51,13 +51,17 @@ class RedisBackend implements Backend
      * @return mixed[] Array containing details of the failed job, or null if
      *      not found.
      */
-    static public function get(string $jobId) : ?array
+    public static function get(string $jobId) : ?array
     {
         $json = Resque::redis()->get('failed:' . $jobId);
 
         if (isset($json)) {
-            $failure = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS);
+            $failure = json_decode(
+                $json,
+                true,
+                Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS
+            );
 
             if (isset($failure)) {
                 return $failure;

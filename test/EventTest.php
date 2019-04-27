@@ -69,7 +69,7 @@ class EventTest extends TestCase
         $this->worker->perform($job);
         $this->worker->work(0);
 
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
+        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
     }
 
     public function testBeforeForkEventCallbackFires() : void
@@ -81,7 +81,7 @@ class EventTest extends TestCase
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
         $job = $this->getEventTestJob();
         $this->worker->work(0);
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
+        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
     }
 
     public function testBeforePerformEventCanStopWork() : void
@@ -103,7 +103,7 @@ class EventTest extends TestCase
 
         Event::listen($event, [$this, $callback]);
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback .') was not called');
+        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
     }
 
     public function testStopListeningRemovesListener() : void
@@ -118,8 +118,10 @@ class EventTest extends TestCase
         $this->worker->perform($job);
         $this->worker->work(0);
 
-        self::assertNotContains($callback, $this->callbacksHit,
-            $event . ' callback (' . $callback .') was called though Event::stopListening was called'
+        self::assertNotContains(
+            $callback,
+            $this->callbacksHit,
+            $event . ' callback (' . $callback . ') was called though Event::stopListening was called'
         );
     }
 
@@ -127,7 +129,7 @@ class EventTest extends TestCase
     public function beforePerformEventDontPerformCallback(Job $instance) : void
     {
         $this->callbacksHit[] = __FUNCTION__;
-        throw new DontPerform;
+        throw new DontPerform();
     }
 
     public function assertValidEventCallback(string $function, Job $job) : void

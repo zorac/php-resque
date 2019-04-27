@@ -46,7 +46,7 @@ class JobTest extends TestCase
 
     public function testObjectArgumentsCannotBePassedToJob() : void
     {
-        $args = new stdClass;
+        $args = new stdClass();
         $args->test = 'somevalue';
         $this->expectException(TypeError::class);
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', $args);

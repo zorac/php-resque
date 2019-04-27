@@ -142,7 +142,7 @@ class Redis
      */
     public static function prefix(string $namespace) : void
     {
-        if (substr($namespace, -1) !== ':' && $namespace != '') {
+        if (($namespace != '') && (substr($namespace, -1) !== ':')) {
             $namespace .= ':';
         }
 
@@ -160,13 +160,14 @@ class Redis
         try {
             if (is_callable($server)) {
                 $this->driver = call_user_func($server, $database);
-            } else if (is_array($server)
+            } elseif (is_array($server)
                     && array_key_exists('parameters', $server)
                     && array_key_exists('options', $server)) {
-                $this->driver = new Client($server['parameters'],
-                    $server['options']);
-            } else if (is_string($server)
-                    && (strpos($server, ',') > 0)) {
+                $this->driver = new Client(
+                    $server['parameters'],
+                    $server['options']
+                );
+            } elseif (is_string($server) && (strpos($server, ',') > 0)) {
                 $this->driver = new Client(explode(',', $server));
             } else {
                 $this->driver = new Client($server);
@@ -186,14 +187,14 @@ class Redis
      * operations with the {self::$defaultNamespace} key prefix.
      *
      * @param string $name The name of the method called.
-     * @param array $args Array of supplied arguments to the method.
+     * @param mixed[] $args Array of supplied arguments to the method.
      * @return mixed Return value from Client->__call() based on the command.
      */
     public function __call($name, $args)
     {
         if (in_array(strtolower($name), $this->keyCommands, true)) {
             if (is_array($args[0])) {
-                foreach ($args[0] AS $i => $v) {
+                foreach ($args[0] as $i => $v) {
                     $args[0][$i] = self::$defaultNamespace . $v;
                 }
             } else {

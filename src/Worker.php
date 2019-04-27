@@ -303,7 +303,7 @@ class Worker
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
 
-            $workerName = $this->hostname . ':'.getmypid();
+            $workerName = $this->hostname . ':' . getmypid();
 
             $this->child = $this->fork();
 
@@ -342,7 +342,8 @@ class Worker
 
                 // Wait until the child process finishes before continuing.
                 // We use a loop to continue waiting after we get a signal.
-                while (pcntl_wait($status) < 0);
+                while (pcntl_wait($status) < 0) {
+                }
                 $exitStatus = pcntl_wexitstatus($status);
 
                 if ($exitStatus !== 0) {
@@ -739,7 +740,7 @@ class Worker
     public function unregisterWorker() : void
     {
         if (is_object($this->currentJob)) {
-            $this->currentJob->fail(new DirtyExitException);
+            $this->currentJob->fail(new DirtyExitException());
         }
 
         $id = (string)$this;
@@ -808,7 +809,8 @@ class Worker
         }
 
         /*if ($this->logger === null) {
-            if ($this->logLevel === self::LOG_NORMAL && $code !== self::LOG_TYPE_DEBUG) {
+            if (($this->logLevel === self::LOG_NORMAL)
+                    && ($code !== self::LOG_TYPE_DEBUG)) {
                 fwrite($this->logOutput, "*** " . $message['message'] . "\n");
             } else if ($this->logLevel === self::LOG_VERBOSE) {
                 fwrite($this->logOutput, "** [" . strftime('%T %Y-%m-%d') . "] " . $message['message'] . "\n");
@@ -829,8 +831,9 @@ class Worker
             }
         }
 
-        if (($this->logLevel === self::LOG_NORMAL || $this->logLevel === self::LOG_VERBOSE) && $code !== self::LOG_TYPE_DEBUG) {
-
+        if (($code !== self::LOG_TYPE_DEBUG)
+                && (($this->logLevel === self::LOG_NORMAL)
+                || ($this->logLevel === self::LOG_VERBOSE))) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
@@ -851,7 +854,8 @@ class Worker
                         $this->logger->addAlert($message, $extra);
                 }
             }
-        } else if ($code === self::LOG_TYPE_DEBUG && $this->logLevel === self::LOG_VERBOSE) {
+        } elseif (($code === self::LOG_TYPE_DEBUG)
+                && ($this->logLevel === self::LOG_VERBOSE)) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
@@ -895,8 +899,12 @@ class Worker
         $json = Resque::redis()->hget('workerLogger', $workerId);
 
         if (isset($json)) {
-            $settings = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS);
+            $settings = json_decode(
+                $json,
+                true,
+                Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS
+            );
 
             if (isset($settings)) {
                 $logger = new MonologInit($settings[0], $settings[1]);
@@ -918,8 +926,12 @@ class Worker
         $json = Resque::redis()->get('worker:' . $this);
 
         if (isset($json)) {
-            $job = json_decode($json, true, Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS);
+            $job = json_decode(
+                $json,
+                true,
+                Resque::JSON_DECODE_DEPTH,
+                Resque::JSON_DECODE_OPTIONS
+            );
 
             if (isset($job)) {
                 return $job;

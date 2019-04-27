@@ -36,5 +36,5 @@ interface Backend
      * @return mixed[] Array containing details of the failed job, or null if
      *      not found.
      */
-    static public function get(string $jobId) : ?array;
+    public static function get(string $jobId) : ?array;
 }

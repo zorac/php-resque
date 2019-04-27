@@ -133,7 +133,7 @@ class Resque
     {
         $json = json_encode($item, self::JSON_ENCODE_OPTIONS);
 
-        if ($json !== false ) { // TODO or throw?
+        if ($json !== false) { // TODO or throw?
             self::redis()->sadd('queues', $queue);
             self::redis()->rpush('queue:' . $queue, $json);
         }
@@ -151,8 +151,12 @@ class Resque
         $json = self::redis()->lpop('queue:' . $queue);
 
         if (isset($json)) {
-            $item = json_decode($json, true, self::JSON_DECODE_DEPTH,
-                self::JSON_DECODE_OPTIONS);
+            $item = json_decode(
+                $json,
+                true,
+                self::JSON_DECODE_DEPTH,
+                self::JSON_DECODE_OPTIONS
+            );
 
             if (isset($item)) {
                 return $item;
@@ -272,16 +276,20 @@ class Resque
         $finished = false;
 
         while (!$finished) {
-            $string = self::redis()->rpoplpush($originalQueue,
-                Redis::getPrefix() . $tempQueue);
+            $string = self::redis()->rpoplpush(
+                $originalQueue,
+                Redis::getPrefix() . $tempQueue
+            );
 
             if (isset($string)) {
                 if (self::matchItem($string, $items)) {
                     self::redis()->rpop($tempQueue);
                     $counter++;
                 } else {
-                    self::redis()->rpoplpush($tempQueue,
-                        Redis::getPrefix() . $requeueQueue);
+                    self::redis()->rpoplpush(
+                        $tempQueue,
+                        Redis::getPrefix() . $requeueQueue
+                    );
                 }
             } else {
                 $finished = true;
@@ -292,8 +300,10 @@ class Resque
         $finished = false;
 
         while (!$finished) {
-            $string = self::redis()->rpoplpush($requeueQueue,
-                Redis::getPrefix() . $originalQueue);
+            $string = self::redis()->rpoplpush(
+                $requeueQueue,
+                Redis::getPrefix() . $originalQueue
+            );
 
             if (!isset($string)) {
                 $finished = true;
@@ -317,8 +327,12 @@ class Resque
      */
     private static function matchItem(string $string, array $items) : bool
     {
-        $decoded = json_decode($string, true, self::JSON_DECODE_DEPTH,
-            self::JSON_DECODE_OPTIONS); // TODO how to handle failure
+        $decoded = json_decode(
+            $string,
+            true,
+            self::JSON_DECODE_DEPTH,
+            self::JSON_DECODE_OPTIONS
+        ); // TODO how to handle failure
 
         foreach ($items as $key => $val) {
             # class name only  ex: item[0] = ['class']
@@ -329,15 +343,14 @@ class Resque
                 # class name with args , example: item[0] = ['class' => {'foo' => 1, 'bar' => 2}]
             } elseif (is_array($val)) {
                 $decodedArgs = (array)$decoded['args'][0];
-                if ($decoded['class'] == $key &&
-                    count($decodedArgs) > 0 && count(array_diff($decodedArgs,
-                        $val)) == 0
-                ) {
+                if (($decoded['class'] == $key)
+                        && (count($decodedArgs) > 0)
+                        && (count(array_diff($decodedArgs, $val)) == 0)) {
                     return true;
                 }
                 # class name with ID, example: item[0] = ['class' => 'id']
             } else {
-                if ($decoded['class'] == $key && $decoded['id'] == $val) {
+                if (($decoded['class'] == $key) && ($decoded['id'] == $val)) {
                     return true;
                 }
             }
