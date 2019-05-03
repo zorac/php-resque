@@ -8,7 +8,7 @@ use Resque\Resque;
  * Status tracker/information for a job.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Status
 {
@@ -68,6 +68,7 @@ class Status
      *
      * @param string $id The ID of the job to monitor the status of.
      * @param int $status The initial status of the job.
+     * @return void
      */
     public static function create(
         string $id,
@@ -110,6 +111,7 @@ class Status
      *
      * @param int $status The status of the job (see constants in
      *      Resque\Job\Status)
+     * @return void
      */
     public function update(int $status) : void
     {
@@ -163,6 +165,8 @@ class Status
 
     /**
      * Stop tracking the status of a job.
+     *
+     * @return void
      */
     public function stop() : void
     {

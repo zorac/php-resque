@@ -6,7 +6,7 @@ namespace Resque;
  * Resque statistic management (jobs processed, failed, etc)
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Stat
 {

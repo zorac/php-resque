@@ -3,6 +3,9 @@ includes:
   - vendor/phpstan/phpstan-phpunit/rules.neon
   - vendor/phpstan/phpstan-strict-rules/rules.neon
 parameters:
+  paths:
+    - src
+    - test
   ignoreErrors:
     - '#MonologInit\\Monolog\\Logger#'
     - '#Call to static method createJob\(\) on an unknown class Resque\\Resque_Job_Creator#'

@@ -9,7 +9,7 @@ use Predis\PredisException;
  * Wrap Predis to add namespace support and various helper methods.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  *
  * @method void connect()
  * @method int decrby(string $key, int $decrement)
@@ -139,6 +139,7 @@ class Redis
      * Set Redis namespace (prefix) default: resque.
      *
      * @param string $namespace The prefix to use.
+     * @return void
      */
     public static function prefix(string $namespace) : void
     {

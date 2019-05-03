@@ -8,7 +8,7 @@ use Exception;
  * Failed Resque job.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Failure
 {
@@ -28,6 +28,7 @@ class Failure
      *      job when it failed.
      * @param string $queue The name of the queue that this job was fetched
      *      from.
+     * @return void
      */
     public static function create(
         array $payload,
@@ -59,6 +60,7 @@ class Failure
      * your responsibility to have the backend class loaded (or autoloaded.)
      *
      * @param string $backend The class name of the backend to pipe failures to.
+     * @return void
      */
     public static function setBackend(string $backend) : void
     {

@@ -10,7 +10,7 @@ use Resque\Worker;
  * Redis backend for storing failed Resque jobs.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class RedisBackend implements Backend
 {

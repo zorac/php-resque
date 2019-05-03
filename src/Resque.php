@@ -8,7 +8,7 @@ use Resque\Job\DontCreate;
  * Base Resque class.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Resque
 {
@@ -77,6 +77,7 @@ class Resque
      *      callable which returns a redis connection.
      * @param int $database The Redis database to use.
      * @param string $namespace A namespace/prefix for Redis keys.
+     * @return void
      */
     public static function setBackend(
         $server,
@@ -128,6 +129,7 @@ class Resque
      *
      * @param string $queue The name of the queue to add the job to.
      * @param mixed[] $item Job description as an array to be JSON encoded.
+     * @return void
      */
     public static function push(string $queue, array $item) : void
     {
@@ -167,11 +169,11 @@ class Resque
     }
 
     /**
-     * Remove items from the specified queue
+     * Remove items from the specified queue.
      *
      * @param string $queue The name of the queue to fetch an item from.
-     * @param array $items
-     * @return integer number of deleted items
+     * @param array $items The items to remove.
+     * @return integer The number of deleted items.
      */
     public static function dequeue(string $queue, array $items = []) : int
     {
@@ -261,9 +263,9 @@ class Resque
      * If the Job matches, counts otherwise puts it in a requeue_queue
      * which at the end eventually be copied back into the original queue
      *
-     * @param string $queue The name of the queue
-     * @param array $items
-     * @return integer number of deleted items
+     * @param string $queue The name of the queue.
+     * @param array $items The items to remove.
+     * @return integer The number of deleted items.
      */
     private static function removeItems($queue, $items = [])
     {
@@ -318,11 +320,11 @@ class Resque
     }
 
     /**
-     * matching item
+     * Matching item
      * item can be ['class'] or ['class' => 'id'] or ['class' => {:foo => 1, :bar => 2}]
      *
      * @param string $string redis result in json
-     * @param mixed[] $items
+     * @param mixed[] $items the items to match
      * @return bool
      */
     private static function matchItem(string $string, array $items) : bool
@@ -335,12 +337,12 @@ class Resque
         ); // TODO how to handle failure
 
         foreach ($items as $key => $val) {
-            # class name only  ex: item[0] = ['class']
+            // class name only  ex: item[0] = ['class']
             if (is_numeric($key)) {
                 if ($decoded['class'] == $val) {
                     return true;
                 }
-                # class name with args , example: item[0] = ['class' => {'foo' => 1, 'bar' => 2}]
+                // class name with args , example: item[0] = ['class' => {'foo' => 1, 'bar' => 2}]
             } elseif (is_array($val)) {
                 $decodedArgs = (array)$decoded['args'][0];
                 if (($decoded['class'] == $key)
@@ -348,7 +350,7 @@ class Resque
                         && (count(array_diff($decodedArgs, $val)) == 0)) {
                     return true;
                 }
-                # class name with ID, example: item[0] = ['class' => 'id']
+                // class name with ID, example: item[0] = ['class' => 'id']
             } else {
                 if (($decoded['class'] == $key) && ($decoded['id'] == $val)) {
                     return true;

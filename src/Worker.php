@@ -14,7 +14,7 @@ use RuntimeException;
  * off the queues, running them and handling the result.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Worker
 {
@@ -180,6 +180,7 @@ class Worker
      *
      * @param string $workerId ID for the worker.
      * @deprecated Specify the hotsname and PID in the constructor.
+     * @return void
      */
     public function setId(string $workerId) : void
     {
@@ -238,6 +239,7 @@ class Worker
      * Queues are checked every $interval (seconds) for new jobs.
      *
      * @param int $interval How often to check for new jobs across the queues.
+     * @return void
      */
     public function work(int $interval = Resque::DEFAULT_INTERVAL) : void
     {
@@ -342,8 +344,10 @@ class Worker
 
                 // Wait until the child process finishes before continuing.
                 // We use a loop to continue waiting after we get a signal.
-                while (pcntl_wait($status) < 0) {
-                }
+                do {
+                    $pid = pcntl_wait($status);
+                } while ($pid <= 0);
+
                 $exitStatus = pcntl_wexitstatus($status);
 
                 if ($exitStatus !== 0) {
@@ -362,6 +366,7 @@ class Worker
      * Process a single job.
      *
      * @param Job $job The job to be processed.
+     * @return void
      */
     public function perform(Job $job) : void
     {
@@ -476,6 +481,8 @@ class Worker
 
     /**
      * Perform necessary actions to start a worker.
+     *
+     * @return void
      */
     protected function startup() : void
     {
@@ -503,6 +510,7 @@ class Worker
      * of a worker.
      *
      * @param string $status The updated process title.
+     * @return void
      */
     protected function updateProcLine(string $status) : void
     {
@@ -518,6 +526,8 @@ class Worker
      * INT: Shutdown immediately and stop processing jobs.
      * QUIT: Shutdown after the current job finishes processing.
      * USR1: Kill the forked child immediately and continue processing jobs.
+     *
+     * @return void
      */
     protected function registerSigHandlers() : void
     {
@@ -541,6 +551,8 @@ class Worker
 
     /**
      * Signal handler callback for USR2, pauses processing of new jobs.
+     *
+     * @return void
      */
     public function pauseProcessing() : void
     {
@@ -557,6 +569,8 @@ class Worker
     /**
      * Signal handler callback for CONT, resumes worker allowing it to pick
      * up new jobs.
+     *
+     * @return void
      */
     public function unPauseProcessing() : void
     {
@@ -573,6 +587,8 @@ class Worker
     /**
      * Signal handler for SIGPIPE, in the event the redis connection has gone away.
      * Attempts to reconnect to redis, or raises an Exception.
+     *
+     * @return void
      */
     public function reestablishRedisConnection() : void
     {
@@ -589,6 +605,8 @@ class Worker
     /**
      * Schedule a worker for shutdown. Will finish processing the current job
      * and when the timeout interval is reached, the worker will shut down.
+     *
+     * @return void
      */
     public function shutdown() : void
     {
@@ -605,6 +623,8 @@ class Worker
     /**
      * Force an immediate shutdown of the worker, killing any child jobs
      * currently running.
+     *
+     * @return void
      */
     public function shutdownNow() : void
     {
@@ -615,6 +635,8 @@ class Worker
     /**
      * Force an graceful shutdown of the worker, killing any child jobs
      * after a brief grace period.
+     *
+     * @return void
      */
     public function shutdownGraceful() : void
     {
@@ -625,6 +647,8 @@ class Worker
     /**
      * Kill a forked child job immediately. The job it is processing will not
      * be completed.
+     *
+     * @return void
      */
     public function killChild() : void
     {
@@ -681,6 +705,8 @@ class Worker
      * This is a form of garbage collection to handle cases where the
      * server may have been killed and the Resque workers did not die gracefully
      * and therefore leave state information in Redis.
+     *
+     * @return void
      */
     public function pruneDeadWorkers() : void
     {
@@ -727,6 +753,8 @@ class Worker
 
     /**
      * Register this worker in Redis.
+     *
+     * @return void
      */
     public function registerWorker() : void
     {
@@ -736,6 +764,8 @@ class Worker
 
     /**
      * Unregister this worker in Redis. (shutdown etc)
+     *
+     * @return void
      */
     public function unregisterWorker() : void
     {
@@ -756,6 +786,7 @@ class Worker
      * Tell Redis which job we're currently working on.
      *
      * @param Job $job Resque\Job instance containing the job we're working on.
+     * @return void
      */
     public function workingOn(Job $job) : void
     {
@@ -776,6 +807,8 @@ class Worker
     /**
      * Notify Redis that we've finished working on a job, clearing the working
      * state and incrementing the job stats.
+     *
+     * @return void
      */
     public function doneWorking() : void
     {
@@ -873,6 +906,7 @@ class Worker
      * Register a logger for this worker.
      *
      * @param MonologInit $logger A logger.
+     * @return void
      */
     public function registerLogger(MonologInit $logger) : void
     {

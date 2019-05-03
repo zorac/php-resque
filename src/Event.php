@@ -6,7 +6,7 @@ namespace Resque;
  * Resque event/plugin system class
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Event
 {
@@ -88,6 +88,8 @@ class Event
 
     /**
      * Call all registered listeners.
+     *
+     * @return void
      */
     public static function clearListeners() : void
     {

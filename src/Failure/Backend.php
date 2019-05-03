@@ -9,7 +9,7 @@ use Resque\Worker;
  * Interface that all failure backends should implement.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 interface Backend
 {

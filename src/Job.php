@@ -11,7 +11,7 @@ use Resque\Job\Status;
  * Resque job.
  *
  * @author  Chris Boulton <chris@bigcommerce.com>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT
  */
 class Job
 {
@@ -120,6 +120,7 @@ class Job
      *
      * @param int $status Status constant from Resque\Job\Status indicating the
      *      current status of a job.
+     * @return void
      */
     public function updateStatus(int $status) : void
     {
@@ -234,6 +235,7 @@ class Job
      * Mark the current job as having failed.
      *
      * @param Exception $exception The exception which occurred.
+     * @return void
      */
     public function fail(Exception $exception) : void
     {
