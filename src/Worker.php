@@ -793,11 +793,11 @@ class Worker
         $job->worker = $this;
         $this->currentJob = $job;
         $job->updateStatus(Status::STATUS_RUNNING);
-        $json = json_encode([
+        $json = Util::jsonEncode([
             'queue' => $job->queue,
             'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
             'payload' => $job->payload
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             Resque::redis()->set('worker:' . $job->worker, $json);
@@ -912,10 +912,10 @@ class Worker
     {
         $this->logger = $logger->getInstance();
 
-        $json = json_encode([
+        $json = Util::jsonEncode([
             $logger->handler,
             $logger->target
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             Resque::redis()->hset('workerLogger', (string)$this, $json);
@@ -933,12 +933,7 @@ class Worker
         $json = Resque::redis()->hget('workerLogger', $workerId);
 
         if (isset($json)) {
-            $settings = json_decode(
-                $json,
-                true,
-                Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS
-            );
+            $settings = Util::jsonDecode($json);
 
             if (isset($settings)) {
                 $logger = new MonologInit($settings[0], $settings[1]);
@@ -960,12 +955,7 @@ class Worker
         $json = Resque::redis()->get('worker:' . $this);
 
         if (isset($json)) {
-            $job = json_decode(
-                $json,
-                true,
-                Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS
-            );
+            $job = Util::jsonDecode($json);
 
             if (isset($job)) {
                 return $job;

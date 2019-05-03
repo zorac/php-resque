@@ -4,6 +4,7 @@ namespace Resque\Failure;
 
 use Exception;
 use Resque\Resque;
+use Resque\Util;
 use Resque\Worker;
 
 /**
@@ -29,7 +30,7 @@ class RedisBackend implements Backend
         Worker $worker,
         string $queue
     ) {
-        $json = json_encode([
+        $json = Util::jsonEncode([
             'failed_at' => strftime('%F %T'),
             'payload' => $payload,
             'exception' => get_class($exception),
@@ -37,7 +38,7 @@ class RedisBackend implements Backend
             'backtrace' => explode("\n", $exception->getTraceAsString()),
             'worker' => (string)$worker,
             'queue' => $queue,
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
@@ -56,12 +57,7 @@ class RedisBackend implements Backend
         $json = Resque::redis()->get('failed:' . $jobId);
 
         if (isset($json)) {
-            $failure = json_decode(
-                $json,
-                true,
-                Resque::JSON_DECODE_DEPTH,
-                Resque::JSON_DECODE_OPTIONS
-            );
+            $failure = Util::jsonDecode($json);
 
             if (isset($failure)) {
                 return $failure;

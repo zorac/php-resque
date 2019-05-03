@@ -23,24 +23,6 @@ class Resque
     const DEFAULT_INTERVAL = 5;
 
     /**
-     * @var int Options to pass to json_encode.
-     */
-    const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-        | JSON_PRESERVE_ZERO_FRACTION;
-    // TODO PHP 7.3 | JSON_THROW_ON_ERROR
-
-    /**
-     * @var int Depth to pass to json_decode.
-     */
-    const JSON_DECODE_DEPTH = 512;
-
-    /**
-     * @var int Options to pass to json_decode.
-     */
-    const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING | JSON_OBJECT_AS_ARRAY;
-    // TODO PHP 7.3 | JSON_THROW_ON_ERROR
-
-    /**
      * @var Redis|null Instance of Resque\Redis that talks to Redis.
      */
     public static $redis = null;
@@ -133,7 +115,7 @@ class Resque
      */
     public static function push(string $queue, array $item) : void
     {
-        $json = json_encode($item, self::JSON_ENCODE_OPTIONS);
+        $json = Util::jsonEncode($item);
 
         if ($json !== false) { // TODO or throw?
             self::redis()->sadd('queues', $queue);
@@ -153,12 +135,7 @@ class Resque
         $json = self::redis()->lpop('queue:' . $queue);
 
         if (isset($json)) {
-            $item = json_decode(
-                $json,
-                true,
-                self::JSON_DECODE_DEPTH,
-                self::JSON_DECODE_OPTIONS
-            );
+            $item = Util::jsonDecode($json);
 
             if (isset($item)) {
                 return $item;
@@ -329,12 +306,7 @@ class Resque
      */
     private static function matchItem(string $string, array $items) : bool
     {
-        $decoded = json_decode(
-            $string,
-            true,
-            self::JSON_DECODE_DEPTH,
-            self::JSON_DECODE_OPTIONS
-        ); // TODO how to handle failure
+        $decoded = Util::jsonDecode($string); // TODO how to handle failure
 
         foreach ($items as $key => $val) {
             // class name only  ex: item[0] = ['class']

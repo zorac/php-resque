@@ -3,6 +3,7 @@
 namespace Resque\Job;
 
 use Resque\Resque;
+use Resque\Util;
 
 /**
  * Status tracker/information for a job.
@@ -74,11 +75,11 @@ class Status
         string $id,
         int $status = self::STATUS_WAITING
     ) : void {
-        $json = json_encode([
+        $json = Util::jsonEncode([
             'status' => $status,
             'updated' => time(),
             'started' => time(),
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             Resque::redis()->set('job:' . $id . ':status', $json);
@@ -119,10 +120,10 @@ class Status
             return;
         }
 
-        $json = json_encode([
+        $json = Util::jsonEncode([
             'status' => $status,
             'updated' => time(),
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             Resque::redis()->set((string)$this, $json);
@@ -147,12 +148,7 @@ class Status
             $json = Resque::redis()->get((string)$this);
 
             if (isset($json)) {
-                $status = json_decode(
-                    $json,
-                    true,
-                    Resque::JSON_DECODE_DEPTH,
-                    Resque::JSON_DECODE_OPTIONS
-                );
+                $status = Util::jsonDecode($json);
 
                 if (isset($status)) {
                     return $status['status'];

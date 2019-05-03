@@ -286,12 +286,12 @@ class Job
      */
     public function __toString()
     {
-        $json = json_encode([
+        $json = Util::jsonEncode([
             'queue' => $this->queue,
             'id'    => isset($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
             'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]]
-        ], Resque::JSON_ENCODE_OPTIONS);
+        ]);
 
         if ($json !== false) {
             return $json;
