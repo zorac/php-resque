@@ -1,3 +1,8 @@
+## 2.6.0 (2019-05-03)
+
+* Migrate JSON handling to a utility class
+* Log errors with a chained stack trace
+
 ## 2.5.0 (2019-04-27)
 
 * **PHP 7.1 or later is now required.**

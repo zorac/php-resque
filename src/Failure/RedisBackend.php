@@ -35,7 +35,7 @@ class RedisBackend implements Backend
             'payload' => $payload,
             'exception' => get_class($exception),
             'error' => $exception->getMessage(),
-            'backtrace' => explode("\n", $exception->getTraceAsString()),
+            'backtrace' => Util::formatStackTrace($exception),
             'worker' => (string)$worker,
             'queue' => $queue,
         ]);

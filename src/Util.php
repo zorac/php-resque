@@ -48,4 +48,85 @@ class Util
     {
         return json_encode($value, self::JSON_ENCODE_OPTIONS);
     }
+
+    /**
+     * Format an exception chain as a string for display.
+     *
+     * @param Throwable $exception An exception.
+     * @return string[] The exception rendered as text lines.
+     */
+    public static function formatStackTrace(Throwable $exception) : array
+    {
+        $seen = [];
+        $output = [];
+
+        self::formatStackTraceRecursive($exception, $seen, $output);
+
+        return $output;
+    }
+
+    /**
+     * Format an exception chain as a string for display.
+     *
+     * @param Throwable $e An exception.
+     * @param bool[] $seen Stack elements which have already been seen.
+     * @param string[] $output The output lines.
+     * @return void
+     */
+    private static function formatStackTraceRecursive(
+        Throwable $e,
+        array &$seen,
+        array &$output
+    ) : void {
+        $stack = $e->getTrace() ?? [];
+        $cause = $e->getPrevious();
+        $file = $e->getFile() ?? 'unknown file';
+        $line = $e->getLine() ?? 0;
+
+        array_push(
+            $output,
+            ((count($seen) > 0) ? 'Caused by: ' : '')
+            . get_class($e) . ': ' . $e->getMessage()
+        );
+
+        while (true) {
+            $current = "$file:$line";
+
+            if ($seen[$current] ?? false) {
+                array_push($output, '  ... ' . (count($stack) + 1) . ' more');
+                break;
+            } else {
+                $seen[$current] = true;
+            }
+
+            $frame = array_shift($stack) ?? [];
+            $class = $frame['class'] ?? null;
+            $function = $frame['function'] ?? null;
+
+            array_push(
+                $output,
+                '  at '
+                . ($class ?? '')
+                . (isset($class) && isset($function) ? '::' : '')
+                . ($function ?? '[main]')
+                . ' ('
+                . (isset($line) ? (basename($file) . ':' . $line) : $file)
+                . ')'
+            );
+
+            if (count($frame) === 0) {
+                break;
+            } elseif (isset($frame['file'])) {
+                $file = $frame['file'];
+                $line = $frame['line'] ?? 0;
+            } else {
+                $file = 'unknown file';
+                $line = 0;
+            }
+        }
+
+        if (isset($cause)) {
+            self::formatStackTraceRecursive($cause, $seen, $output);
+        }
+    }
 }
