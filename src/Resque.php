@@ -15,7 +15,7 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    const VERSION = '2.6.0';
+    const VERSION = '2.7.0';
 
     /**
      * @var int Default interval (in seconds) for workers to check for jobs.
@@ -139,6 +139,36 @@ class Resque
 
             if (isset($item)) {
                 return $item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Pop an item off the end of one of the specified queues, using a blocking
+     * call, decode it and return it.
+     *
+     * @param string[] $queues The namew of the queues to fetch an item from.
+     * @param int $timeout The number of seconds to wait.
+     * @return mixed[] An array containimg a queue name, and a decoded item
+     *      from the queue, or null if none found before the timeout.
+     */
+    public static function blpop(array $queues, int $timeout = 0) : ?array
+    {
+        $keys = array_map(function ($queue) {
+            return 'queue:' . $queue;
+        }, $queues);
+
+        list($queue, $json) = self::redis()->blpop($keys, $timeout);
+
+        if (isset($queue) && isset($json)) {
+            $queue = Redis::removePrefix($queue);
+            $queue = substr($queue, 6); // remove queue:
+            $item = Util::jsonDecode($json);
+
+            if (isset($item)) {
+                return [$queue, $item];
             }
         }
 

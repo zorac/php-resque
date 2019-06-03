@@ -336,7 +336,7 @@ class WorkerTest extends TestCase
         self::assertEquals(0, count($lines) - 1);
     }
 
-    public function testWorkerLogWithISOTime() : void
+    public function testWorkerLogWithIsoTime() : void
     {
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
@@ -357,5 +357,29 @@ class WorkerTest extends TestCase
         $lines = explode("\n", $output);
         self::assertEquals(1, count($lines) - 1);
         self::assertEquals('[' . $now . '] x', $lines[0]);
+    }
+
+    public function testBlockingListPop() : void
+    {
+        $worker = new Worker(['job1s', 'job2s']);
+        $worker->registerWorker();
+
+        Resque::enqueue('job1s', 'Test_Job_1');
+        Resque::enqueue('job2s', 'Test_Job_2');
+
+        $i = 1;
+
+        while($job = $worker->reserve(true, 1))
+        {
+            self::assertEquals('Test_Job_' . $i, $job->payload['class']);
+
+            if ($i == 2) {
+                break;
+            }
+
+            $i++;
+        }
+
+        self::assertEquals(2, $i);
     }
 }

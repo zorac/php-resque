@@ -116,6 +116,28 @@ class Job
     }
 
     /**
+     * Wait for the next available job from one of the specified queues and
+     * return an instance of Resque\Job for it.
+     *
+     * @param string[] $queues The name of the queues to check for a job in.
+     * @param int $timeout How long to wait for a job, in seconds.
+     * @return Job An instance of Resque\Job when a job was found, or null if
+     *      the timeout was reached.
+     */
+    public static function reserveBlocking(
+        array $queues,
+        int $timeout = 0
+    ) : ?Job {
+        list($queue, $payload) = Resque::blpop($queues, $timeout);
+
+        if (isset($queue) && isset($payload)) {
+            return new Job($queue, $payload);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Update the status of the current job.
      *
      * @param int $status Status constant from Resque\Job\Status indicating the

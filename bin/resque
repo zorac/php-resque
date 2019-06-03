@@ -61,6 +61,8 @@ if (!empty($VVERBOSE)) {
     $logLevel = Resque\Worker::LOG_NORMAL;
 }
 
+$BLOCKING = getenv('BLOCKING') !== FALSE;
+
 $interval = 5;
 $INTERVAL = getenv('INTERVAL');
 if (!empty($INTERVAL)) {
@@ -105,7 +107,7 @@ function startWorker($QUEUE, $logLevel, $logger, $interval)
     $worker = new Resque\Worker($queues);
     $worker->registerLogger($logger);
     $worker->logLevel = $logLevel;
-    $worker->work($interval);
+    $worker->work($interval, $BLOCKING);
 }
 
 function writePidFile($fullPath, $pid = null)

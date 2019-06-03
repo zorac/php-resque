@@ -11,6 +11,7 @@ use Predis\PredisException;
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  *
+ * @method mixed[] blpop(string|string[] $keys, int $timeout)
  * @method void connect()
  * @method int decrby(string $key, int $decrement)
  * @method int del(string|string[] $key)

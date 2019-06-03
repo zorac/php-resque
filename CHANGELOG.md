@@ -1,3 +1,7 @@
+## 2.7.0 (2019-06-03)
+
+* Port blocking job reservation from resque/php-resque
+
 ## 2.6.0 (2019-05-03)
 
 * Migrate JSON handling to a utility class

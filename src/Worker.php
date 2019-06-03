@@ -239,10 +239,13 @@ class Worker
      * Queues are checked every $interval (seconds) for new jobs.
      *
      * @param int $interval How often to check for new jobs across the queues.
+     * @param bool $blocking Whether to use blocking queue pops.
      * @return void
      */
-    public function work(int $interval = Resque::DEFAULT_INTERVAL) : void
-    {
+    public function work(
+        int $interval = Resque::DEFAULT_INTERVAL,
+        bool $blocking = false
+    ) : void {
         $this->updateProcLine('Starting');
         $this->startup();
 
@@ -256,7 +259,7 @@ class Worker
 
             if (!$this->paused) {
                 try {
-                    $job = $this->reserve();
+                    $job = $this->reserve($blocking, $interval);
                 } catch (RedisException $e) {
                     $this->log([
                         'message' => 'Redis exception caught: ' . $e->getMessage(),
@@ -273,24 +276,25 @@ class Worker
                 // For an interval of 0, break now - helps with unit testing etc
                 if ($interval == 0) {
                     break;
+                } elseif (!$blocking) {
+                    // If no job was found, we sleep for $interval before continuing and checking again
+                    $this->log([
+                        'message' => 'Sleeping for ' . $interval,
+                        'data' => [
+                            'type' => 'sleep',
+                            'second' => $interval
+                        ]
+                    ], self::LOG_TYPE_DEBUG);
+
+                    if ($this->paused) {
+                        $this->updateProcLine('Paused');
+                    } else {
+                        $this->updateProcLine('Waiting for ' . implode(',', $this->queues));
+                    }
+
+                    usleep($interval * 1000000);
                 }
 
-                // If no job was found, we sleep for $interval before continuing and checking again
-                $this->log([
-                    'message' => 'Sleeping for ' . $interval,
-                    'data' => [
-                        'type' => 'sleep',
-                        'second' => $interval
-                    ]
-                ], self::LOG_TYPE_DEBUG);
-
-                if ($this->paused) {
-                    $this->updateProcLine('Paused');
-                } else {
-                    $this->updateProcLine('Waiting for ' . implode(',', $this->queues));
-                }
-
-                usleep($interval * 1000000);
                 continue;
             }
 
@@ -406,34 +410,53 @@ class Worker
     /**
      * Attempt to find a job from the top of one of the queues for this worker.
      *
+     * @param bool $blocking Whether to use blocking queue pops.
+     * @param int $timeout Timeout for blocking reads.
      * @return Job Instance of Resque\Job if a job is found, null if not.
      */
-    public function reserve() : ?Job
+    public function reserve(bool $blocking = false, int $timeout = 0) : ?Job
     {
         $queues = $this->queues();
 
-        foreach ($queues as $queue) {
+        if ($blocking) {
             $this->log([
-                'message' => 'Checking ' . $queue,
+                'message' => 'Starting blocking check of ' . implode(',', $this->queues),
                 'data' => [
                     'type' => 'check',
-                    'queue' => $queue
+                    'queue' => $queues,
+                    'timeout' => $timeout
                 ]
             ], self::LOG_TYPE_DEBUG);
 
-            $job = Job::reserve($queue);
-
-            if (isset($job)) {
+            $job = Job::reserveBlocking($queues, $timeout);
+        } else {
+            foreach ($queues as $queue) {
                 $this->log([
-                    'message' => 'Found job on ' . $queue,
+                    'message' => 'Checking ' . $queue,
                     'data' => [
-                        'type' => 'found',
+                        'type' => 'check',
                         'queue' => $queue
                     ]
                 ], self::LOG_TYPE_DEBUG);
 
-                return $job;
+                $job = Job::reserve($queue);
+
+                if (isset($job)) {
+                    break;
+                }
             }
+        }
+
+        if (isset($job)) {
+            $this->log([
+                'message' => 'Found job on ' . $job->queue,
+                'data' => [
+                    'type' => 'found',
+                    'queue' => $job->queue
+                ]
+            ], self::LOG_TYPE_DEBUG);
+
+            return $job;
         }
 
         return null;
