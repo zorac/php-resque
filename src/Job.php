@@ -66,7 +66,7 @@ class Job
         array $args = null,
         bool $monitor = false,
         string $id = null
-    ) : string {
+    ): string {
         $new = true;
 
         if (isset($args['id'])) {
@@ -103,7 +103,7 @@ class Job
      * @return Job Null when there aren't any waiting jobs, instance of
      *      Resque\Job when a job was found.
      */
-    public static function reserve(string $queue) : ?Job
+    public static function reserve(string $queue): ?Job
     {
         $payload = Resque::pop($queue);
 
@@ -126,7 +126,7 @@ class Job
     public static function reserveBlocking(
         array $queues,
         int $timeout = 0
-    ) : ?Job {
+    ): ?Job {
         list($queue, $payload) = Resque::blpop($queues, $timeout);
 
         if (isset($queue) && isset($payload)) {
@@ -143,7 +143,7 @@ class Job
      *      current status of a job.
      * @return void
      */
-    public function updateStatus(int $status) : void
+    public function updateStatus(int $status): void
     {
         if (isset($this->payload['id'])) {
             $statusInstance = new Status($this->payload['id']);
@@ -169,7 +169,7 @@ class Job
      *
      * @return mixed[] Array of arguments.
      */
-    public function getArguments() : array
+    public function getArguments(): array
     {
         if (!isset($this->payload['args'])) {
             return [];
@@ -183,7 +183,7 @@ class Job
      *
      * @return object Instance of the object that this job belongs to.
      */
-    public function getInstance() : object
+    public function getInstance(): object
     {
         if (isset($this->instance)) {
             return $this->instance;
@@ -226,7 +226,7 @@ class Job
      * @throws ResqueException When the job's class could not be found or it
      *      does not contain a perform method.
      */
-    public function perform() : bool
+    public function perform(): bool
     {
         $instance = $this->getInstance();
 
@@ -258,7 +258,7 @@ class Job
      * @param Throwable $exception The exception which occurred.
      * @return void
      */
-    public function fail(Throwable $exception) : void
+    public function fail(Throwable $exception): void
     {
         Event::trigger('onFailure', [
             'exception' => $exception,
@@ -283,7 +283,7 @@ class Job
      *
      * @return string The job ID.
      */
-    public function recreate() : string
+    public function recreate(): string
     {
         $status = new Status($this->payload['id']);
         $monitor = false;

@@ -53,17 +53,17 @@ class Redis
     /**
      * @var string A default host to connect to
      */
-    const DEFAULT_HOST = 'localhost';
+    public const DEFAULT_HOST = 'localhost';
 
     /**
      * @var int The default Redis port
      */
-    const DEFAULT_PORT = 6379;
+    public const DEFAULT_PORT = 6379;
 
     /**
      * @var int The default Redis Database number
      */
-    const DEFAULT_DATABASE = 0;
+    public const DEFAULT_DATABASE = 0;
 
     /**
      * @var string[] List of all commands in Redis that supply a key as their
@@ -142,7 +142,7 @@ class Redis
      * @param string $namespace The prefix to use.
      * @return void
      */
-    public static function prefix(string $namespace) : void
+    public static function prefix(string $namespace): void
     {
         if (($namespace != '') && (substr($namespace, -1) !== ':')) {
             $namespace .= ':';
@@ -162,9 +162,11 @@ class Redis
         try {
             if (is_callable($server)) {
                 $this->driver = call_user_func($server, $database);
-            } elseif (is_array($server)
-                    && array_key_exists('parameters', $server)
-                    && array_key_exists('options', $server)) {
+            } elseif (
+                is_array($server)
+                && array_key_exists('parameters', $server)
+                && array_key_exists('options', $server)
+            ) {
                 $this->driver = new Client(
                     $server['parameters'],
                     $server['options']
@@ -217,7 +219,7 @@ class Redis
      *
      * @return string The prefix.
      */
-    public static function getPrefix() : string
+    public static function getPrefix(): string
     {
         return self::$defaultNamespace;
     }
@@ -228,7 +230,7 @@ class Redis
      * @param string $string A string.
      * @return string The string with the prefix removed.
      */
-    public static function removePrefix(string $string) : string
+    public static function removePrefix(string $string): string
     {
         $prefix = self::getPrefix();
 

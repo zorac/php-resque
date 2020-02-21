@@ -55,7 +55,7 @@ class Util
      * @param Throwable $exception An exception.
      * @return string[] The exception rendered as text lines.
      */
-    public static function formatStackTrace(Throwable $exception) : array
+    public static function formatStackTrace(Throwable $exception): array
     {
         $seen = [];
         $output = [];
@@ -77,7 +77,7 @@ class Util
         Throwable $e,
         array &$seen,
         array &$output
-    ) : void {
+    ): void {
         $stack = $e->getTrace() ?? [];
         $cause = $e->getPrevious();
         $file = $e->getFile() ?? 'unknown file';

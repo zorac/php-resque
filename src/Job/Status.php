@@ -16,22 +16,22 @@ class Status
     /**
      * @var int The status code for a job which is waiting to be started.`
      */
-    const STATUS_WAITING = 1;
+    public const STATUS_WAITING = 1;
 
     /**
      * @var int The status code for a job which is currently running.
      */
-    const STATUS_RUNNING = 2;
+    public const STATUS_RUNNING = 2;
 
     /**
      * @var int The status code for a job which failed.
      */
-    const STATUS_FAILED = 3;
+    public const STATUS_FAILED = 3;
 
     /**
      * @var int The status code for a job which successfully completed.
      */
-    const STATUS_COMPLETE = 4;
+    public const STATUS_COMPLETE = 4;
 
     /**
      * @var string The ID of the job this status class refers back to.
@@ -74,7 +74,7 @@ class Status
     public static function create(
         string $id,
         int $status = self::STATUS_WAITING
-    ) : void {
+    ): void {
         $json = Util::jsonEncode([
             'status' => $status,
             'updated' => time(),
@@ -92,7 +92,7 @@ class Status
      *
      * @return bool True if the status is being monitored, false if not.
      */
-    public function isTracking() : bool
+    public function isTracking(): bool
     {
         if ($this->isTracking === false) {
             return false;
@@ -114,7 +114,7 @@ class Status
      *      Resque\Job\Status)
      * @return void
      */
-    public function update(int $status) : void
+    public function update(int $status): void
     {
         if (!$this->isTracking()) {
             return;
@@ -164,7 +164,7 @@ class Status
      *
      * @return void
      */
-    public function stop() : void
+    public function stop(): void
     {
         Resque::redis()->del((string)$this);
     }

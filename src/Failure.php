@@ -35,7 +35,7 @@ class Failure
         Throwable $exception,
         Worker $worker,
         string $queue
-    ) : void {
+    ): void {
         $backend = self::getBackend();
         new $backend($payload, $exception, $worker, $queue);
     }
@@ -45,7 +45,7 @@ class Failure
      *
      * @return string Class name of backend object.
      */
-    public static function getBackend() : string
+    public static function getBackend(): string
     {
         if (self::$backend === null) {
             self::$backend = '\\Resque\\Failure\\RedisBackend';
@@ -62,7 +62,7 @@ class Failure
      * @param string $backend The class name of the backend to pipe failures to.
      * @return void
      */
-    public static function setBackend(string $backend) : void
+    public static function setBackend(string $backend): void
     {
         self::$backend = $backend;
     }

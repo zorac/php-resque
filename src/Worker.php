@@ -21,47 +21,47 @@ class Worker
     /**
      * @var int Log level for no logging.
      */
-    const LOG_NONE = 0;
+    public const LOG_NONE = 0;
 
     /**
      * @var int Log level for normal logging.
      */
-    const LOG_NORMAL = 1;
+    public const LOG_NORMAL = 1;
 
     /**
      * @var int Log level for verbose logging.
      */
-    const LOG_VERBOSE = 2;
+    public const LOG_VERBOSE = 2;
 
     /**
      * @var int Log type for a debug message.
      */
-    const LOG_TYPE_DEBUG = 100;
+    public const LOG_TYPE_DEBUG = 100;
 
     /**
      * @var int Log type for an informational message.
      */
-    const LOG_TYPE_INFO = 200;
+    public const LOG_TYPE_INFO = 200;
 
     /**
      * @var int Log type for a warning message.
      */
-    const LOG_TYPE_WARNING = 300;
+    public const LOG_TYPE_WARNING = 300;
 
     /**
      * @var int Log type for an error message.
      */
-    const LOG_TYPE_ERROR = 400;
+    public const LOG_TYPE_ERROR = 400;
 
     /**
      * @var int Log type for a critical error message.
      */
-    const LOG_TYPE_CRITICAL = 500;
+    public const LOG_TYPE_CRITICAL = 500;
 
     /**
      * @var int Log type for an alert message.
      */
-    const LOG_TYPE_ALERT = 550;
+    public const LOG_TYPE_ALERT = 550;
 
     /**
      * @var resource The handle to write logs to.
@@ -128,7 +128,7 @@ class Worker
      *
      * @return Worker[] The workers.
      */
-    public static function all() : array
+    public static function all(): array
     {
         $workers = Resque::redis()->smembers('workers');
         $instances = [];
@@ -150,7 +150,7 @@ class Worker
      * @param string $workerId ID of the worker.
      * @return bool True if the worker exists, false if not.
      */
-    public static function exists(string $workerId) : bool
+    public static function exists(string $workerId): bool
     {
         return (bool)Resque::redis()->sismember('workers', $workerId);
     }
@@ -162,9 +162,9 @@ class Worker
      * @param string $workerId The ID of the worker.
      * @return Worker Instance of the worker. Null if the worker does not exist.
      */
-    public static function find(string $workerId) : ?Worker
+    public static function find(string $workerId): ?Worker
     {
-        if (!self::exists($workerId) || false === strpos($workerId, ":")) {
+        if (!self::exists($workerId) || (strpos($workerId, ":") === false)) {
             return null;
         }
 
@@ -182,7 +182,7 @@ class Worker
      * @deprecated Specify the hotsname and PID in the constructor.
      * @return void
      */
-    public function setId(string $workerId) : void
+    public function setId(string $workerId): void
     {
         $this->id = $workerId;
     }
@@ -245,7 +245,7 @@ class Worker
     public function work(
         int $interval = Resque::DEFAULT_INTERVAL,
         bool $blocking = false
-    ) : void {
+    ): void {
         $this->updateProcLine('Starting');
         $this->startup();
 
@@ -372,7 +372,7 @@ class Worker
      * @param Job $job The job to be processed.
      * @return void
      */
-    public function perform(Job $job) : void
+    public function perform(Job $job): void
     {
         $startTime = microtime(true);
 
@@ -414,7 +414,7 @@ class Worker
      * @param int $timeout Timeout for blocking reads.
      * @return Job Instance of Resque\Job if a job is found, null if not.
      */
-    public function reserve(bool $blocking = false, int $timeout = 0) : ?Job
+    public function reserve(bool $blocking = false, int $timeout = 0): ?Job
     {
         $queues = $this->queues();
 
@@ -473,7 +473,7 @@ class Worker
      *      will fetch all queue names from Redis.
      * @return string[] Array of associated queues.
      */
-    public function queues(bool $fetch = true) : array
+    public function queues(bool $fetch = true): array
     {
         if ($fetch && in_array('*', $this->queues, true)) {
             $queues = Resque::queues();
@@ -491,7 +491,7 @@ class Worker
      * @return int -1 if the fork failed, 0 for the forked child, the PID of
      *      the child for the parent.
      */
-    protected function fork() : int
+    protected function fork(): int
     {
         $pid = pcntl_fork();
 
@@ -507,7 +507,7 @@ class Worker
      *
      * @return void
      */
-    protected function startup() : void
+    protected function startup(): void
     {
         $this->log([
             'message' => 'Starting worker ' . $this,
@@ -535,7 +535,7 @@ class Worker
      * @param string $status The updated process title.
      * @return void
      */
-    protected function updateProcLine(string $status) : void
+    protected function updateProcLine(string $status): void
     {
         if (PHP_OS != 'Darwin') { // Not suppotted on macOS
             cli_set_process_title('resque-' . Resque::VERSION . ': ' . $status);
@@ -552,7 +552,7 @@ class Worker
      *
      * @return void
      */
-    protected function registerSigHandlers() : void
+    protected function registerSigHandlers(): void
     {
         pcntl_async_signals(true);
         pcntl_signal(SIGTERM, [$this, 'shutdownGraceful'], false);
@@ -577,7 +577,7 @@ class Worker
      *
      * @return void
      */
-    public function pauseProcessing() : void
+    public function pauseProcessing(): void
     {
         $this->log([
             'message' => 'USR2 received; pausing job processing',
@@ -595,7 +595,7 @@ class Worker
      *
      * @return void
      */
-    public function unPauseProcessing() : void
+    public function unPauseProcessing(): void
     {
         $this->log([
             'message' => 'CONT received; resuming job processing',
@@ -613,7 +613,7 @@ class Worker
      *
      * @return void
      */
-    public function reestablishRedisConnection() : void
+    public function reestablishRedisConnection(): void
     {
         $this->log([
             'message' => 'SIGPIPE received; attempting to reconnect',
@@ -631,7 +631,7 @@ class Worker
      *
      * @return void
      */
-    public function shutdown() : void
+    public function shutdown(): void
     {
         $this->shutdown = true;
 
@@ -649,7 +649,7 @@ class Worker
      *
      * @return void
      */
-    public function shutdownNow() : void
+    public function shutdownNow(): void
     {
         $this->shutdown();
         $this->killChild();
@@ -661,7 +661,7 @@ class Worker
      *
      * @return void
      */
-    public function shutdownGraceful() : void
+    public function shutdownGraceful(): void
     {
         $this->shutdown();
         pcntl_alarm($this->gracefulDelay);
@@ -673,7 +673,7 @@ class Worker
      *
      * @return void
      */
-    public function killChild() : void
+    public function killChild(): void
     {
         if (!isset($this->child)) {
             $this->log([
@@ -731,7 +731,7 @@ class Worker
      *
      * @return void
      */
-    public function pruneDeadWorkers() : void
+    public function pruneDeadWorkers(): void
     {
         $workerPids = $this->workerPids();
         $workers = self::all();
@@ -739,9 +739,11 @@ class Worker
         foreach ($workers as $worker) {
             list($host, $pid, $queues) = explode(':', (string)$worker, 3);
 
-            if (($host != $this->hostname)
-                    || in_array($pid, $workerPids, true)
-                    || $pid == getmypid()) {
+            if (
+                ($host != $this->hostname)
+                || in_array($pid, $workerPids, true)
+                || $pid == getmypid()
+            ) {
                 continue;
             }
 
@@ -779,7 +781,7 @@ class Worker
      *
      * @return void
      */
-    public function registerWorker() : void
+    public function registerWorker(): void
     {
         Resque::redis()->sadd('workers', (string)$this);
         Resque::redis()->set('worker:' . (string)$this . ':started', strftime('%a %b %d %H:%M:%S %Z %Y'));
@@ -790,7 +792,7 @@ class Worker
      *
      * @return void
      */
-    public function unregisterWorker() : void
+    public function unregisterWorker(): void
     {
         if (is_object($this->currentJob)) {
             $this->currentJob->fail(new DirtyExitException());
@@ -811,7 +813,7 @@ class Worker
      * @param Job $job Resque\Job instance containing the job we're working on.
      * @return void
      */
-    public function workingOn(Job $job) : void
+    public function workingOn(Job $job): void
     {
         $job->worker = $this;
         $this->currentJob = $job;
@@ -833,7 +835,7 @@ class Worker
      *
      * @return void
      */
-    public function doneWorking() : void
+    public function doneWorking(): void
     {
         $this->currentJob = null;
         Stat::incr('processed');
@@ -846,7 +848,7 @@ class Worker
      *
      * @return string String identifier for this worker instance.
      */
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->id;
     }
@@ -858,7 +860,7 @@ class Worker
      * @param int $code A log type code.
      * @return bool True if the message is logged
      */
-    public function log(array $message, int $code = self::LOG_TYPE_INFO) : bool
+    public function log(array $message, int $code = self::LOG_TYPE_INFO): bool
     {
         if ($this->logLevel === self::LOG_NONE) {
             return false;
@@ -887,9 +889,11 @@ class Worker
             }
         }
 
-        if (($code !== self::LOG_TYPE_DEBUG)
-                && (($this->logLevel === self::LOG_NORMAL)
-                || ($this->logLevel === self::LOG_VERBOSE))) {
+        if (
+            ($code !== self::LOG_TYPE_DEBUG)
+            && (($this->logLevel === self::LOG_NORMAL)
+                || ($this->logLevel === self::LOG_VERBOSE))
+        ) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
@@ -910,8 +914,10 @@ class Worker
                         $this->logger->alert($message, $extra);
                 }
             }
-        } elseif (($code === self::LOG_TYPE_DEBUG)
-                && ($this->logLevel === self::LOG_VERBOSE)) {
+        } elseif (
+            ($code === self::LOG_TYPE_DEBUG)
+            && ($this->logLevel === self::LOG_VERBOSE)
+        ) {
             if ($this->logger === null) {
                 fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
             } else {
@@ -931,7 +937,7 @@ class Worker
      * @param MonologInit $logger A logger.
      * @return void
      */
-    public function registerLogger(MonologInit $logger) : void
+    public function registerLogger(MonologInit $logger): void
     {
         $this->logger = $logger->getInstance();
 
@@ -951,7 +957,7 @@ class Worker
      * @param string $workerId A worker ID.
      * @return Logger The logger, or null for internal logging.
      */
-    public function getLogger(string $workerId) : ?Logger
+    public function getLogger(string $workerId): ?Logger
     {
         $json = Resque::redis()->hget('workerLogger', $workerId);
 
@@ -973,7 +979,7 @@ class Worker
      *
      * @return mixed[] Object with details of current job.
      */
-    public function job() : array
+    public function job(): array
     {
         $json = Resque::redis()->get('worker:' . $this);
 
@@ -994,7 +1000,7 @@ class Worker
      * @param string $stat Statistic to fetch.
      * @return int Statistic value.
      */
-    public function getStat(string $stat) : int
+    public function getStat(string $stat): int
     {
         return Stat::get($stat . ':' . $this);
     }

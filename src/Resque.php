@@ -15,12 +15,12 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    const VERSION = '2.7.0';
+    public const VERSION = '2.7.0';
 
     /**
      * @var int Default interval (in seconds) for workers to check for jobs.
      */
-    const DEFAULT_INTERVAL = 5;
+    public const DEFAULT_INTERVAL = 5;
 
     /**
      * @var Redis|null Instance of Resque\Redis that talks to Redis.
@@ -65,7 +65,7 @@ class Resque
         $server,
         int $database = 0,
         string $namespace = 'resque'
-    ) : void {
+    ): void {
         self::$redisServer = $server;
         self::$redisDatabase = $database;
         self::$redis = null;
@@ -113,7 +113,7 @@ class Resque
      * @param mixed[] $item Job description as an array to be JSON encoded.
      * @return void
      */
-    public static function push(string $queue, array $item) : void
+    public static function push(string $queue, array $item): void
     {
         $json = Util::jsonEncode($item);
 
@@ -130,7 +130,7 @@ class Resque
      * @param string $queue The name of the queue to fetch an item from.
      * @return mixed[] Decoded item from the queue, or null if none found.
      */
-    public static function pop(string $queue) : ?array
+    public static function pop(string $queue): ?array
     {
         $json = self::redis()->lpop('queue:' . $queue);
 
@@ -154,7 +154,7 @@ class Resque
      * @return mixed[] An array containimg a queue name, and a decoded item
      *      from the queue, or null if none found before the timeout.
      */
-    public static function blpop(array $queues, int $timeout = 0) : ?array
+    public static function blpop(array $queues, int $timeout = 0): ?array
     {
         $keys = array_map(function ($queue) {
             return 'queue:' . $queue;
@@ -182,7 +182,7 @@ class Resque
      * @param array $items The items to remove.
      * @return integer The number of deleted items.
      */
-    public static function dequeue(string $queue, array $items = []) : int
+    public static function dequeue(string $queue, array $items = []): int
     {
         if (count($items) > 0) {
             return self::removeItems($queue, $items);
@@ -197,7 +197,7 @@ class Resque
      * @param string $queue name of the queue to be checked for pending jobs.
      * @return int The size of the queue.
      */
-    public static function size(string $queue) : int
+    public static function size(string $queue): int
     {
         return self::redis()->llen('queue:' . $queue);
     }
@@ -219,7 +219,7 @@ class Resque
         string $class,
         array $args = null,
         bool $trackStatus = false
-    ) : ?string {
+    ): ?string {
         $id = Resque::generateJobId();
         $event_args = [
             'class' => $class,
@@ -249,7 +249,7 @@ class Resque
      * @return Job Instance of Resque\Job to be processed, null if none or
      *       error.
      */
-    public static function reserve(string $queue) : ?Job
+    public static function reserve(string $queue): ?Job
     {
         return Job::reserve($queue);
     }
@@ -334,7 +334,7 @@ class Resque
      * @param mixed[] $items the items to match
      * @return bool
      */
-    private static function matchItem(string $string, array $items) : bool
+    private static function matchItem(string $string, array $items): bool
     {
         $decoded = Util::jsonDecode($string); // TODO how to handle failure
 
@@ -347,9 +347,11 @@ class Resque
                 // class name with args , example: item[0] = ['class' => {'foo' => 1, 'bar' => 2}]
             } elseif (is_array($val)) {
                 $decodedArgs = (array)$decoded['args'][0];
-                if (($decoded['class'] == $key)
-                        && (count($decodedArgs) > 0)
-                        && (count(array_diff($decodedArgs, $val)) == 0)) {
+                if (
+                    ($decoded['class'] == $key)
+                    && (count($decodedArgs) > 0)
+                    && (count(array_diff($decodedArgs, $val)) == 0)
+                ) {
                     return true;
                 }
                 // class name with ID, example: item[0] = ['class' => 'id']
@@ -382,7 +384,7 @@ class Resque
      *
      * @return string A job ID.
      */
-    public static function generateJobId() : string
+    public static function generateJobId(): string
     {
         return md5(uniqid('', true));
     }

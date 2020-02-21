@@ -24,7 +24,7 @@ class Event
      *      callback.
      * @return true
      */
-    public static function trigger(string $event, $data = null) : bool
+    public static function trigger(string $event, $data = null): bool
     {
         if (isset(self::$events[$event])) {
             if (!is_array($data)) {
@@ -50,7 +50,7 @@ class Event
      * @param callable $callback Any callback callable by call_user_func_array.
      * @return true
      */
-    public static function listen(string $event, callable $callback) : bool
+    public static function listen(string $event, callable $callback): bool
     {
         if (!isset(self::$events[$event])) {
             self::$events[$event] = [];
@@ -72,7 +72,7 @@ class Event
     public static function stopListening(
         string $event,
         callable $callback
-    ) : bool {
+    ): bool {
         if (!isset(self::$events[$event])) {
             return true;
         }
@@ -91,7 +91,7 @@ class Event
      *
      * @return void
      */
-    public static function clearListeners() : void
+    public static function clearListeners(): void
     {
         self::$events = [];
     }
