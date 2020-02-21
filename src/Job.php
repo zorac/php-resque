@@ -2,10 +2,9 @@
 
 namespace Resque;
 
-use Exception;
-use InvalidArgumentException;
 use Resque\Job\DontPerform;
 use Resque\Job\Status;
+use Throwable;
 
 /**
  * Resque job.
@@ -256,10 +255,10 @@ class Job
     /**
      * Mark the current job as having failed.
      *
-     * @param Exception $exception The exception which occurred.
+     * @param Throwable $exception The exception which occurred.
      * @return void
      */
-    public function fail(Exception $exception) : void
+    public function fail(Throwable $exception) : void
     {
         Event::trigger('onFailure', [
             'exception' => $exception,

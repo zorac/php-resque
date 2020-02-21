@@ -2,12 +2,12 @@
 
 namespace Resque;
 
-use Exception;
 use MonologInit\MonologInit;
 use Monolog\Logger;
 use Resque\Job\DirtyExitException;
 use Resque\Job\Status;
 use RuntimeException;
+use Throwable;
 
 /**
  * Resque worker that handles checking queues for jobs, fetching them
@@ -388,7 +388,7 @@ class Worker
                     'time' => round(microtime(true) - $startTime, 3) * 1000
                 ]
             ], self::LOG_TYPE_INFO);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->log([
                 'message' => $job . ' failed: ' . $e->getMessage(),
                 'data' => [

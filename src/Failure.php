@@ -2,7 +2,7 @@
 
 namespace Resque;
 
-use Exception;
+use Throwable;
 
 /**
  * Failed Resque job.
@@ -22,7 +22,7 @@ class Failure
      * Create a new failed job on the backend.
      *
      * @param mixed[] $payload The contents of the job that has just failed.
-     * @param Exception $exception The exception generated when the job failed
+     * @param Throwable $exception The exception generated when the job failed
      *      to run.
      * @param Worker $worker Instance of Resque\Worker that was running this
      *      job when it failed.
@@ -32,7 +32,7 @@ class Failure
      */
     public static function create(
         array $payload,
-        Exception $exception,
+        Throwable $exception,
         Worker $worker,
         string $queue
     ) : void {
