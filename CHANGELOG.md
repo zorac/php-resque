@@ -1,3 +1,9 @@
+## 2.8.0 (2020-02-21)
+
+* Catch all Throwables thrown by jobs, not just Exceptions
+* Fix compatability with Monolog 2
+* Code cleanup
+
 ## 2.7.0 (2019-06-03)
 
 * Port blocking job reservation from resque/php-resque
