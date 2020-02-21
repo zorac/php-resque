@@ -16,6 +16,7 @@
     <rule ref="PSR12"/>
 
     <!-- Additional code checks. -->
+    <rule ref="Generic.Arrays.ArrayIndent"/>
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="Generic.Classes.DuplicateClassName"/>
     <rule ref="Generic.CodeAnalysis"/>
@@ -24,6 +25,18 @@
     <rule ref="Generic.PHP.DiscourageGoto"/>
     <rule ref="Generic.PHP.ForbiddenFunctions"/>
     <rule ref="Generic.Strings"/>
+
+    <!-- Customizations for certain sniffs. -->
+    <rule ref="Generic.Strings.UnnecessaryStringConcat">
+        <properties>
+            <property name="allowMultiline" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
+        <properties>
+            <property name="ignoreBlankLines" value="false"/>
+        </properties>
+    </rule>
 
     <!-- Security analysis. -->
     <rule ref="./vendor/pheromone/phpcs-security-audit/Security/ruleset.xml">
