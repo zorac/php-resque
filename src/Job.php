@@ -190,7 +190,7 @@ class Job
         }
 
         if (class_exists('Resque_Job_Creator')) {
-            $this->instance = Resque_Job_Creator::createJob(
+            $this->instance = \Resque_Job_Creator::createJob(
                 $this->payload['class'],
                 $this->getArguments()
             );

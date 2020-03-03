@@ -9,7 +9,7 @@ parameters:
     - test
   ignoreErrors:
     - '#MonologInit\\Monolog\\Logger#'
-    - '#Call to static method createJob\(\) on an unknown class Resque\\Resque_Job_Creator#'
+    - '#Call to static method createJob\(\) on an unknown class Resque_Job_Creator#'
     - '#Call to an undefined method object::perform\(\)#'
     - '#callback of static method Resque\\Event::listen\(\) expects callable\(\): mixed, array\(\$this\(Resque\\EventTest\), string\) given#'
     - '#args of static method Resque\\Resque::enqueue\(\) expects array\|null, stdClass given#'
