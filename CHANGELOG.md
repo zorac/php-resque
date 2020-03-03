@@ -1,3 +1,7 @@
+## 2.8.1 (2020-03-03)
+
+* Code & documentation cleanup
+
 ## 2.8.0 (2020-02-21)
 
 * Catch all Throwables thrown by jobs, not just Exceptions
