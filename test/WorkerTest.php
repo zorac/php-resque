@@ -27,7 +27,7 @@ class WorkerTest extends TestCase
 
         // Register a few workers
         for ($i = 0; $i < $num; ++$i) {
-            $worker = new Worker('queue_' . $i);
+            $worker = new Worker("queue_$i");
             $worker->registerWorker();
         }
 
@@ -356,7 +356,7 @@ class WorkerTest extends TestCase
 
         $lines = explode("\n", $output);
         self::assertEquals(1, count($lines) - 1);
-        self::assertEquals('[' . $now . '] x', $lines[0]);
+        self::assertEquals("[$now] x", $lines[0]);
     }
 
     public function testBlockingListPop() : void
@@ -371,7 +371,7 @@ class WorkerTest extends TestCase
 
         while($job = $worker->reserve(true, 1))
         {
-            self::assertEquals('Test_Job_' . $i, $job->payload['class']);
+            self::assertEquals("Test_Job_$i", $job->payload['class']);
 
             if ($i == 2) {
                 break;

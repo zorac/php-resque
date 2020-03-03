@@ -19,7 +19,7 @@ class Stat
      */
     public static function get(string $stat): int
     {
-        return (int)Resque::redis()->get('stat:' . $stat);
+        return (int)Resque::redis()->get("stat:$stat");
     }
 
     /**
@@ -32,7 +32,7 @@ class Stat
      */
     public static function incr(string $stat, int $by = 1): bool
     {
-        return (bool)Resque::redis()->incrby('stat:' . $stat, $by);
+        return (bool)Resque::redis()->incrby("stat:$stat", $by);
     }
 
     /**
@@ -45,7 +45,7 @@ class Stat
      */
     public static function decr(string $stat, int $by = 1): bool
     {
-        return (bool)Resque::redis()->decrby('stat:' . $stat, $by);
+        return (bool)Resque::redis()->decrby("stat:$stat", $by);
     }
 
     /**
@@ -56,6 +56,6 @@ class Stat
      */
     public static function clear(string $stat): bool
     {
-        return (bool)Resque::redis()->del('stat:' . $stat);
+        return (bool)Resque::redis()->del("stat:$stat");
     }
 }

@@ -119,7 +119,7 @@ class Resque
 
         if ($json !== false) { // TODO or throw?
             self::redis()->sadd('queues', $queue);
-            self::redis()->rpush('queue:' . $queue, $json);
+            self::redis()->rpush("queue:$queue", $json);
         }
     }
 
@@ -132,7 +132,7 @@ class Resque
      */
     public static function pop(string $queue): ?array
     {
-        $json = self::redis()->lpop('queue:' . $queue);
+        $json = self::redis()->lpop("queue:$queue");
 
         if (isset($json)) {
             $item = Util::jsonDecode($json);
@@ -158,7 +158,7 @@ class Resque
     public static function blpop(array $queues, int $timeout = 0): ?array
     {
         $keys = array_map(function (string $queue): string {
-            return 'queue:' . $queue;
+            return "queue:$queue";
         }, $queues);
 
         [$queue, $json] = self::redis()->blpop($keys, $timeout);
@@ -200,7 +200,7 @@ class Resque
      */
     public static function size(string $queue): int
     {
-        return self::redis()->llen('queue:' . $queue);
+        return self::redis()->llen("queue:$queue");
     }
 
     /**
@@ -278,9 +278,9 @@ class Resque
     private static function removeItems($queue, $items = [])
     {
         $counter = 0;
-        $originalQueue = 'queue:' . $queue;
-        $tempQueue = $originalQueue . ':temp:' . time();
-        $requeueQueue = $tempQueue . ':requeue';
+        $originalQueue = "queue:$queue";
+        $tempQueue = "$originalQueue:temp:" . time();
+        $requeueQueue = "$tempQueue:requeue";
 
         // move each item from original queue to temp queue and process it
         $finished = false;
@@ -375,7 +375,7 @@ class Resque
     private static function removeList($queue)
     {
         $counter = self::size($queue);
-        $result = self::redis()->del('queue:' . $queue);
+        $result = self::redis()->del("queue:$queue");
 
         return ($result == 1) ? $counter : 0;
     }

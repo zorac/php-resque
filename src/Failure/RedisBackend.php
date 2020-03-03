@@ -54,7 +54,7 @@ class RedisBackend implements Backend
      */
     public static function get(string $jobId): ?array
     {
-        $json = Resque::redis()->get('failed:' . $jobId);
+        $json = Resque::redis()->get("failed:$jobId");
 
         if (isset($json)) {
             $failure = Util::jsonDecode($json);

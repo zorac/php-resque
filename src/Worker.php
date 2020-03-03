@@ -164,7 +164,7 @@ class Worker
      */
     public static function find(string $workerId): ?Worker
     {
-        if (!self::exists($workerId) || (strpos($workerId, ":") === false)) {
+        if (!self::exists($workerId) || (strpos($workerId, ':') === false)) {
             return null;
         }
 
@@ -229,7 +229,7 @@ class Worker
 
         $this->queues = $queues;
         $this->hostname = $hostname;
-        $this->id = $hostname . ':' . $pid . ':' . implode(',', $this->queues);
+        $this->id = "$hostname:$pid:" . implode(',', $this->queues);
     }
 
     /**
@@ -279,7 +279,7 @@ class Worker
                 } elseif (!$blocking) {
                     // If no job was found, we sleep for $interval before continuing and checking again
                     $this->log([
-                        'message' => 'Sleeping for ' . $interval,
+                        'message' => "Sleeping for $interval",
                         'data' => [
                             'type' => 'sleep',
                             'second' => $interval
@@ -299,7 +299,7 @@ class Worker
             }
 
             $this->log([
-                'message' => 'got ' . $job,
+                'message' => "got $job",
                 'data' => [
                     'type' => 'got',
                     'args' => $job
@@ -315,7 +315,7 @@ class Worker
 
             // Forked and we're the child. Run the job.
             if ($this->child === 0) {
-                $status = 'Processing ID:' . $job->payload['id'] .  ' in ' . $job->queue;
+                $status = 'Processing ID:' . $job->payload['id'] . ' in ' . $job->queue;
                 $this->updateProcLine($status);
 
                 $this->log([
@@ -355,7 +355,7 @@ class Worker
                 $exitStatus = pcntl_wexitstatus($status);
 
                 if ($exitStatus !== 0) {
-                    $job->fail(new DirtyExitException('Job exited with exit code ' . $exitStatus));
+                    $job->fail(new DirtyExitException("Job exited with exit code $exitStatus"));
                 }
             }
 
@@ -390,7 +390,7 @@ class Worker
             ], self::LOG_TYPE_INFO);
         } catch (Throwable $e) {
             $this->log([
-                'message' => $job . ' failed: ' . $e->getMessage(),
+                'message' => "$job failed: " . $e->getMessage(),
                 'data' => [
                     'type' => 'fail',
                     'log' => $e->getMessage(),
@@ -432,7 +432,7 @@ class Worker
         } else {
             foreach ($queues as $queue) {
                 $this->log([
-                    'message' => 'Checking ' . $queue,
+                    'message' => "Checking $queue",
                     'data' => [
                         'type' => 'check',
                         'queue' => $queue
@@ -510,7 +510,7 @@ class Worker
     protected function startup(): void
     {
         $this->log([
-            'message' => 'Starting worker ' . $this,
+            'message' => "Starting worker $this",
             'data' => [
                 'type' => 'start',
                 'worker' => (string)$this
@@ -538,7 +538,7 @@ class Worker
     protected function updateProcLine(string $status): void
     {
         if (PHP_OS != 'Darwin') { // Not suppotted on macOS
-            cli_set_process_title('resque-' . Resque::VERSION . ': ' . $status);
+            cli_set_process_title('resque-' . Resque::VERSION . ": $status");
         }
     }
 
@@ -748,7 +748,7 @@ class Worker
             }
 
             $this->log([
-                'message' => 'Pruning dead worker: ' . (string)$worker,
+                'message' => "Pruning dead worker: $worker",
                 'data' => [
                     'type' => 'prune'
                 ]
@@ -784,7 +784,7 @@ class Worker
     public function registerWorker(): void
     {
         Resque::redis()->sadd('workers', (string)$this);
-        Resque::redis()->set('worker:' . (string)$this . ':started', strftime('%a %b %d %H:%M:%S %Z %Y'));
+        Resque::redis()->set("worker:$this:started", strftime('%a %b %d %H:%M:%S %Z %Y'));
     }
 
     /**
@@ -800,10 +800,10 @@ class Worker
 
         $id = (string)$this;
         Resque::redis()->srem('workers', $id);
-        Resque::redis()->del('worker:' . $id);
-        Resque::redis()->del('worker:' . $id . ':started');
-        Stat::clear('processed:' . $id);
-        Stat::clear('failed:' . $id);
+        Resque::redis()->del("worker:$id");
+        Resque::redis()->del("worker:$id:started");
+        Stat::clear("processed:$id");
+        Stat::clear("failed:$id");
         Resque::redis()->hdel('workerLogger', $id);
     }
 
@@ -825,7 +825,7 @@ class Worker
         ]);
 
         if ($json !== false) {
-            Resque::redis()->set('worker:' . $job->worker, $json);
+            Resque::redis()->set("worker:$this", $json);
         }
     }
 
@@ -839,8 +839,8 @@ class Worker
     {
         $this->currentJob = null;
         Stat::incr('processed');
-        Stat::incr('processed:' . (string)$this);
-        Resque::redis()->del('worker:' . (string)$this);
+        Stat::incr("processed:$this");
+        Resque::redis()->del("worker:$this");
     }
 
     /**
@@ -885,7 +885,7 @@ class Worker
                 $extra['worker'] = $this->hostname . ':' . getmypid();
             } else {
                 [$host, $pid, $queues] = explode(':', (string)$this, 3);
-                $extra['worker'] = $host . ':' . $pid;
+                $extra['worker'] = "$host:$pid";
             }
         }
 
@@ -981,7 +981,7 @@ class Worker
      */
     public function job(): array
     {
-        $json = Resque::redis()->get('worker:' . $this);
+        $json = Resque::redis()->get("worker:$this");
 
         if (isset($json)) {
             $job = Util::jsonDecode($json);
@@ -1002,6 +1002,6 @@ class Worker
      */
     public function getStat(string $stat): int
     {
-        return Stat::get($stat . ':' . $this);
+        return Stat::get("$stat:$this");
     }
 }

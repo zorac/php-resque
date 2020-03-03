@@ -82,7 +82,7 @@ class Status
         ]);
 
         if ($json !== false) {
-            Resque::redis()->set('job:' . $id . ':status', $json);
+            Resque::redis()->set("job:$id:status", $json);
         }
     }
 

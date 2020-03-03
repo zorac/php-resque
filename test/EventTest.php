@@ -69,7 +69,7 @@ class EventTest extends TestCase
         $this->worker->perform($job);
         $this->worker->work(0);
 
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
+        self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
     public function testBeforeForkEventCallbackFires() : void
@@ -81,7 +81,7 @@ class EventTest extends TestCase
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
         $job = $this->getEventTestJob();
         $this->worker->work(0);
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
+        self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
     public function testBeforePerformEventCanStopWork() : void
@@ -92,7 +92,7 @@ class EventTest extends TestCase
         $job = $this->getEventTestJob();
 
         self::assertFalse($job->perform());
-        self::assertContains($callback, $this->callbacksHit, $callback . ' callback was not called');
+        self::assertContains($callback, $this->callbacksHit, "$callback callback was not called");
         self::assertFalse(TestJob::$called, 'Job was still performed though DontPerform was thrown');
     }
 
@@ -103,7 +103,7 @@ class EventTest extends TestCase
 
         Event::listen($event, [$this, $callback]);
         Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
-        self::assertContains($callback, $this->callbacksHit, $event . ' callback (' . $callback . ') was not called');
+        self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
     public function testStopListeningRemovesListener() : void
@@ -121,7 +121,7 @@ class EventTest extends TestCase
         self::assertNotContains(
             $callback,
             $this->callbacksHit,
-            $event . ' callback (' . $callback . ') was called though Event::stopListening was called'
+            "$event callback ($callback) was called though Event::stopListening was called"
         );
     }
 
