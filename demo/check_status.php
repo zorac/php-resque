@@ -1,10 +1,11 @@
 <?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
 if (empty($argv[1])) {
     die('Specify the ID of a job to monitor the status of.');
 }
 
-require '../lib/Resque/Job/Status.php';
-require '../lib/Resque/Resque.php';
 date_default_timezone_set('GMT');
 Resque\Resque::setBackend('127.0.0.1:6379');
 

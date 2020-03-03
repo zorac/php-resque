@@ -1,4 +1,5 @@
 <?php
+
 class PHP_Job
 {
     public function perform()

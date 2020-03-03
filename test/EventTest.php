@@ -14,7 +14,7 @@ use Resque\Test\TestJob;
  */
 class EventTest extends TestCase
 {
-    /** @var string[] */
+    /** @var array<string> */
     private $callbacksHit = [];
     /** @var Worker */
     private $worker;

@@ -21,7 +21,8 @@ class Failure
     /**
      * Create a new failed job on the backend.
      *
-     * @param mixed[] $payload The contents of the job that has just failed.
+     * @param array<mixed> $payload The contents of the job that has just
+     *      failed.
      * @param Throwable $exception The exception generated when the job failed
      *      to run.
      * @param Worker $worker Instance of Resque\Worker that was running this

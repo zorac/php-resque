@@ -25,7 +25,7 @@ class Job
     public $worker;
 
     /**
-     * @var mixed[] Array containing details of the job.
+     * @var array<mixed> Array containing details of the job.
      */
     public $payload;
 
@@ -38,7 +38,7 @@ class Job
      * Instantiate a new instance of a job.
      *
      * @param string $queue The queue that the job belongs to.
-     * @param mixed[] $payload array containing details of the job.
+     * @param array<mixed> $payload Array containing details of the job.
      */
     public function __construct(string $queue, array $payload)
     {
@@ -52,8 +52,8 @@ class Job
      * @param string $queue The name of the queue to place the job in.
      * @param string $class The name of the class that contains the code to
      *      execute the job.
-     * @param mixed[] $args Any optional arguments that should be passed when
-     *      the job is executed.
+     * @param array<mixed> $args Any optional arguments that should be passed
+     *      when the job is executed.
      * @param bool $monitor Set to true to be able to monitor the status of the
      *      job.
      * @param string $id Unique identifier for tracking the job. Generated if
@@ -118,7 +118,8 @@ class Job
      * Wait for the next available job from one of the specified queues and
      * return an instance of Resque\Job for it.
      *
-     * @param string[] $queues The name of the queues to check for a job in.
+     * @param array<string> $queues The name(s) of the queue(s) to check for a
+     *      job in.
      * @param int $timeout How long to wait for a job, in seconds.
      * @return Job An instance of Resque\Job when a job was found, or null if
      *      the timeout was reached.
@@ -127,7 +128,7 @@ class Job
         array $queues,
         int $timeout = 0
     ): ?Job {
-        list($queue, $payload) = Resque::blpop($queues, $timeout);
+        [$queue, $payload] = Resque::blpop($queues, $timeout);
 
         if (isset($queue) && isset($payload)) {
             return new Job($queue, $payload);
@@ -167,7 +168,7 @@ class Job
     /**
      * Get the arguments supplied to this job.
      *
-     * @return mixed[] Array of arguments.
+     * @return array<mixed> Array of arguments.
      */
     public function getArguments(): array
     {

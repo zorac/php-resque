@@ -1,12 +1,6 @@
 <?php
-// Somewhere in our application, we need to register:
-Resque\Event::listen('afterEnqueue', array('My_Resque_Plugin', 'afterEnqueue'));
-Resque\Event::listen('beforeFirstFork', array('My_Resque_Plugin', 'beforeFirstFork'));
-Resque\Event::listen('beforeFork', array('My_Resque_Plugin', 'beforeFork'));
-Resque\Event::listen('afterFork', array('My_Resque_Plugin', 'afterFork'));
-Resque\Event::listen('beforePerform', array('My_Resque_Plugin', 'beforePerform'));
-Resque\Event::listen('afterPerform', array('My_Resque_Plugin', 'afterPerform'));
-Resque\Event::listen('onFailure', array('My_Resque_Plugin', 'onFailure'));
+
+use Resque\Event;
 
 class My_Resque_Plugin
 {
@@ -47,3 +41,12 @@ class My_Resque_Plugin
         echo $job . " threw an exception:\n" . $exception;
     }
 }
+
+// Somewhere in our application, we need to register:
+Event::listen('afterEnqueue', ['My_Resque_Plugin', 'afterEnqueue']);
+Event::listen('beforeFirstFork', ['My_Resque_Plugin', 'beforeFirstFork']);
+Event::listen('beforeFork', ['My_Resque_Plugin', 'beforeFork']);
+Event::listen('afterFork', ['My_Resque_Plugin', 'afterFork']);
+Event::listen('beforePerform', ['My_Resque_Plugin', 'beforePerform']);
+Event::listen('afterPerform', ['My_Resque_Plugin', 'afterPerform']);
+Event::listen('onFailure', ['My_Resque_Plugin', 'onFailure']);

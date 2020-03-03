@@ -1,4 +1,5 @@
 includes:
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
   - vendor/phpstan/phpstan-phpunit/extension.neon
   - vendor/phpstan/phpstan-phpunit/rules.neon
   - vendor/phpstan/phpstan-strict-rules/rules.neon
@@ -6,10 +7,8 @@ parameters:
   level: max
   paths:
     - src
-    - test
   ignoreErrors:
     - '#MonologInit\\Monolog\\Logger#'
     - '#Call to static method createJob\(\) on an unknown class Resque_Job_Creator#'
     - '#Call to an undefined method object::perform\(\)#'
-    - '#callback of static method Resque\\Event::listen\(\) expects callable\(\): mixed, array\(\$this\(Resque\\EventTest\), string\) given#'
-    - '#args of static method Resque\\Resque::enqueue\(\) expects array\|null, stdClass given#'
+    - '#type has no value type specified in iterable type Predis\\Client#'

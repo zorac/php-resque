@@ -16,7 +16,7 @@ interface Backend
     /**
      * Initialize a failed job class and save it (where appropriate).
      *
-     * @param mixed[] $payload Object containing details of the failed job.
+     * @param array<mixed> $payload Object containing details of the failed job.
      * @param Exception $exception Instance of the exception that was thrown by
      *      the failed job.
      * @param Worker $worker Instance of Resque\Worker that received the job.
@@ -33,8 +33,8 @@ interface Backend
      * Return details about a failed job.
      *
      * @param string $jobId A Job ID.
-     * @return mixed[] Array containing details of the failed job, or null if
-     *      not found.
+     * @return array<mixed> Array containing details of the failed job, or null
+     *      if not found.
      */
     public static function get(string $jobId): ?array;
 }

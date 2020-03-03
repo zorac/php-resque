@@ -46,7 +46,7 @@ class Status
     private $isTracking = null;
 
     /**
-     * @var int[] Array of statuses that are considered final/complete.
+     * @var array<int> Array of statuses that are considered final/complete.
      */
     private static $completeStatuses = [
         self::STATUS_FAILED,

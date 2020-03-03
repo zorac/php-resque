@@ -11,10 +11,10 @@ use Predis\PredisException;
  * @author  Chris Boulton <chris@bigcommerce.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  *
- * @method mixed[] blpop(string|string[] $keys, int $timeout)
+ * @method array<mixed> blpop(string|array<string> $keys, int $timeout)
  * @method void connect()
  * @method int decrby(string $key, int $decrement)
- * @method int del(string|string[] $key)
+ * @method int del(string|array<string> $key)
  * @method int exists(string $key)
  * @method int expire(string $key, int $seconds)
  * @method string flushDb()
@@ -23,25 +23,25 @@ use Predis\PredisException;
  * @method ?string hget(string $key, string $field)
  * @method int hset(string $key, string $field, string $value)
  * @method int incrby(string $key, int $increment)
- * @method string[] keys(string $pattern)
+ * @method array<string> keys(string $pattern)
  * @method int llen(string $key)
  * @method ?string lpop(string $key)
- * @method int lpush(string $key, string|string[] $value)
+ * @method int lpush(string $key, string|array<string> $value)
  * @method int lrem(string $key, int $count, string $value)
  * @method ?string rpop(string $key)
  * @method ?string rpoplpush(string $source, string $destination)
- * @method int rpush(string $key, string|string[] $value)
+ * @method int rpush(string $key, string|array<string> $value)
  * @method string set(string $key, string $value)
- * @method int sadd($key, string|string[] $member)
+ * @method int sadd($key, string|array<string> $member)
  * @method mixed select(int $database)
  * @method int setex(string $key, int $seconds, string $value)
  * @method int sismember(string $key, string $member)
- * @method string[] smembers(string $key)
- * @method int srem(string $key, string|string[] $member)
+ * @method array<string> smembers(string $key)
+ * @method int srem(string $key, string|array<string> $member)
  * @method int zadd(string $key, array $membersAndScoresDictionary)
  * @method int zcard(string $key)
  * @method int zrem(string $key, string $member)
- * @method string[] zrangebyscore(string $key, string|int $min, string|int $max, mixed[] $options = null)
+ * @method array<string> zrangebyscore(string $key, string|int $min, string|int $max, array<mixed> $options = null)
  */
 class Redis
 {
@@ -66,7 +66,7 @@ class Redis
     public const DEFAULT_DATABASE = 0;
 
     /**
-     * @var string[] List of all commands in Redis that supply a key as their
+     * @var array<string> List of all commands in Redis that supply a key as their
      *    first argument. Used to prefix keys with the Resque namespace.
      */
     private $keyCommands = [
@@ -152,9 +152,9 @@ class Redis
     }
 
     /**
-     * @param string|array|callable $server A DSN, parameter array, or callable.
-     *      Special case: pass an array with keys 'parameters' and 'options' to
-     *      pass those separately to the Predis\Client constructor
+     * @param string|array<mixed>|callable $server A DSN, parameter array, or
+     *      callable. Special case: pass an array with keys 'parameters' and
+     *      'options' to pass those separately to the Predis\Client constructor.
      * @param int $database A database number to select.
      */
     public function __construct($server, int $database = null)
@@ -191,7 +191,7 @@ class Redis
      * operations with the {self::$defaultNamespace} key prefix.
      *
      * @param string $name The name of the method called.
-     * @param mixed[] $args Array of supplied arguments to the method.
+     * @param array<mixed> $args Array of supplied arguments to the method.
      * @return mixed Return value from Client->__call() based on the command.
      */
     public function __call($name, $args)

@@ -1,4 +1,5 @@
 <?php
+
 class Bad_PHP_Job
 {
     public function perform()

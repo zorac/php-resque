@@ -11,8 +11,8 @@ namespace Resque;
 class Event
 {
     /**
-     * @var array Array containing all registered callbacks, indexked by event
-     *      name.
+     * @var array<string,array<callable>> Array containing all registered
+     *      callbacks, indexed by event name.
      */
     private static $events = [];
 
@@ -32,10 +32,6 @@ class Event
             }
 
             foreach (self::$events[$event] as $callback) {
-                if (!is_callable($callback)) {
-                    continue;
-                }
-
                 call_user_func_array($callback, $data);
             }
         }

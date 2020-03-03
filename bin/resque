@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+
 // Find and initialize Composer
 $files = [
     __DIR__ . '/../../vendor/autoload.php',
@@ -24,7 +25,8 @@ if (!class_exists('Composer\Autoload\ClassLoader', false)) {
 }
 
 $APP_INCLUDE = getenv('APP_INCLUDE');
-if ($APP_INCLUDE) {
+
+if (!empty($APP_INCLUDE)) {
     if (!file_exists($APP_INCLUDE)) {
         die('APP_INCLUDE (' . $APP_INCLUDE . ") does not exist.\n");
     }
@@ -33,6 +35,7 @@ if ($APP_INCLUDE) {
 }
 
 $QUEUE = getenv('QUEUE');
+
 if (empty($QUEUE)) {
     die("Set QUEUE env var containing the list of queues to work.\n");
 }
@@ -55,6 +58,7 @@ $logLevel = Resque\Worker::LOG_NONE;
 $LOGGING = getenv('LOGGING');
 $VERBOSE = getenv('VERBOSE');
 $VVERBOSE = getenv('VVERBOSE');
+
 if (!empty($VVERBOSE)) {
     $logLevel = Resque\Worker::LOG_VERBOSE;
 } elseif (!empty($LOGGING) || !empty($VERBOSE)) {
@@ -65,6 +69,7 @@ $BLOCKING = getenv('BLOCKING') !== FALSE;
 
 $interval = 5;
 $INTERVAL = getenv('INTERVAL');
+
 if (!empty($INTERVAL)) {
     $interval = $INTERVAL;
 }
@@ -73,6 +78,7 @@ $PIDFILE = getenv('PIDFILE');
 
 $count = 1;
 $COUNT = getenv('COUNT');
+
 if (!empty($COUNT) && $COUNT > 1) {
     $count = $COUNT;
 }
@@ -80,21 +86,25 @@ if (!empty($COUNT) && $COUNT > 1) {
 if ($count > 1) {
     for ($i = 0; $i < $count; ++$i) {
         $pid = pcntl_fork();
+
         if ($pid == -1) {
             die("Could not fork worker " . $i . "\n");
         } elseif (!$pid) { // Child, start the worker
-            if ($PIDFILE) {
+            if (!empty($PIDFILE)) {
                 if ($i == 0) {
                     writePidFile($PIDFILE);
                 }
+
                 writePidFile($PIDFILE . '.child.' . ($i + 1));
             }
+
             startWorker($QUEUE, $logLevel, $logger, $interval);
+
             break;
         }
     }
 } else { // Start a single worker
-    if ($PIDFILE) {
+    if (!empty($PIDFILE)) {
         writePidFile($PIDFILE);
     }
 

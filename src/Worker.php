@@ -74,7 +74,7 @@ class Worker
     public $logLevel = self::LOG_NONE;
 
     /**
-     * @var string[] Array of all associated queues for this worker.
+     * @var array<string> Array of all associated queues for this worker.
      */
     protected $queues = [];
 
@@ -126,7 +126,7 @@ class Worker
     /**
      * Return all workers known to Resque as instantiated instances.
      *
-     * @return Worker[] The workers.
+     * @return array<Worker> The workers.
      */
     public static function all(): array
     {
@@ -168,7 +168,7 @@ class Worker
             return null;
         }
 
-        list($hostname, $pid, $queues) = explode(':', $workerId, 3);
+        [$hostname, $pid, $queues] = explode(':', $workerId, 3);
         $queues = explode(',', $queues);
         $worker = new self($queues, $hostname, (int)$pid);
         $worker->logger = $worker->getLogger($workerId);
@@ -196,8 +196,8 @@ class Worker
      * a random order. You can easily add new queues dynamically and have
      * them worked on using this method.
      *
-     * @param string|array $queues String with a single queue name, array with
-     *      multiple.
+     * @param string|array<string> $queues String with a single queue name,
+     *      array with multiple.
      * @param string $hostname A hostname to use for this worker; defaults to
      *      the result of gethostname().
      * @param int $pid A process ID to use for this worker; defaults to the
@@ -471,7 +471,7 @@ class Worker
      *
      * @param bool $fetch If true (the default), and the queue is set to *,
      *      will fetch all queue names from Redis.
-     * @return string[] Array of associated queues.
+     * @return array<string> Array of associated queues.
      */
     public function queues(bool $fetch = true): array
     {
@@ -762,7 +762,7 @@ class Worker
      * Return an array of process IDs for all of the Resque workers currently
      * running on this machine.
      *
-     * @return string[] Array of Resque worker process IDs.
+     * @return array<string> Array of Resque worker process IDs.
      */
     public function workerPids()
     {
@@ -770,7 +770,7 @@ class Worker
         exec('ps -A -o pid,comm | grep [r]esque', $cmdOutput);
 
         foreach ($cmdOutput as $line) {
-            list($pids[]) = explode(' ', trim($line), 2);
+            [$pids[]] = explode(' ', trim($line), 2);
         }
 
         return $pids;
@@ -856,7 +856,7 @@ class Worker
     /**
      * Output a given log message to STDOUT.
      *
-     * @param mixed[] $message Message to output.
+     * @param array<mixed> $message Message to output.
      * @param int $code A log type code.
      * @return bool True if the message is logged
      */
@@ -884,7 +884,7 @@ class Worker
             if ($this->child > 0) {
                 $extra['worker'] = $this->hostname . ':' . getmypid();
             } else {
-                list($host, $pid, $queues) = explode(':', (string)$this, 3);
+                [$host, $pid, $queues] = explode(':', (string)$this, 3);
                 $extra['worker'] = $host . ':' . $pid;
             }
         }
@@ -977,7 +977,7 @@ class Worker
     /**
      * Return an object describing the job this worker is currently working on.
      *
-     * @return mixed[] Object with details of current job.
+     * @return array<mixed> Object with details of current job.
      */
     public function job(): array
     {

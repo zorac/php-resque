@@ -53,7 +53,7 @@ class Util
      * Format an exception chain as a string for display.
      *
      * @param Throwable $exception An exception.
-     * @return string[] The exception rendered as text lines.
+     * @return array<string> The exception rendered as text lines.
      */
     public static function formatStackTrace(Throwable $exception): array
     {
@@ -69,8 +69,9 @@ class Util
      * Format an exception chain as a string for display.
      *
      * @param Throwable $e An exception.
-     * @param bool[] $seen Stack elements which have already been seen.
-     * @param string[] $output The output lines.
+     * @param array<string,bool> $seen Stack elements which have already been
+     *      seen.
+     * @param array<string> $output The output lines.
      * @return void
      */
     private static function formatStackTraceRecursive(
