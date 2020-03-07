@@ -166,6 +166,26 @@ class Job
     }
 
     /**
+     * Return the name of the queue this job is in.
+     *
+     * @return string The queue.
+     */
+    public function getQueue(): string
+    {
+        return $this->queue;
+    }
+
+    /**
+     * Return the name of the PHP class which should perform this job.
+     *
+     * @return string The class.
+     */
+    public function getClass(): string
+    {
+        return $this->payload['class'];
+    }
+
+    /**
      * Get the arguments supplied to this job.
      *
      * @return array<mixed> Array of arguments.
@@ -186,34 +206,9 @@ class Job
      */
     public function getInstance(): object
     {
-        if (isset($this->instance)) {
-            return $this->instance;
+        if (!isset($this->instance)) {
+            $this->instance = $this->worker->getCreator()->createJob($this);
         }
-
-        if (class_exists('Resque_Job_Creator')) {
-            $this->instance = \Resque_Job_Creator::createJob(
-                $this->payload['class'],
-                $this->getArguments()
-            );
-        } else {
-            if (!class_exists($this->payload['class'])) {
-                throw new ResqueException(
-                    'Could not find job class ' . $this->payload['class'] . '.'
-                );
-            }
-
-            if (!method_exists($this->payload['class'], 'perform')) {
-                throw new ResqueException(
-                    'Job class ' . $this->payload['class']
-                        . ' does not contain a perform method.'
-                );
-            }
-            $this->instance = new $this->payload['class']();
-        }
-
-        $this->instance->job = $this;
-        $this->instance->args = $this->getArguments();
-        $this->instance->queue = $this->queue;
 
         return $this->instance;
     }

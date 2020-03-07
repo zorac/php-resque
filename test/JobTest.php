@@ -162,6 +162,7 @@ class JobTest extends TestCase
         ];
 
         $job = new Job('jobs', $payload);
+        $job->worker = $this->worker;
         $job->perform();
 
         self::assertTrue(JobWithSetUp::$called);
@@ -178,6 +179,7 @@ class JobTest extends TestCase
         ];
 
         $job = new Job('jobs', $payload);
+        $job->worker = $this->worker;
         $job->perform();
 
         self::assertTrue(JobWithTearDown::$called);

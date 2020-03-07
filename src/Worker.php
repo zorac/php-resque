@@ -4,7 +4,9 @@ namespace Resque;
 
 use MonologInit\MonologInit;
 use Monolog\Logger;
+use Resque\Job\CreatorInterface;
 use Resque\Job\DirtyExitException;
+use Resque\Job\LegacyCreator;
 use Resque\Job\Status;
 use RuntimeException;
 use Throwable;
@@ -124,6 +126,11 @@ class Worker
     public $pruneDeadWorkersOnStartup = true;
 
     /**
+     * @var CreatorInterface A job instance creator.
+     */
+    private $creator;
+
+    /**
      * Return all workers known to Resque as instantiated instances.
      *
      * @return array<Worker> The workers.
@@ -230,6 +237,31 @@ class Worker
         $this->queues = $queues;
         $this->hostname = $hostname;
         $this->id = "$hostname:$pid:" . implode(',', $this->queues);
+    }
+
+    /**
+     * Set the job instance creator to use.
+     *
+     * @param CreatorInterface $creator A job creator.
+     * @return void
+     */
+    public function setCreator(CreatorInterface $creator): void
+    {
+        $this->creator = $creator;
+    }
+
+    /**
+     * Return the job creator instance to use.
+     *
+     * @return CreatorInterface A job creator.
+     */
+    public function getCreator(): CreatorInterface
+    {
+        if (!isset($this->creator)) {
+            $this->creator = new LegacyCreator();
+        }
+
+        return $this->creator;
     }
 
     /**
