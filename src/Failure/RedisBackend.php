@@ -2,10 +2,10 @@
 
 namespace Resque\Failure;
 
-use Exception;
 use Resque\Resque;
 use Resque\Util;
 use Resque\Worker;
+use Throwable;
 
 /**
  * Redis backend for storing failed Resque jobs.
@@ -19,14 +19,14 @@ class RedisBackend implements Backend
      * Initialize a failed job class and save it (where appropriate).
      *
      * @param array<mixed> $payload Object containing details of the failed job.
-     * @param Exception $exception Instance of the exception that was thrown by
+     * @param Throwable $exception Instance of the exception that was thrown by
      *      the failed job.
      * @param Worker $worker Instance of Resque\Worker that received the job.
      * @param string $queue The name of the queue the job was fetched from.
      */
     public function __construct(
         array $payload,
-        Exception $exception,
+        Throwable $exception,
         Worker $worker,
         string $queue
     ) {
