@@ -1,3 +1,9 @@
+## 2.9.0 (2020-03-09)
+
+* Add PerformerInterface and related abstract classes
+* Add CreatorInterface as a modern alternative to Resque_Job_Creator
+* More code cleanup
+
 ## 2.8.1 (2020-03-03)
 
 * Code & documentation cleanup

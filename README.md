@@ -46,8 +46,21 @@ a queue, and a job ID if any.
 
 ### Job creation delegation
 
-If Resque_Job_Creator class exists and is found by Resque, all jobs creation
-will be delegated to this class.
+#### Modern method
+
+Create a class which implements `Resque\Job\CreatorInterface`, and inject it
+into the worker, e.g.:
+
+```php
+$worker = new Resque\Worker($queues);
+$creator = new My\Creator();
+$worker->setCreator($creator);
+```
+
+#### Legacy method
+
+If the `Resque_Job_Creator` class exists and is found by Resque, all jobs
+creation will be delegated to this class.
 
 The best way to inject this class is to include it in you `APP_INCLUDE` file.
 
