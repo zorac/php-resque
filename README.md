@@ -124,7 +124,7 @@ The easiest way is using composer, by adding the following to your
 
 ```json
     "require": {
-        "zorac/php-resque": "^2.0"
+        "zorac/php-resque": "^3.0"
     }
 ```
 
@@ -166,7 +166,7 @@ If one of these two environement variable is missing, it will default to
 
 ## Requirements
 
-* PHP 7.1+
+* PHP 7.4+
 * Redis 2.2+
 
 ## Contributors

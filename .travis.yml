@@ -4,7 +4,7 @@ branches:
 dist: xenial
 language: php
 php:
-  - 7.2
+  - 7.4
 services:
   - redis-server
 before_script:
