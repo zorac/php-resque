@@ -40,9 +40,7 @@ class RedisBackend implements Backend
             'queue' => $queue,
         ]);
 
-        if ($json !== false) {
-            Resque::redis()->setex("failed:{$payload['id']}", 86400, $json);
-        }
+        Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
     }
 
     /**
@@ -57,11 +55,7 @@ class RedisBackend implements Backend
         $json = Resque::redis()->get("failed:$jobId");
 
         if (isset($json)) {
-            $failure = Util::jsonDecode($json);
-
-            if (isset($failure)) {
-                return $failure;
-            }
+            return Util::jsonDecode($json);
         }
 
         return null;
