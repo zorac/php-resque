@@ -20,7 +20,7 @@ use TypeError;
 class JobTest extends TestCase
 {
     /** @var Worker */
-    private $worker;
+    private Worker $worker;
 
     public function setUp() : void
     {

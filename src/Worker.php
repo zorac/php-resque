@@ -98,17 +98,17 @@ class Worker
      * @var int Current log level of this worker.
      * @deprecated Set the log level on the logger instance.
      */
-    public $logLevel = self::LOG_NONE;
+    public int $logLevel = self::LOG_NONE;
 
     /**
      * @var array<string> Array of all associated queues for this worker.
      */
-    protected $queues = [];
+    protected array $queues = [];
 
     /**
      * @var string The hostname of this worker.
      */
-    protected $hostname;
+    protected string $hostname;
 
     /**
      * @var int The process ID of this worker.
@@ -118,42 +118,42 @@ class Worker
     /**
      * @var bool True if on the next iteration, the worker should shutdown.
      */
-    protected $shutdown = false;
+    protected bool $shutdown = false;
 
     /**
      * @var bool True if this worker is paused.
      */
-    protected $paused = false;
+    protected bool $paused = false;
 
     /**
      * @var string String identifying this worker.
      */
-    protected $id;
+    protected string $id;
 
     /**
      * @var Job|null Current job, if any, being processed by this worker.
      */
-    protected $currentJob = null;
+    protected ?Job $currentJob = null;
 
     /**
      * @var int|null Process ID of child worker processes.
      */
-    protected $child = null;
+    protected ?int $child = null;
 
     /**
      * @var LoggerInterface|null A logger to use for this worker.
      */
-    protected $logger = null;
+    protected ?LoggerInterface $logger = null;
 
     /**
      * @var int Number of seconds to wait for a child in a graceful shutdown.
      */
-    public $gracefulDelay = 5;
+    public int $gracefulDelay = 5;
 
     /**
-     * @var CreatorInterface A job instance creator.
+     * @var CreatorInterface|null A job instance creator.
      */
-    private $creator;
+    private ?CreatorInterface $creator = null;
 
     /**
      * Instantiate a new worker, given a list of queues that it should be

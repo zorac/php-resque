@@ -17,22 +17,22 @@ class Job
     /**
      * @var string The name of the queue that this job belongs to.
      */
-    public $queue;
+    public string $queue;
 
     /**
      * @var Worker Instance of the Resque worker running this job.
      */
-    public $worker;
+    public Worker $worker;
 
     /**
      * @var array<mixed> Array containing details of the job.
      */
-    public $payload;
+    public array $payload;
 
     /**
      * @var object|null Instance of the class performing work for this job.
      */
-    private $instance;
+    private ?object $instance = null;
 
     /**
      * Instantiate a new instance of a job.

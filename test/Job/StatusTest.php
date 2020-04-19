@@ -19,7 +19,7 @@ use Resque\WorkerFactory;
 class StatusTest extends TestCase
 {
     /** @var Worker */
-    private $worker;
+    private Worker $worker;
 
     public function setUp() : void
     {

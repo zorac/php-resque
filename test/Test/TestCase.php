@@ -9,9 +9,10 @@ use Resque\Redis;
 class TestCase extends PHPUnitTestCase
 {
     /** @var Redis */
-    protected static $redis;
+    protected static Redis $redis;
+
     /** @var bool */
-    private static $lastNamespaceWasCustom = false;
+    private static bool $lastNamespaceWasCustom = false;
 
     public static function connect(string $namespace = null) : void
     {

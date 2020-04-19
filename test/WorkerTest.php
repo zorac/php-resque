@@ -14,7 +14,7 @@ use Resque\Test\TestJob;
 class WorkerTest extends TestCase
 {
     /** @var WorkerFactory */
-    private $factory;
+    private WorkerFactory $factory;
 
     public function setUp() : void
     {

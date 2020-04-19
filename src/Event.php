@@ -14,7 +14,7 @@ class Event
      * @var array<string,array<callable>> Array containing all registered
      *      callbacks, indexed by event name.
      */
-    private static $events = [];
+    private static array $events = [];
 
     /**
      * Raise a given event with the supplied data.

@@ -14,10 +14,10 @@ use Throwable;
 class Failure
 {
     /**
-     * @var string Class name representing the backend to pass failed jobs off
-     *      to.
+     * @var string|null Class name representing the backend to pass failed jobs
+     *      off to.
      */
-    private static $backend;
+    private static ?string $backend = null;
 
     /**
      * Create a new failed job on the backend.
@@ -49,7 +49,7 @@ class Failure
      */
     public static function getBackend(): string
     {
-        if (self::$backend === null) {
+        if (!isset(self::$backend)) {
             self::$backend = RedisBackend::class;
         }
 

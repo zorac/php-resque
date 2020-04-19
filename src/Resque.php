@@ -25,30 +25,30 @@ class Resque
     /**
      * @var Redis|null Instance of Resque\Redis that talks to Redis.
      */
-    public static $redis = null;
+    public static ?Redis $redis = null;
 
     /**
-     * @var string|array<mixed>|callable Host/port combination separated by a
-     * colon, or a nested array of server with host/port pairs, or a callable
-     * which will return a Redis connection.
+     * @var string|array<mixed>|callable|null Host/port combination separated
+     *      by a colon, or a nested array of server with host/port pairs, or a
+     *      callable which will return a Redis connection.
      */
     protected static $redisServer = null;
 
     /**
      * @var int ID of Redis database to select.
      */
-    protected static $redisDatabase = 0;
+    protected static int $redisDatabase = 0;
 
     /**
      * @var string namespace of the redis keys
      */
-    protected static $namespace = '';
+    protected static string $namespace = '';
 
     /**
      * @var int|null PID of current process. Used to detect changes when
-     * forking and implement "thread" safety to avoid race conditions.
+     *      forking and implement "thread" safety to avoid race conditions.
      */
-    protected static $pid = null;
+    protected static ?int $pid = null;
 
     /**
      * Given a host/port combination separated by a colon, set it as
@@ -90,6 +90,8 @@ class Resque
 
         if (isset(self::$redis)) {
             return self::$redis;
+        } elseif (!isset(self::$redisServer)) {
+            throw new ResqueException('Redis backend has not been set');
         }
 
         self::$redis = new Redis(self::$redisServer, self::$redisDatabase);
@@ -149,9 +151,7 @@ class Resque
      */
     public static function blpop(array $queues, int $timeout = 0): ?array
     {
-        $keys = array_map(function (string $queue): string {
-            return "queue:$queue";
-        }, $queues);
+        $keys = array_map(fn(string $queue): string => "queue:$queue", $queues);
 
         [$queue, $json] = self::redis()->blpop($keys, $timeout);
 

@@ -44,14 +44,14 @@ class Status
     /**
      * @var string The ID of the job this status class refers back to.
      */
-    private $id;
+    private string $id;
 
     /**
      * @var bool|null Cache variable if the status of this job is being
      *      monitored or not. True/false when checked at least once or null if
      *      not checked yet.
      */
-    private $isTracking = null;
+    private ?bool $isTracking = null;
 
     /**
      * Setup a new instance of the job monitor class for the supplied job ID.

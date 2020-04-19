@@ -15,15 +15,15 @@ abstract class AbstractLegacyPerformer extends AbstractPerformer
     /**
      * @var Job The job to process.
      */
-    public $job;
+    public Job $job;
 
     /**
      * @var array<mixed> The job arguments.
      */
-    public $args;
+    public array $args;
 
     /**
      * @var string The queue the job is on.
      */
-    public $queue;
+    public string $queue;
 }

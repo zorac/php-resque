@@ -40,7 +40,7 @@ class RedisBackend implements Backend
             'queue' => $queue,
         ]);
 
-        Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
+        Resque::redis()->setex("failed:{$payload['id']}", 86400, $json);
     }
 
     /**

@@ -14,11 +14,11 @@ use Resque\Test\TestJob;
  */
 class EventTest extends TestCase
 {
-    /** @var array<string> */
-    private $callbacksHit = [];
+    /** @var array<int,string> */
+    private array $callbacksHit = [];
 
     /** @var Worker */
-    private $worker;
+    private Worker $worker;
 
     public function setUp() : void
     {

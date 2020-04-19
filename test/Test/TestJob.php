@@ -5,7 +5,7 @@ namespace Resque\Test;
 class TestJob
 {
     /** @var bool */
-    public static $called = false;
+    public static bool $called = false;
 
     public function perform() : void
     {

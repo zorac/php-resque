@@ -129,12 +129,12 @@ class Redis
     /**
      * @var string Redis namespace.
      */
-    private static $defaultNamespace = 'resque:';
+    private static string $defaultNamespace = 'resque:';
 
     /**
      * @var Client The underlying Redis driver.
      */
-    private $driver = null;
+    private Client $driver;
 
     /**
      * Set Redis namespace (prefix) default: resque.
