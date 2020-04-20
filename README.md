@@ -56,8 +56,6 @@ a queue, and a job ID if any.
 
 ### Job creation delegation
 
-#### Modern method
-
 Create a class which implements `Resque\Job\CreatorInterface`, and inject it
 into the worker, e.g.:
 
@@ -65,31 +63,6 @@ into the worker, e.g.:
 $worker = new Resque\Worker($queues);
 $creator = new My\Creator();
 $worker->setCreator($creator);
-```
-
-#### Legacy method
-
-If the `Resque_Job_Creator` class exists and is found by Resque, all jobs
-creation will be delegated to this class.
-
-The best way to inject this class is to include it in you `APP_INCLUDE` file.
-
-Class content is:
-
-```php
-class Resque_Job_Creator
-{
-    /**
-     * Create a new Resque Job.
-     *
-     * @param string $className Your job class name, the second argument when
-     *      enqueuing a job.
-     * @param array<mixed> $args The arguments passed to your job.
-     */
-    public static function createJob($className, $args) {
-        return new $className();
-    }
-}
 ```
 
 This is pretty useful when your autoloader can not load the class, like when
