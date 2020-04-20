@@ -26,7 +26,7 @@ data format in Redis -- is **not** a goal of this fork. Major version upgrades
 
 ## Additional features
 
-This fork provides some additional features :
+This fork provides some additional features:
 
 ### Support of Predis
 
@@ -41,7 +41,7 @@ or send them elsewhere via a socket. We use
 to manage all the logging. See their documentation to see all the available
 handlers.
 
-Log infos are augmented with more informations, and associated with a workers,
+Log entries are augmented with more informations, and associated with a worker,
 a queue, and a job ID if any.
 
 ### Job creation delegation
@@ -125,7 +125,7 @@ option.
 Use the same way as the original port, with additional ENV :
 
 * `LOGHANDLER`: Specify the handler to use for logging (File, MongoDB,
-    Socket, etc …). See [Monolog](https://github.com/Seldaek/monolog#handlers)
+    Socket, etc...). See [Monolog](https://github.com/Seldaek/monolog#handlers)
     doc for all available handlers. `LOGHANDLER` is the name of the handler,
     without the "Handler" part. To use CubeHandler, just type "Cube".
 * `LOGHANDLERTARGET`: Information used by the handler to connect to the

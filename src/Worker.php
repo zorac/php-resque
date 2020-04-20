@@ -341,13 +341,13 @@ class Worker
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
 
-            $workerName = $this->hostname . ':' . getmypid();
+            $workerName = "$this->hostname:" . getmypid();
 
             $this->child = $this->fork();
 
             // Forked and we're the child. Run the job.
             if ($this->child === 0) {
-                $status = 'Processing ID:' . $job->payload['id'] . ' in ' . $job->queue;
+                $status = "Processing ID:{$job->payload['id']} in $job->queue";
                 $this->updateProcLine($status);
 
                 $this->log([
@@ -366,7 +366,7 @@ class Worker
 
             if ($this->child > 0) {
                 // Parent process, sit and wait
-                $status = 'Forked ' . $this->child . ' for ID:' . $job->payload['id'];
+                $status = "Forked $this->child for ID:{$job->payload['id']}";
                 $this->updateProcLine($status);
 
                 $this->log([
@@ -727,7 +727,7 @@ class Worker
             ]
         ], self::LOG_TYPE_DEBUG);
 
-        exec('ps -p ' . $this->child, $output, $returnCode);
+        exec("ps -p $this->child", $output, $returnCode);
 
         if ($returnCode === 0) {
             $this->log([

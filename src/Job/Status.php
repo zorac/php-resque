@@ -176,6 +176,6 @@ class Status
      */
     public function __toString()
     {
-        return 'job:' . $this->id . ':status';
+        return "job:$this->id:status";
     }
 }

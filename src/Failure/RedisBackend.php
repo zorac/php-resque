@@ -41,7 +41,7 @@ class RedisBackend implements Backend
         ]);
 
         if ($json !== false) {
-            Resque::redis()->setex('failed:' . $payload['id'], 86400, $json);
+            Resque::redis()->setex("failed:{$payload['id']}", 86400, $json);
         }
     }
 

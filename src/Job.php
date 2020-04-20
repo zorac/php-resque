@@ -271,7 +271,7 @@ class Job
         );
 
         Stat::incr('failed');
-        Stat::incr('failed:' . $this->worker);
+        Stat::incr("failed:$this->worker");
     }
 
     /**

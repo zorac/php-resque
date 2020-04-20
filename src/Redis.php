@@ -46,11 +46,6 @@ use Predis\PredisException;
 class Redis
 {
     /**
-     * @var string Redis namespace.
-     */
-    private static $defaultNamespace = 'resque:';
-
-    /**
      * @var string A default host to connect to
      */
     public const DEFAULT_HOST = 'localhost';
@@ -69,7 +64,7 @@ class Redis
      * @var array<string> List of all commands in Redis that supply a key as their
      *    first argument. Used to prefix keys with the Resque namespace.
      */
-    private $keyCommands = [
+    private const KEY_COMMANDS = [
         'exists',
         'del',
         'type',
@@ -130,6 +125,11 @@ class Redis
     // msetnx
     // mset
     // renamenx
+
+    /**
+     * @var string Redis namespace.
+     */
+    private static $defaultNamespace = 'resque:';
 
     /**
      * @var Client The underlying Redis driver.
@@ -196,7 +196,7 @@ class Redis
      */
     public function __call($name, $args)
     {
-        if (in_array(strtolower($name), $this->keyCommands, true)) {
+        if (in_array(strtolower($name), self::KEY_COMMANDS, true)) {
             if (is_array($args[0])) {
                 foreach ($args[0] as $i => $v) {
                     $args[0][$i] = self::$defaultNamespace . $v;
