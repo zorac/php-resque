@@ -3,6 +3,8 @@
 namespace Resque;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use Resque\Job\CreatorInterface;
 use Resque\Job\LegacyCreator;
 
@@ -15,7 +17,7 @@ use Resque\Job\LegacyCreator;
 class WorkerFactory
 {
     /**
-     * @var LoggerInterface|null A logger to pass to workers.
+     * @var LoggerInterface A logger to pass to workers.
      */
     private $logger;
 
@@ -34,7 +36,7 @@ class WorkerFactory
         LoggerInterface $logger = null,
         CreatorInterface $creator = null
     ) {
-        $this->logger = $logger;
+        $this->logger = $logger ?? new NullLogger();
         $this->creator = $creator ?? new LegacyCreator();
     }
 
@@ -55,14 +57,8 @@ class WorkerFactory
         int $pid = null
     ) {
         $worker = new Worker($queues, $hostname, $pid);
-        $logger = $worker->getLogger((string)$worker);
 
-        if (isset($logger)) {
-            $worker->setLogger($logger);
-        } elseif (isset($this->logger)) {
-            $worker->setLogger($this->logger);
-        }
-
+        $worker->setLogger($this->logger);
         $worker->setCreator($this->creator);
 
         return $worker;
@@ -148,12 +144,11 @@ class WorkerFactory
                 continue;
             }
 
-            $worker->log([
-                'message' => "Pruning dead worker: $worker",
-                'data' => [
-                    'type' => 'prune'
-                ]
-            ], Worker::LOG_TYPE_DEBUG);
+            $worker->log(
+                LogLevel::DEBUG,
+                "Pruning dead worker: $worker",
+                ['type' => 'prune']
+            );
 
             $worker->unregisterWorker();
         }

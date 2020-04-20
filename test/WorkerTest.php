@@ -2,6 +2,7 @@
 
 namespace Resque;
 
+use Psr\Log\LogLevel;
 use Resque\Test\TestCase;
 use Resque\Test\TestJob;
 
@@ -261,107 +262,6 @@ class WorkerTest extends TestCase
         $worker->unregisterWorker();
 
         self::assertEquals(1, Stat::get('failed'));
-    }
-
-    public function testWorkerLogAllMessageOnVerbose() : void
-    {
-        $memory = fopen('php://memory', 'r+');
-        self::assertNotFalse($memory);
-
-        $worker = $this->factory->create('jobs');
-        $worker->logLevel = Worker::LOG_VERBOSE;
-        $worker->logOutput = $memory;
-
-        $message = ['message' => 'x', 'data' => []];
-
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
-
-        rewind($memory);
-        $output = stream_get_contents($memory);
-        self::assertNotFalse($output);
-
-        $lines = explode("\n", $output);
-        self::assertEquals(6, count($lines) - 1);
-    }
-
-    public function testWorkerLogOnlyInfoMessageOnNonVerbose() : void
-    {
-        $memory = fopen('php://memory', 'r+');
-        self::assertNotFalse($memory);
-
-        $worker = $this->factory->create('jobs');
-        $worker->logLevel = Worker::LOG_NORMAL;
-        $worker->logOutput = $memory;
-
-        $message = ['message' => 'x', 'data' => []];
-
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_ALERT));
-
-        rewind($memory);
-        $output = stream_get_contents($memory);
-        self::assertNotFalse($output);
-
-        $lines = explode("\n", $output);
-        self::assertEquals(5, count($lines) - 1);
-    }
-
-    public function testWorkerLogNothingWhenLogNone() : void
-    {
-        $memory = fopen('php://memory', 'r+');
-        self::assertNotFalse($memory);
-
-        $worker = $this->factory->create('jobs');
-        $worker->logLevel = Worker::LOG_NONE;
-        $worker->logOutput = $memory;
-
-        $message = ['message' => 'x', 'data' => []];
-
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_DEBUG));
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_INFO));
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_WARNING));
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_CRITICAL));
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ERROR));
-        self::assertEquals(false, $worker->log($message, Worker::LOG_TYPE_ALERT));
-
-        rewind($memory);
-        $output = stream_get_contents($memory);
-        self::assertNotFalse($output);
-
-        $lines = explode("\n", $output);
-        self::assertEquals(0, count($lines) - 1);
-    }
-
-    public function testWorkerLogWithIsoTime() : void
-    {
-        $memory = fopen('php://memory', 'r+');
-        self::assertNotFalse($memory);
-
-        $worker = $this->factory->create('jobs');
-        $worker->logLevel = Worker::LOG_NORMAL;
-        $worker->logOutput = $memory;
-
-        $message = ['message' => 'x', 'data' => []];
-
-        $now = date('c');
-        self::assertEquals(true, $worker->log($message, Worker::LOG_TYPE_INFO));
-
-        rewind($memory);
-        $output = stream_get_contents($memory);
-        self::assertNotFalse($output);
-
-        $lines = explode("\n", $output);
-        self::assertEquals(1, count($lines) - 1);
-        self::assertEquals("[$now] x", $lines[0]);
     }
 
     public function testBlockingListPop() : void

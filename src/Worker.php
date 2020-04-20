@@ -2,7 +2,6 @@
 
 namespace Resque;
 
-use MonologInit\MonologInit;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Resque\Job\CreatorInterface;
@@ -22,84 +21,6 @@ use Throwable;
  */
 class Worker
 {
-    /**
-     * @var int Log level for no logging.
-     * @deprecated Set the log level on the logger instance.
-     */
-    public const LOG_NONE = 0;
-
-    /**
-     * @var int Log level for normal logging.
-     * @deprecated Set the log level on the logger instance.
-     */
-    public const LOG_NORMAL = 1;
-
-    /**
-     * @var int Log level for verbose logging.
-     * @deprecated Set the log level on the logger instance.
-     */
-    public const LOG_VERBOSE = 2;
-
-    /**
-     * @var int Log type for a debug message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_DEBUG = 100;
-
-    /**
-     * @var int Log type for an informational message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_INFO = 200;
-
-    /**
-     * @var int Log type for a warning message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_WARNING = 300;
-
-    /**
-     * @var int Log type for an error message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_ERROR = 400;
-
-    /**
-     * @var int Log type for a critical error message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_CRITICAL = 500;
-
-    /**
-     * @var int Log type for an alert message.
-     * @deprecated Use PSR log levels.
-     */
-    public const LOG_TYPE_ALERT = 550;
-
-    /**
-     * @var <int,string> Mapping from legacy lof type to PSR log level.
-     */
-    private const LOG_LEVEL_MAP = [
-        self::LOG_TYPE_DEBUG    => LogLevel::DEBUG,
-        self::LOG_TYPE_INFO     => LogLevel::INFO,
-        self::LOG_TYPE_WARNING  => LogLevel::WARNING,
-        self::LOG_TYPE_ERROR    => LogLevel::ERROR,
-        self::LOG_TYPE_CRITICAL => LogLevel::CRITICAL,
-        self::LOG_TYPE_ALERT    => LogLevel::ALERT,
-    ];
-
-    /**
-     * @var resource The handle to write logs to.
-     * @deprecated Use an appropriately configured logger.
-     */
-    public $logOutput = STDOUT;
-
-    /**
-     * @var int Current log level of this worker.
-     * @deprecated Set the log level on the logger instance.
-     */
-    public int $logLevel = self::LOG_NONE;
-
     /**
      * @var array<string> Array of all associated queues for this worker.
      */
@@ -282,14 +203,15 @@ class Worker
                 try {
                     $job = $this->reserve($blocking, $interval);
                 } catch (RedisException $e) {
-                    $this->log([
-                        'message' => 'Redis exception caught: ' . $e->getMessage(),
-                        'data' => [
+                    $this->log(
+                        LogLevel::ALERT,
+                        'Redis exception caught: ' . $e->getMessage(),
+                        [
                             'type' => 'fail',
                             'log' => $e->getMessage(),
                             'time' => time()
                         ]
-                    ], LogLevel::ALERT);
+                    );
                 }
             }
 
@@ -299,13 +221,11 @@ class Worker
                     break;
                 } elseif (!$blocking) {
                     // If no job was found, we sleep for $interval before continuing and checking again
-                    $this->log([
-                        'message' => "Sleeping for $interval",
-                        'data' => [
-                            'type' => 'sleep',
-                            'second' => $interval
-                        ]
-                    ], LogLevel::DEBUG);
+                    $this->log(
+                        LogLevel::DEBUG,
+                        "Sleeping for $interval",
+                        ['type' => 'sleep', 'second' => $interval]
+                    );
 
                     if ($this->paused) {
                         $this->updateProcLine('Paused');
@@ -319,13 +239,11 @@ class Worker
                 continue;
             }
 
-            $this->log([
-                'message' => "got $job",
-                'data' => [
-                    'type' => 'got',
-                    'args' => $job
-                ]
-            ], LogLevel::INFO);
+            $this->log(
+                LogLevel::INFO,
+                "got $job",
+                ['type' => 'got', 'args' => $job]
+            );
 
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
@@ -339,14 +257,15 @@ class Worker
                 $status = "Processing ID:{$job->payload['id']} in $job->queue";
                 $this->updateProcLine($status);
 
-                $this->log([
-                    'message' => $status,
-                    'data' => [
+                $this->log(
+                    LogLevel::INFO,
+                    $status,
+                    [
                         'type' => 'process',
                         'worker' => $workerName,
                         'job_id' => $job->payload['id']
                     ]
-                ], LogLevel::INFO);
+                );
 
                 $this->perform($job);
 
@@ -358,14 +277,15 @@ class Worker
                 $status = "Forked $this->child for ID:{$job->payload['id']}";
                 $this->updateProcLine($status);
 
-                $this->log([
-                    'message' => $status,
-                    'data' => [
+                $this->log(
+                    LogLevel::DEBUG,
+                    $status,
+                    [
                         'type' => 'fork',
                         'worker' => $workerName,
                         'job_id' => $job->payload['id']
                     ]
-                ], LogLevel::DEBUG);
+                );
 
                 // Wait until the child process finishes before continuing.
                 // We use a loop to continue waiting after we get a signal.
@@ -401,24 +321,26 @@ class Worker
             Event::trigger('afterFork', $job);
             $job->perform();
 
-            $this->log([
-                'message' => "done ID:{$job->payload['id']}",
-                'data' => [
+            $this->log(
+                LogLevel::INFO,
+                "done ID:{$job->payload['id']}",
+                [
                     'type' => 'done',
                     'job_id' => $job->payload['id'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000
                 ]
-            ], LogLevel::INFO);
+            );
         } catch (Throwable $e) {
-            $this->log([
-                'message' => "$job failed: " . $e->getMessage(),
-                'data' => [
+            $this->log(
+                LogLevel::ERROR,
+                "$job failed: " . $e->getMessage(),
+                [
                     'type' => 'fail',
                     'log' => $e->getMessage(),
                     'job_id' => $job->payload['id'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000
                 ]
-            ], LogLevel::ERROR);
+            );
 
             $job->fail($e);
 
@@ -440,25 +362,20 @@ class Worker
         $queues = $this->queues();
 
         if ($blocking) {
-            $this->log([
-                'message' => 'Starting blocking check of ' . implode(',', $this->queues),
-                'data' => [
-                    'type' => 'check',
-                    'queue' => $queues,
-                    'timeout' => $timeout
-                ]
-            ], LogLevel::DEBUG);
+            $this->log(
+                LogLevel::DEBUG,
+                'Starting blocking check of ' . implode(',', $this->queues),
+                ['type' => 'check', 'queue' => $queues, 'timeout' => $timeout]
+            );
 
             $job = Job::reserveBlocking($queues, $timeout);
         } else {
             foreach ($queues as $queue) {
-                $this->log([
-                    'message' => "Checking $queue",
-                    'data' => [
-                        'type' => 'check',
-                        'queue' => $queue
-                    ]
-                ], LogLevel::DEBUG);
+                $this->log(
+                    LogLevel::DEBUG,
+                    "Checking $queue",
+                    ['type' => 'check', 'queue' => $queue]
+                );
 
                 $job = Job::reserve($queue);
 
@@ -469,13 +386,11 @@ class Worker
         }
 
         if (isset($job)) {
-            $this->log([
-                'message' => "Found job on $job->queue",
-                'data' => [
-                    'type' => 'found',
-                    'queue' => $job->queue
-                ]
-            ], LogLevel::DEBUG);
+            $this->log(
+                LogLevel::DEBUG,
+                "Found job on $job->queue",
+                ['type' => 'found', 'queue' => $job->queue]
+            );
 
             return $job;
         }
@@ -587,13 +502,14 @@ class Worker
      */
     protected function startup(): void
     {
-        $this->log([
-            'message' => "Starting worker $this",
-            'data' => [
+        $this->log(
+            LogLevel::INFO,
+            "Starting worker $this",
+            [
                 'type' => 'start',
                 'worker' => $this->id
             ]
-        ], LogLevel::INFO);
+        );
 
         $this->registerSigHandlers();
         Event::trigger('beforeFirstFork', $this);
@@ -637,12 +553,11 @@ class Worker
         pcntl_signal(SIGCONT, [$this, 'unPauseProcessing']);
         pcntl_signal(SIGPIPE, [$this, 'reestablishRedisConnection']);
 
-        $this->log([
-            'message' => 'Registered signals',
-            'data' => [
-                'type' => 'signal'
-            ]
-        ], LogLevel::DEBUG);
+        $this->log(
+            LogLevel::DEBUG,
+            'Registered signals',
+            ['type' => 'signal']
+        );
     }
 
     /**
@@ -652,12 +567,11 @@ class Worker
      */
     public function pauseProcessing(): void
     {
-        $this->log([
-            'message' => 'USR2 received; pausing job processing',
-            'data' => [
-                'type' => 'pause'
-            ]
-        ], LogLevel::INFO);
+        $this->log(
+            LogLevel::INFO,
+            'USR2 received; pausing job processing',
+            ['type' => 'pause']
+        );
 
         $this->paused = true;
     }
@@ -670,12 +584,11 @@ class Worker
      */
     public function unPauseProcessing(): void
     {
-        $this->log([
-            'message' => 'CONT received; resuming job processing',
-            'data' => [
-                'type' => 'resume'
-            ]
-        ], LogLevel::INFO);
+        $this->log(
+            LogLevel::INFO,
+            'CONT received; resuming job processing',
+            ['type' => 'resume']
+        );
 
         $this->paused = false;
     }
@@ -688,12 +601,11 @@ class Worker
      */
     public function reestablishRedisConnection(): void
     {
-        $this->log([
-            'message' => 'SIGPIPE received; attempting to reconnect',
-            'data' => [
-                'type' => 'reconnect'
-            ]
-        ], LogLevel::INFO);
+        $this->log(
+            LogLevel::INFO,
+            'SIGPIPE received; attempting to reconnect',
+            ['type' => 'reconnect']
+        );
 
         Resque::redis()->connect();
     }
@@ -708,12 +620,11 @@ class Worker
     {
         $this->shutdown = true;
 
-        $this->log([
-            'message' => 'Exiting...',
-            'data' => [
-                'type' => 'shutdown'
-            ]
-        ], LogLevel::INFO);
+        $this->log(
+            LogLevel::INFO,
+            'Exiting...',
+            ['type' => 'shutdown']
+        );
     }
 
     /**
@@ -749,46 +660,38 @@ class Worker
     public function killChild(): void
     {
         if (!isset($this->child)) {
-            $this->log([
-                'message' => 'No child to kill.',
-                'data' => [
-                    'type' => 'kill',
-                    'child' => null
-                ]
-            ], LogLevel::DEBUG);
+            $this->log(
+                LogLevel::DEBUG,
+                'No child to kill.',
+                ['type' => 'kill', 'child' => null]
+            );
 
             return;
         }
 
-        $this->log([
-            'message' => "Killing child at $this->child",
-            'data' => [
-                'type' => 'kill',
-                'child' => $this->child
-            ]
-        ], LogLevel::DEBUG);
+        $this->log(
+            LogLevel::DEBUG,
+            "Killing child at $this->child",
+            ['type' => 'kill', 'child' => $this->child]
+        );
 
         exec("ps -p $this->child", $output, $returnCode);
 
         if ($returnCode === 0) {
-            $this->log([
-                'message' => "Killing child at $this->child",
-                'data' => [
-                    'type' => 'kill',
-                    'child' => $this->child
-                ]
-            ], LogLevel::DEBUG);
+            $this->log(
+                LogLevel::DEBUG,
+                "Killing child at $this->child",
+                ['type' => 'kill', 'child' => $this->child]
+            );
 
             posix_kill($this->child, SIGKILL);
             $this->child = null;
         } else {
-            $this->log([
-                'message' => "Child $this->child not found, restarting.",
-                'data' => [
-                    'type' => 'kill',
-                    'child' => $this->child
-                ]
-            ], LogLevel::ERROR);
+            $this->log(
+                LogLevel::ERROR,
+                "Child $this->child not found, restarting.",
+                ['type' => 'kill', 'child' => $this->child]
+            );
 
             $this->shutdown();
         }
@@ -872,80 +775,24 @@ class Worker
     /**
      * Output a given log message to STDOUT.
      *
-     * @param array<mixed> $message Message to output.
-     * @param int|string $code A log type code or a PSR log level.
+     * @param string $level A log level.
+     * @param string $message The message to log.
+     * @param array<string,mixed> $context Additional context data.
      * @return bool True if the message is logged
      */
-    public function log(array $message, $code = LogLevel::INFO): bool
+    public function log(string $level, string $message, array $context): bool
     {
-        $level = is_string($code) ? $code : self::LOG_LEVEL_MAP[$code];
-
-        if (
-            ($this->logLevel === self::LOG_NONE)
-            || (($level === LogLevel::DEBUG)
-                && ($this->logLevel === self::LOG_NORMAL))
-        ) {
+        if (!isset($this->logger)) {
             return false;
         }
-
-        $context = $message['data'];
-        $message = $message['message'];
 
         if (!isset($context['worker'])) {
             $context['worker'] = "$this->hostname:$this->pid";
         }
 
-        if (isset($this->logger)) {
-            $this->logger->log($level, $message, $context);
-        } else {
-            fwrite($this->logOutput, '[' . date('c') . "] $message\n");
-        }
+        $this->logger->log($level, $message, $context);
 
         return true;
-    }
-
-    /**
-     * Register a logger for this worker.
-     *
-     * @param MonologInit $logger A logger.
-     * @return void
-     * @deprecated Support for logger configuration stored in Redis will be
-     *      removed in v3.0.
-     * @see LoggerFactory
-     */
-    public function registerLogger(MonologInit $logger): void
-    {
-        $this->logger = $logger->getInstance();
-
-        $json = Util::jsonEncode([
-            $logger->handler,
-            $logger->target
-        ]);
-
-        Resque::redis()->hset('workerLogger', $this->id, $json);
-    }
-
-    /**
-     * Fetch the logger for a given worker.
-     *
-     * @param string $workerId A worker ID.
-     * @return LoggerInterface The logger, or null for internal logging.
-     * @deprecated Support for logger configuration stored in Redis will be
-     *      removed in v3.0.
-     * @see LoggerFactory
-     */
-    public function getLogger(string $workerId): ?LoggerInterface
-    {
-        $json = Resque::redis()->hget('workerLogger', $workerId);
-
-        if (isset($json)) {
-            $settings = Util::jsonDecode($json);
-            $logger = new MonologInit($settings[0], $settings[1]);
-
-            return $logger->getInstance();
-        }
-
-        return null;
     }
 
     /**
