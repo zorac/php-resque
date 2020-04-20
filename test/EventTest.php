@@ -38,7 +38,7 @@ class EventTest extends TestCase
     public function getEventTestJob() : Job
     {
         $payload = [
-            'class' => '\\Resque\\Test\\TestJob',
+            'class' => TestJob::class,
             'id'    => 'randomId',
             'args'  => [ [ 'somevar' ] ],
         ];
@@ -78,7 +78,7 @@ class EventTest extends TestCase
         $callback = 'beforeForkEventCallback';
 
         Event::listen($event, [$this, $callback]);
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
+        Resque::enqueue('jobs', TestJob::class, ['somevar']);
         $job = $this->getEventTestJob();
         $this->worker->work(0);
         self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
@@ -102,7 +102,7 @@ class EventTest extends TestCase
         $event = 'afterEnqueue';
 
         Event::listen($event, [$this, $callback]);
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', ['somevar']);
+        Resque::enqueue('jobs', TestJob::class, ['somevar']);
         self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
@@ -142,7 +142,7 @@ class EventTest extends TestCase
     public function afterEnqueueEventCallback(string $class, array $args) : void
     {
         $this->callbacksHit[] = __FUNCTION__;
-        self::assertEquals('\\Resque\\Test\\TestJob', $class);
+        self::assertEquals(TestJob::class, $class);
         self::assertEquals(['somevar'], $args);
     }
 

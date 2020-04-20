@@ -4,7 +4,9 @@ namespace Resque\Job;
 
 use Resque\Job;
 use Resque\Resque;
+use Resque\Test\FailingJob;
 use Resque\Test\TestCase;
+use Resque\Test\TestJob;
 use Resque\Worker;
 
 /**
@@ -26,7 +28,7 @@ class StatusTest extends TestCase
 
     public function testJobStatusCanBeTracked() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, true);
+        $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
 
         $status = new Status($token);
@@ -35,7 +37,7 @@ class StatusTest extends TestCase
 
     public function testJobStatusIsReturnedViaJobInstance() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, true);
+        $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
 
         $job = Job::reserve('jobs');
@@ -45,7 +47,7 @@ class StatusTest extends TestCase
 
     public function testQueuedJobReturnsQueuedStatus() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, true);
+        $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
 
         $status = new Status($token);
@@ -53,7 +55,7 @@ class StatusTest extends TestCase
     }
     public function testRunningJobReturnsRunningStatus() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\FailingJob', null, true);
+        $token = Resque::enqueue('jobs', FailingJob::class, null, true);
         self::assertNotNull($token);
 
         $job = $this->worker->reserve();
@@ -66,7 +68,7 @@ class StatusTest extends TestCase
 
     public function testFailedJobReturnsFailedStatus() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\FailingJob', null, true);
+        $token = Resque::enqueue('jobs', FailingJob::class, null, true);
         self::assertNotNull($token);
 
         $this->worker->work(0);
@@ -76,7 +78,7 @@ class StatusTest extends TestCase
 
     public function testCompletedJobReturnsCompletedStatus() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, true);
+        $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
 
         $this->worker->work(0);
@@ -86,7 +88,7 @@ class StatusTest extends TestCase
 
     public function testStatusIsNotTrackedWhenToldNotTo() : void
     {
-        $token = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, false);
+        $token = Resque::enqueue('jobs', TestJob::class, null, false);
         self::assertNotNull($token);
 
         $status = new Status($token);
@@ -105,7 +107,7 @@ class StatusTest extends TestCase
 
     public function testRecreatedJobWithTrackingStillTracksStatus() : void
     {
-        $originalToken = Resque::enqueue('jobs', '\\Resque\\Test\\TestJob', null, true);
+        $originalToken = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($originalToken);
 
         $job = $this->worker->reserve();

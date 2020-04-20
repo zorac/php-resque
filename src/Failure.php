@@ -2,6 +2,7 @@
 
 namespace Resque;
 
+use Resque\Failure\RedisBackend;
 use Throwable;
 
 /**
@@ -49,7 +50,7 @@ class Failure
     public static function getBackend(): string
     {
         if (self::$backend === null) {
-            self::$backend = '\\Resque\\Failure\\RedisBackend';
+            self::$backend = RedisBackend::class;
         }
 
         return self::$backend;

@@ -3,6 +3,7 @@
 namespace Resque;
 
 use Resque\Test\TestCase;
+use Resque\Test\TestJob;
 
 /**
  * Resque\Worker tests.
@@ -64,7 +65,7 @@ class WorkerTest extends TestCase
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
+        Resque::enqueue('jobs', TestJob::class);
         $worker->work(0);
         $worker->work(0);
         self::assertEquals(0, Stat::get('processed'));
@@ -74,7 +75,7 @@ class WorkerTest extends TestCase
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
+        Resque::enqueue('jobs', TestJob::class);
         $worker->work(0);
         self::assertEquals(0, Stat::get('processed'));
         $worker->unPauseProcessing();
@@ -86,8 +87,8 @@ class WorkerTest extends TestCase
     {
         $worker = new Worker([ 'queue1', 'queue2' ]);
         $worker->registerWorker();
-        Resque::enqueue('queue1', '\\Resque\\Test\\TestJob1');
-        Resque::enqueue('queue2', '\\Resque\\Test\\TestJob2');
+        Resque::enqueue('queue1', 'TestJob1');
+        Resque::enqueue('queue2', 'TestJob2');
 
         $job = $worker->reserve();
         self::assertNotNull($job);
@@ -104,9 +105,9 @@ class WorkerTest extends TestCase
         $worker->registerWorker();
 
         // Queue the jobs in a different order
-        Resque::enqueue('low', '\\Resque\\Test\\TestJob1');
-        Resque::enqueue('high', '\\Resque\\Test\\TestJob2');
-        Resque::enqueue('medium', '\\Resque\\Test\\TestJob3');
+        Resque::enqueue('low', 'TestJob1');
+        Resque::enqueue('high', 'TestJob2');
+        Resque::enqueue('medium', 'TestJob3');
 
         // Now check we get the jobs back in the right order
         $job = $worker->reserve();
@@ -127,8 +128,8 @@ class WorkerTest extends TestCase
         $worker = new Worker('*');
         $worker->registerWorker();
 
-        Resque::enqueue('queue1', '\\Resque\\Test\\TestJob1');
-        Resque::enqueue('queue2', '\\Resque\\Test\\TestJob2');
+        Resque::enqueue('queue1', 'TestJob1');
+        Resque::enqueue('queue2', 'TestJob2');
 
         $job1 = $worker->reserve();
         self::assertNotNull($job1);
@@ -146,14 +147,14 @@ class WorkerTest extends TestCase
     {
         $worker = new Worker('queue1');
         $worker->registerWorker();
-        Resque::enqueue('queue2', '\\Resque\\Test\\TestJob');
+        Resque::enqueue('queue2', TestJob::class);
 
         self::assertNull($worker->reserve());
     }
 
     public function testWorkerClearsItsStatusWhenNotWorking() : void
     {
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
+        Resque::enqueue('jobs', TestJob::class);
         $worker = new Worker('jobs');
 
         $job = $worker->reserve();
@@ -169,7 +170,7 @@ class WorkerTest extends TestCase
         $worker = new Worker('jobs');
         $worker->registerWorker();
 
-        $payload = [ 'class' => '\\Resque\\Test\\TestJob' ];
+        $payload = [ 'class' => TestJob::class ];
         $job = new Job('jobs', $payload);
         $worker->workingOn($job);
 
@@ -183,8 +184,8 @@ class WorkerTest extends TestCase
 
     public function testWorkerErasesItsStatsWhenShutdown() : void
     {
-        Resque::enqueue('jobs', '\\Resque\\Test\\TestJob');
-        Resque::enqueue('jobs', '\\Resque\\Test\\InvalidJob');
+        Resque::enqueue('jobs', TestJob::class);
+        Resque::enqueue('jobs', 'InvalidJob');
 
         $worker = new Worker('jobs');
         $worker->work(0);
@@ -247,7 +248,7 @@ class WorkerTest extends TestCase
         $worker->registerWorker();
 
         $payload = [
-            'class' => '\\Resque\\Test\\TestJob',
+            'class' => TestJob::class,
             'id'    => 'randomId'
         ];
         $job = new Job('jobs', $payload);
@@ -364,14 +365,14 @@ class WorkerTest extends TestCase
         $worker = new Worker(['job1s', 'job2s']);
         $worker->registerWorker();
 
-        Resque::enqueue('job1s', 'Test_Job_1');
-        Resque::enqueue('job2s', 'Test_Job_2');
+        Resque::enqueue('job1s', 'TestJob1');
+        Resque::enqueue('job2s', 'TestJob2');
 
         $i = 1;
 
         while($job = $worker->reserve(true, 1))
         {
-            self::assertEquals("Test_Job_$i", $job->payload['class']);
+            self::assertEquals("TestJob$i", $job->payload['class']);
 
             if ($i == 2) {
                 break;
