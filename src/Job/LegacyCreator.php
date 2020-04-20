@@ -27,9 +27,7 @@ class LegacyCreator implements CreatorInterface
         /** @var AbstractLegacyPerformer */
         $instance = null;
 
-        if (class_exists('Resque_Job_Creator')) {
-            $instance = \Resque_Job_Creator::createJob($class, $arguments);
-        } elseif (!class_exists($class)) {
+        if (!class_exists($class)) {
             throw new ResqueException(
                 "Could not find job class $class."
             );
