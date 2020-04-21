@@ -3,7 +3,7 @@
 namespace Resque;
 
 use MonologInit\MonologInit;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Resque\Job\CreatorInterface;
 use Resque\Job\DirtyExitException;
 use Resque\Job\LegacyCreator;
@@ -111,7 +111,7 @@ class Worker
     protected $child = null;
 
     /**
-     * @var Logger|null A logger to use for this worker.
+     * @var LoggerInterface|null A logger to use for this worker.
      */
     protected $logger = null;
 
@@ -413,7 +413,7 @@ class Worker
             $job->perform();
 
             $this->log([
-                'message' => 'done ID:' . $job->payload['id'],
+                'message' => "done ID:{$job->payload['id']}",
                 'data' => [
                     'type' => 'done',
                     'job_id' => $job->payload['id'],
@@ -481,7 +481,7 @@ class Worker
 
         if (isset($job)) {
             $this->log([
-                'message' => 'Found job on ' . $job->queue,
+                'message' => "Found job on $job->queue",
                 'data' => [
                     'type' => 'found',
                     'queue' => $job->queue
@@ -720,7 +720,7 @@ class Worker
         }
 
         $this->log([
-            'message' => 'Killing child at ' . $this->child,
+            'message' => "Killing child at $this->child",
             'data' => [
                 'type' => 'kill',
                 'child' => $this->child
@@ -731,7 +731,7 @@ class Worker
 
         if ($returnCode === 0) {
             $this->log([
-                'message' => 'Killing child at ' . $this->child,
+                'message' => "Killing child at $this->child",
                 'data' => [
                     'type' => 'kill',
                     'child' => $this->child
@@ -742,7 +742,7 @@ class Worker
             $this->child = null;
         } else {
             $this->log([
-                'message' => 'Child ' . $this->child . ' not found, restarting.',
+                'message' => "Child $this->child not found, restarting.",
                 'data' => [
                     'type' => 'kill',
                     'child' => $this->child
@@ -894,73 +894,52 @@ class Worker
      */
     public function log(array $message, int $code = self::LOG_TYPE_INFO): bool
     {
-        if ($this->logLevel === self::LOG_NONE) {
+        if (
+            ($this->logLevel === self::LOG_NONE)
+            || (($code === self::LOG_TYPE_DEBUG)
+                && ($this->logLevel === self::LOG_NORMAL))
+        ) {
             return false;
         }
 
-        /*if ($this->logger === null) {
-            if (($this->logLevel === self::LOG_NORMAL)
-                    && ($code !== self::LOG_TYPE_DEBUG)) {
-                fwrite($this->logOutput, "*** " . $message['message'] . "\n");
-            } else if ($this->logLevel === self::LOG_VERBOSE) {
-                fwrite($this->logOutput, "** [" . strftime('%T %Y-%m-%d') . "] " . $message['message'] . "\n");
-            } else {
-                return false;
-            }
-            return true;
-        } else {*/
         $extra = $message['data'];
         $message = $message['message'];
 
         if (!isset($extra['worker'])) {
             if ($this->child > 0) {
-                $extra['worker'] = $this->hostname . ':' . getmypid();
+                $extra['worker'] = "$this->hostname:" . getmypid();
             } else {
                 [$host, $pid, $queues] = explode(':', (string)$this, 3);
                 $extra['worker'] = "$host:$pid";
             }
         }
 
-        if (
-            ($code !== self::LOG_TYPE_DEBUG)
-            && (($this->logLevel === self::LOG_NORMAL)
-                || ($this->logLevel === self::LOG_VERBOSE))
-        ) {
-            if ($this->logger === null) {
-                fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
-            } else {
-                switch ($code) {
-                    case self::LOG_TYPE_INFO:
-                        $this->logger->info($message, $extra);
-                        break;
-                    case self::LOG_TYPE_WARNING:
-                        $this->logger->warning($message, $extra);
-                        break;
-                    case self::LOG_TYPE_ERROR:
-                        $this->logger->error($message, $extra);
-                        break;
-                    case self::LOG_TYPE_CRITICAL:
-                        $this->logger->critical($message, $extra);
-                        break;
-                    case self::LOG_TYPE_ALERT:
-                        $this->logger->alert($message, $extra);
-                }
-            }
-        } elseif (
-            ($code === self::LOG_TYPE_DEBUG)
-            && ($this->logLevel === self::LOG_VERBOSE)
-        ) {
-            if ($this->logger === null) {
-                fwrite($this->logOutput, "[" . date('c') . "] " . $message . "\n");
-            } else {
-                $this->logger->debug($message, $extra);
+        if (isset($this->logger)) {
+            switch ($code) {
+                case self::LOG_TYPE_INFO:
+                    $this->logger->info($message, $extra);
+                    break;
+                case self::LOG_TYPE_WARNING:
+                    $this->logger->warning($message, $extra);
+                    break;
+                case self::LOG_TYPE_ERROR:
+                    $this->logger->error($message, $extra);
+                    break;
+                case self::LOG_TYPE_CRITICAL:
+                    $this->logger->critical($message, $extra);
+                    break;
+                case self::LOG_TYPE_ALERT:
+                    $this->logger->alert($message, $extra);
+                    break;
+                case self::LOG_TYPE_DEBUG:
+                    $this->logger->debug($message, $extra);
+                    break;
             }
         } else {
-            return false;
+            fwrite($this->logOutput, '[' . date('c') . "] $message\n");
         }
 
         return true;
-        //}
     }
 
     /**
@@ -987,9 +966,9 @@ class Worker
      * Fetch the logger for a given worker.
      *
      * @param string $workerId A worker ID.
-     * @return Logger The logger, or null for internal logging.
+     * @return LoggerInterface The logger, or null for internal logging.
      */
-    public function getLogger(string $workerId): ?Logger
+    public function getLogger(string $workerId): ?LoggerInterface
     {
         $json = Resque::redis()->hget('workerLogger', $workerId);
 
