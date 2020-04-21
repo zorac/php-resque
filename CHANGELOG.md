@@ -1,3 +1,9 @@
+## 2.9.1 (2020-04-21)
+
+* Fix a bug in LegacyCreator
+* Internal improvements to Worker logging
+* Yet more code cleanup
+
 ## 2.9.0 (2020-03-09)
 
 * Add PerformerInterface and related abstract classes

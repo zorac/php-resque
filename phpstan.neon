@@ -9,6 +9,5 @@ parameters:
     - src
   ignoreErrors:
     - '#MonologInit\\Monolog\\Logger#'
-    - '#Call to static method createJob\(\) on an unknown class Resque_Job_Creator#'
     - '#Call to an undefined method object::perform\(\)#'
     - '#type has no value type specified in iterable type Predis\\Client#'
