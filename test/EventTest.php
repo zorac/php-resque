@@ -47,6 +47,7 @@ class EventTest extends TestCase
         return $job;
     }
 
+    /** @return array<int,array<int,string>> */
     public function eventCallbackProvider() : array
     {
         return [
@@ -63,6 +64,7 @@ class EventTest extends TestCase
         string $event,
         string $callback
     ) : void {
+        /** @phpstan-ignore-next-line */
         Event::listen($event, [$this, $callback]);
 
         $job = $this->getEventTestJob();
@@ -139,6 +141,7 @@ class EventTest extends TestCase
         self::assertEquals($args[0], 'somevar');
     }
 
+    /** @param array<int,string> $args */
     public function afterEnqueueEventCallback(string $class, array $args) : void
     {
         $this->callbacksHit[] = __FUNCTION__;

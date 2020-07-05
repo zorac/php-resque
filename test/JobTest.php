@@ -52,6 +52,7 @@ class JobTest extends TestCase
         $args = new stdClass();
         $args->test = 'somevalue';
         $this->expectException(TypeError::class);
+        /** @phpstan-ignore-next-line */
         Resque::enqueue('jobs', TestJob::class, $args);
     }
 
