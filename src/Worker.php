@@ -4,9 +4,11 @@ namespace Resque;
 
 use MonologInit\MonologInit;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Resque\Job\CreatorInterface;
 use Resque\Job\DirtyExitException;
 use Resque\Job\LegacyCreator;
+use Resque\Job\PerformerInterface;
 use Resque\Job\Status;
 use RuntimeException;
 use Throwable;
@@ -22,56 +24,79 @@ class Worker
 {
     /**
      * @var int Log level for no logging.
+     * @deprecated Set the log level on the logger instance.
      */
     public const LOG_NONE = 0;
 
     /**
      * @var int Log level for normal logging.
+     * @deprecated Set the log level on the logger instance.
      */
     public const LOG_NORMAL = 1;
 
     /**
      * @var int Log level for verbose logging.
+     * @deprecated Set the log level on the logger instance.
      */
     public const LOG_VERBOSE = 2;
 
     /**
      * @var int Log type for a debug message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_DEBUG = 100;
 
     /**
      * @var int Log type for an informational message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_INFO = 200;
 
     /**
      * @var int Log type for a warning message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_WARNING = 300;
 
     /**
      * @var int Log type for an error message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_ERROR = 400;
 
     /**
      * @var int Log type for a critical error message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_CRITICAL = 500;
 
     /**
      * @var int Log type for an alert message.
+     * @deprecated Use PSR log levels.
      */
     public const LOG_TYPE_ALERT = 550;
 
     /**
+     * @var <int,string> Mapping from legacy lof type to PSR log level.
+     */
+    private const LOG_LEVEL_MAP = [
+        self::LOG_TYPE_DEBUG    => LogLevel::DEBUG,
+        self::LOG_TYPE_INFO     => LogLevel::INFO,
+        self::LOG_TYPE_WARNING  => LogLevel::WARNING,
+        self::LOG_TYPE_ERROR    => LogLevel::ERROR,
+        self::LOG_TYPE_CRITICAL => LogLevel::CRITICAL,
+        self::LOG_TYPE_ALERT    => LogLevel::ALERT,
+    ];
+
+    /**
      * @var resource The handle to write logs to.
+     * @deprecated Use an appropriately configured logger.
      */
     public $logOutput = STDOUT;
 
     /**
      * @var int Current log level of this worker.
+     * @deprecated Set the log level on the logger instance.
      */
     public $logLevel = self::LOG_NONE;
 
@@ -84,6 +109,11 @@ class Worker
      * @var string The hostname of this worker.
      */
     protected $hostname;
+
+    /**
+     * @var int The process ID of this worker.
+     */
+    protected $pid;
 
     /**
      * @var bool True if on the next iteration, the worker should shutdown.
@@ -122,6 +152,8 @@ class Worker
 
     /**
      * @var bool Whether dead workers should be pruned on startup.
+     * @deprecated Use `$worker_factory->prune()`
+     * @see WorkerFactory
      */
     public $pruneDeadWorkersOnStartup = true;
 
@@ -133,22 +165,13 @@ class Worker
     /**
      * Return all workers known to Resque as instantiated instances.
      *
-     * @return array<Worker> The workers.
+     * @return array<int,Worker> The workers.
+     * @deprecated Use `$worker_factory->getAll()`
+     * @see WorkerFactory
      */
     public static function all(): array
     {
-        $workers = Resque::redis()->smembers('workers');
-        $instances = [];
-
-        foreach ($workers as $workerId) {
-            $worker = self::find($workerId);
-
-            if (isset($worker)) {
-                $instances[] = $worker;
-            }
-        }
-
-        return $instances;
+        return WorkerFactory::getSingleton()->getAll();
     }
 
     /**
@@ -156,10 +179,12 @@ class Worker
      *
      * @param string $workerId ID of the worker.
      * @return bool True if the worker exists, false if not.
+     * @deprecated Use `$worker_factory->exists($workerId)`
+     * @see WorkerFactory
      */
     public static function exists(string $workerId): bool
     {
-        return (bool)Resque::redis()->sismember('workers', $workerId);
+        return WorkerFactory::getSingleton()->exists($workerId);
     }
 
     /**
@@ -168,18 +193,12 @@ class Worker
      *
      * @param string $workerId The ID of the worker.
      * @return Worker Instance of the worker. Null if the worker does not exist.
+     * @deprecated Use `$worker_factory->get($workerId)`
+     * @see WorkerFactory
      */
     public static function find(string $workerId): ?Worker
     {
-        if (!self::exists($workerId) || (strpos($workerId, ':') === false)) {
-            return null;
-        }
-
-        [$hostname, $pid, $queues] = explode(':', $workerId, 3);
-        $queues = explode(',', $queues);
-        $worker = new self($queues, $hostname, (int)$pid);
-        $worker->logger = $worker->getLogger($workerId);
-        return $worker;
+        return WorkerFactory::getSingleton()->get($workerId);
     }
 
     /**
@@ -236,7 +255,21 @@ class Worker
 
         $this->queues = $queues;
         $this->hostname = $hostname;
+        $this->pid = $pid;
         $this->id = "$hostname:$pid:" . implode(',', $this->queues);
+    }
+
+    /**
+     * Set the logger to use.
+     *
+     * @param LoggerInterface $logger A logger.
+     * @return void
+     * @internal Instead set the logger on the worker factory.
+     * @see WorkerFactory
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
     }
 
     /**
@@ -244,6 +277,8 @@ class Worker
      *
      * @param CreatorInterface $creator A job creator.
      * @return void
+     * @internal Instead set the creator on the worker factory.
+     * @see WorkerFactory
      */
     public function setCreator(CreatorInterface $creator): void
     {
@@ -254,6 +289,7 @@ class Worker
      * Return the job creator instance to use.
      *
      * @return CreatorInterface A job creator.
+     * @deprecated Use `createJob()`
      */
     public function getCreator(): CreatorInterface
     {
@@ -262,6 +298,17 @@ class Worker
         }
 
         return $this->creator;
+    }
+
+    /**
+     * Create a new job instance.
+     *
+     * @param Job $job The job to be processed.
+     * @return PerformerInterface A job instance.
+     */
+    public function createJob(Job $job): object
+    {
+        return $this->getCreator()->createJob($job);
     }
 
     /**
@@ -300,7 +347,7 @@ class Worker
                             'log' => $e->getMessage(),
                             'time' => time()
                         ]
-                    ], self::LOG_TYPE_ALERT);
+                    ], LogLevel::ALERT);
                 }
             }
 
@@ -316,7 +363,7 @@ class Worker
                             'type' => 'sleep',
                             'second' => $interval
                         ]
-                    ], self::LOG_TYPE_DEBUG);
+                    ], LogLevel::DEBUG);
 
                     if ($this->paused) {
                         $this->updateProcLine('Paused');
@@ -336,12 +383,12 @@ class Worker
                     'type' => 'got',
                     'args' => $job
                 ]
-            ], self::LOG_TYPE_INFO);
+            ], LogLevel::INFO);
 
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
 
-            $workerName = "$this->hostname:" . getmypid();
+            $workerName = "$this->hostname:$this->pid";
 
             $this->child = $this->fork();
 
@@ -357,7 +404,7 @@ class Worker
                         'worker' => $workerName,
                         'job_id' => $job->payload['id']
                     ]
-                ], self::LOG_TYPE_INFO);
+                ], LogLevel::INFO);
 
                 $this->perform($job);
 
@@ -376,7 +423,7 @@ class Worker
                         'worker' => $workerName,
                         'job_id' => $job->payload['id']
                     ]
-                ], self::LOG_TYPE_DEBUG);
+                ], LogLevel::DEBUG);
 
                 // Wait until the child process finishes before continuing.
                 // We use a loop to continue waiting after we get a signal.
@@ -419,7 +466,7 @@ class Worker
                     'job_id' => $job->payload['id'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000
                 ]
-            ], self::LOG_TYPE_INFO);
+            ], LogLevel::INFO);
         } catch (Throwable $e) {
             $this->log([
                 'message' => "$job failed: " . $e->getMessage(),
@@ -429,7 +476,7 @@ class Worker
                     'job_id' => $job->payload['id'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000
                 ]
-            ], self::LOG_TYPE_ERROR);
+            ], LogLevel::ERROR);
 
             $job->fail($e);
 
@@ -458,7 +505,7 @@ class Worker
                     'queue' => $queues,
                     'timeout' => $timeout
                 ]
-            ], self::LOG_TYPE_DEBUG);
+            ], LogLevel::DEBUG);
 
             $job = Job::reserveBlocking($queues, $timeout);
         } else {
@@ -469,7 +516,7 @@ class Worker
                         'type' => 'check',
                         'queue' => $queue
                     ]
-                ], self::LOG_TYPE_DEBUG);
+                ], LogLevel::DEBUG);
 
                 $job = Job::reserve($queue);
 
@@ -486,7 +533,7 @@ class Worker
                     'type' => 'found',
                     'queue' => $job->queue
                 ]
-            ], self::LOG_TYPE_DEBUG);
+            ], LogLevel::DEBUG);
 
             return $job;
         }
@@ -545,14 +592,14 @@ class Worker
             'message' => "Starting worker $this",
             'data' => [
                 'type' => 'start',
-                'worker' => (string)$this
+                'worker' => $this->id
             ]
-        ], self::LOG_TYPE_INFO);
+        ], LogLevel::INFO);
 
         $this->registerSigHandlers();
 
         if ($this->pruneDeadWorkersOnStartup) {
-            $this->pruneDeadWorkers();
+            WorkerFactory::getSingleton()->prune();
         }
 
         Event::trigger('beforeFirstFork', $this);
@@ -601,7 +648,7 @@ class Worker
             'data' => [
                 'type' => 'signal'
             ]
-        ], self::LOG_TYPE_DEBUG);
+        ], LogLevel::DEBUG);
     }
 
     /**
@@ -616,7 +663,7 @@ class Worker
             'data' => [
                 'type' => 'pause'
             ]
-        ], self::LOG_TYPE_INFO);
+        ], LogLevel::INFO);
 
         $this->paused = true;
     }
@@ -634,7 +681,7 @@ class Worker
             'data' => [
                 'type' => 'resume'
             ]
-        ], self::LOG_TYPE_INFO);
+        ], LogLevel::INFO);
 
         $this->paused = false;
     }
@@ -652,7 +699,7 @@ class Worker
             'data' => [
                 'type' => 'reconnect'
             ]
-        ], self::LOG_TYPE_INFO);
+        ], LogLevel::INFO);
 
         Resque::redis()->connect();
     }
@@ -672,7 +719,7 @@ class Worker
             'data' => [
                 'type' => 'shutdown'
             ]
-        ], self::LOG_TYPE_INFO);
+        ], LogLevel::INFO);
     }
 
     /**
@@ -714,7 +761,7 @@ class Worker
                     'type' => 'kill',
                     'child' => null
                 ]
-            ], self::LOG_TYPE_DEBUG);
+            ], LogLevel::DEBUG);
 
             return;
         }
@@ -725,7 +772,7 @@ class Worker
                 'type' => 'kill',
                 'child' => $this->child
             ]
-        ], self::LOG_TYPE_DEBUG);
+        ], LogLevel::DEBUG);
 
         exec("ps -p $this->child", $output, $returnCode);
 
@@ -736,7 +783,7 @@ class Worker
                     'type' => 'kill',
                     'child' => $this->child
                 ]
-            ], self::LOG_TYPE_DEBUG);
+            ], LogLevel::DEBUG);
 
             posix_kill($this->child, SIGKILL);
             $this->child = null;
@@ -747,7 +794,7 @@ class Worker
                     'type' => 'kill',
                     'child' => $this->child
                 ]
-            ], self::LOG_TYPE_ERROR);
+            ], LogLevel::ERROR);
 
             $this->shutdown();
         }
@@ -762,32 +809,12 @@ class Worker
      * and therefore leave state information in Redis.
      *
      * @return void
+     * @deprecated Use `$worker_factory->prune()`
+     * @see WorkerFactory
      */
     public function pruneDeadWorkers(): void
     {
-        $workerPids = $this->workerPids();
-        $workers = self::all();
-
-        foreach ($workers as $worker) {
-            list($host, $pid, $queues) = explode(':', (string)$worker, 3);
-
-            if (
-                ($host != $this->hostname)
-                || in_array($pid, $workerPids, true)
-                || $pid == getmypid()
-            ) {
-                continue;
-            }
-
-            $this->log([
-                'message' => "Pruning dead worker: $worker",
-                'data' => [
-                    'type' => 'prune'
-                ]
-            ], self::LOG_TYPE_DEBUG);
-
-            $worker->unregisterWorker();
-        }
+        WorkerFactory::getSingleton()->prune();
     }
 
     /**
@@ -795,6 +822,7 @@ class Worker
      * running on this machine.
      *
      * @return array<string> Array of Resque worker process IDs.
+     * @deprecated To be removed in v3.0.
      */
     public function workerPids()
     {
@@ -815,7 +843,7 @@ class Worker
      */
     public function registerWorker(): void
     {
-        Resque::redis()->sadd('workers', (string)$this);
+        Resque::redis()->sadd('workers', $this->id);
         Resque::redis()->set("worker:$this:started", strftime('%a %b %d %H:%M:%S %Z %Y'));
     }
 
@@ -830,7 +858,7 @@ class Worker
             $this->currentJob->fail(new DirtyExitException());
         }
 
-        $id = (string)$this;
+        $id = $this->id;
         Resque::redis()->srem('workers', $id);
         Resque::redis()->del("worker:$id");
         Resque::redis()->del("worker:$id:started");
@@ -889,52 +917,30 @@ class Worker
      * Output a given log message to STDOUT.
      *
      * @param array<mixed> $message Message to output.
-     * @param int $code A log type code.
+     * @param int|string $code A log type code or a PSR log level.
      * @return bool True if the message is logged
      */
-    public function log(array $message, int $code = self::LOG_TYPE_INFO): bool
+    public function log(array $message, $code = LogLevel::INFO): bool
     {
+        $level = is_string($code) ? $code : self::LOG_LEVEL_MAP[$code];
+
         if (
             ($this->logLevel === self::LOG_NONE)
-            || (($code === self::LOG_TYPE_DEBUG)
+            || (($level === LogLevel::DEBUG)
                 && ($this->logLevel === self::LOG_NORMAL))
         ) {
             return false;
         }
 
-        $extra = $message['data'];
+        $context = $message['data'];
         $message = $message['message'];
 
-        if (!isset($extra['worker'])) {
-            if ($this->child > 0) {
-                $extra['worker'] = "$this->hostname:" . getmypid();
-            } else {
-                [$host, $pid, $queues] = explode(':', (string)$this, 3);
-                $extra['worker'] = "$host:$pid";
-            }
+        if (!isset($context['worker'])) {
+            $context['worker'] = "$this->hostname:$this->pid";
         }
 
         if (isset($this->logger)) {
-            switch ($code) {
-                case self::LOG_TYPE_INFO:
-                    $this->logger->info($message, $extra);
-                    break;
-                case self::LOG_TYPE_WARNING:
-                    $this->logger->warning($message, $extra);
-                    break;
-                case self::LOG_TYPE_ERROR:
-                    $this->logger->error($message, $extra);
-                    break;
-                case self::LOG_TYPE_CRITICAL:
-                    $this->logger->critical($message, $extra);
-                    break;
-                case self::LOG_TYPE_ALERT:
-                    $this->logger->alert($message, $extra);
-                    break;
-                case self::LOG_TYPE_DEBUG:
-                    $this->logger->debug($message, $extra);
-                    break;
-            }
+            $this->logger->log($level, $message, $context);
         } else {
             fwrite($this->logOutput, '[' . date('c') . "] $message\n");
         }
@@ -947,6 +953,9 @@ class Worker
      *
      * @param MonologInit $logger A logger.
      * @return void
+     * @deprecated Support for logger configuration stored in Redis will be
+     *      removed in v3.0.
+     * @see LoggerFactory
      */
     public function registerLogger(MonologInit $logger): void
     {
@@ -958,7 +967,7 @@ class Worker
         ]);
 
         if ($json !== false) {
-            Resque::redis()->hset('workerLogger', (string)$this, $json);
+            Resque::redis()->hset('workerLogger', $this->id, $json);
         }
     }
 
@@ -967,6 +976,9 @@ class Worker
      *
      * @param string $workerId A worker ID.
      * @return LoggerInterface The logger, or null for internal logging.
+     * @deprecated Support for logger configuration stored in Redis will be
+     *      removed in v3.0.
+     * @see LoggerFactory
      */
     public function getLogger(string $workerId): ?LoggerInterface
     {
