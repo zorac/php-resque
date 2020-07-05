@@ -1,60 +1,73 @@
+## 2.10.0 (WIP)
+
+* Marked many methods and properties as `@deprecated`; **all deprecated code
+  will be removed in version 3.0**
+* Added `WorkerFactory` as a dependency injection compatible way of creating
+  `Worker`s, and migrated in code from `Worker`'s static and pruning methods
+* Cleaned up the changelog, and added an upgrading guide.
+
 ## 2.9.1 (2020-04-21)
 
-* Fix a bug in LegacyCreator
-* Internal improvements to Worker logging
+* Fixed a bug in `LegacyCreator`
+* Internal improvements to `Worker` logging
 * Yet more code cleanup
 
 ## 2.9.0 (2020-03-09)
 
-* Add PerformerInterface and related abstract classes
-* Add CreatorInterface as a modern alternative to Resque_Job_Creator
+* Added `PerformerInterface` and related abstract classes
+* Added `CreatorInterface` as a modern alternative to `Resque_Job_Creator`
 * More code cleanup
 
 ## 2.8.1 (2020-03-03)
 
-* Code & documentation cleanup
+* Code and documentation cleanup
 
 ## 2.8.0 (2020-02-21)
 
-* Catch all Throwables thrown by jobs, not just Exceptions
-* Fix compatability with Monolog 2
+* `Worker` now catches *all* `Throwable`s thrown by jobs, not just `Exception`s
+* Fixed compatability with Monolog 2
 * Code cleanup
 
 ## 2.7.0 (2019-06-03)
 
-* Port blocking job reservation from resque/php-resque
+* Backported blocking job reservation from
+  [`resque/php-resque`](https://github.com/resque/php-resque)
 
 ## 2.6.0 (2019-05-03)
 
-* Migrate JSON handling to a utility class
-* Log errors with a chained stack trace
+* Migrated JSON handling to a utility class
+* `Exception`s will now be logged with a chained stack trace
 
 ## 2.5.0 (2019-04-27)
 
 * **PHP 7.1 or later is now required.**
 * Refactored the PHPUnit tests to work with the namespaced code
 * Got Travis CI working again
-* Added PHP CodeSniffer and additional PHPStan rules
+* Added [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer), and
+  additional PHPStan rules
 * Lots of code cleanup
 
 ## 2.4.1 (2019-03-28)
 
-* Add pruneDeadWorkersOnStartup option; defaults to rue unless a custom PID is
-  given when the worker is created
+* Added `pruneDeadWorkersOnStartup` option to `Worker`; defaults to true unless
+  a custom PID is given when the worker is created
 
 ## 2.4.0 (2019-03-11)
 
-* Add beforeEnqueue, and pass job ID to afterEnqueue event callbacks
+* Added `beforeEnqueue`, and pass job ID to `afterEnqueue` event callbacks
 
 ## 2.3.0 (2019-03-08)
 
-* Update signal handling to improve perormance and work while waiting on child
-* Change SIGTERM behaviour to kill off the child after a brief grace period
+* Updated signal handling to improve performance and robustness while waiting
+  on child processes
+* Changed `SIGTERM` behaviour to kill off the child after a brief grace period
+  (this improves compatabilty with [Docker](https://www.docker.com), for
+  example)
 
 ## 2.2.0 (2019-03-01)
 
-* Allow specifying the hostname and PID for workers
-* Store failure timestamps in a more useful format
+* Allowed specifying the hostname and PID for workers
+* Failure timestamps are now stored in a more useful format
 
 ## 2.1.1 (2019-02-20)
 
@@ -62,18 +75,24 @@
 
 ## 2.1.0 (2019-02-19)
 
-* Process all queues in random order
-* Store errors in JSON
+* When the list of queues for a `Worker` includes the `*` wildcard, all queues
+  will be checked for jobs in a random order on each attempt, instead of
+  alphabetically
+* Errors are now stored in JSON format
 
 ## 2.0.1 (2019-02-18)
 
-* Cleanup and fixes from static analysis checks
+* Started using the [phpstan](https://phpstan.org) static analysis tool
+* Cleanup and fixes from phpstan checks
 
 ## 2.0.0 (2019-01-31)
 
 * **PHP 5.5 or later is now required.**
-* Use Predis for tha back-end Redis connections
-* Migrate to fully-namespaced classes
+* [Predis](https://github.com/nrk/predis) is now used for the back-end Redis
+  connections; this allows (with a custom startup script) for the use of
+  [sentinel](https://redis.io/topics/sentinel) and other advanced Redis
+  features
+* Migrated the codebase to fully-namespaced classes
 * Assorted cleanup and fixes
 
 ## 1.3.0 (2014-01-28)
