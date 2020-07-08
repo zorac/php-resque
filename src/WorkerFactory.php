@@ -15,11 +15,6 @@ use Resque\Job\LegacyCreator;
 class WorkerFactory
 {
     /**
-     * @var WorkerFactory|null The singleton instance, if set.
-     */
-    private static $singleton = null;
-
-    /**
      * @var LoggerInterface|null A logger to pass to workers.
      */
     private $logger;
@@ -28,22 +23,6 @@ class WorkerFactory
      * @var CreatorInterface A job instance creator to pass to workers.
      */
     private $creator;
-
-    /**
-     * Fetch the singleton instance.
-     *
-     * @return WorkerFactory The singleton.
-     * @deprecated For internal use only; will be removed along with the
-     *      deprecated methods which use it.
-     */
-    public static function getSingleton(): WorkerFactory
-    {
-        if (!isset(self::$singleton)) {
-            self::$singleton = new WorkerFactory();
-        }
-
-        return self::$singleton;
-    }
 
     /**
      * Create a new worker factory.
@@ -57,7 +36,6 @@ class WorkerFactory
     ) {
         $this->logger = $logger;
         $this->creator = $creator ?? new LegacyCreator();
-        self::$singleton = $this;
     }
 
     /**

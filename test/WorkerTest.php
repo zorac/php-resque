@@ -13,9 +13,19 @@ use Resque\Test\TestJob;
  */
 class WorkerTest extends TestCase
 {
+    /** @var WorkerFactory */
+    private $factory;
+
+    public function setUp() : void
+    {
+        parent::setUp();
+
+        $this->factory = new WorkerFactory();
+    }
+
     public function testWorkerRegistersInList(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->registerWorker();
 
         // Make sure the worker is in the list
@@ -28,42 +38,42 @@ class WorkerTest extends TestCase
 
         // Register a few workers
         for ($i = 0; $i < $num; ++$i) {
-            $worker = new Worker("queue_$i");
+            $worker = $this->factory->create("queue_$i");
             $worker->registerWorker();
         }
 
         // Now try to get them
-        self::assertEquals($num, count(Worker::all()));
+        self::assertEquals($num, count($this->factory->getAll()));
     }
 
     public function testGetWorkerById(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->registerWorker();
 
-        $newWorker = Worker::find((string)$worker);
+        $newWorker = $this->factory->get((string)$worker);
         self::assertEquals((string)$worker, (string)$newWorker);
     }
 
     public function testInvalidWorkerDoesNotExist(): void
     {
-        self::assertFalse(Worker::exists('blah'));
+        self::assertFalse($this->factory->exists('blah'));
     }
 
     public function testWorkerCanUnregister(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->registerWorker();
         $worker->unregisterWorker();
 
-        self::assertFalse(Worker::exists((string)$worker));
-        self::assertEquals([], Worker::all());
+        self::assertFalse($this->factory->exists((string)$worker));
+        self::assertEquals([], $this->factory->getAll());
         self::assertEquals([], self::$redis->smembers('resque:workers'));
     }
 
     public function testPausedWorkerDoesNotPickUpJobs(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->pauseProcessing();
         Resque::enqueue('jobs', TestJob::class);
         $worker->work(0);
@@ -73,7 +83,7 @@ class WorkerTest extends TestCase
 
     public function testResumedWorkerPicksUpJobs(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->pauseProcessing();
         Resque::enqueue('jobs', TestJob::class);
         $worker->work(0);
@@ -85,7 +95,7 @@ class WorkerTest extends TestCase
 
     public function testWorkerCanWorkOverMultipleQueues(): void
     {
-        $worker = new Worker([ 'queue1', 'queue2' ]);
+        $worker = $this->factory->create([ 'queue1', 'queue2' ]);
         $worker->registerWorker();
         Resque::enqueue('queue1', 'TestJob1');
         Resque::enqueue('queue2', 'TestJob2');
@@ -101,7 +111,7 @@ class WorkerTest extends TestCase
 
     public function testWorkerWorksQueuesInSpecifiedOrder(): void
     {
-        $worker = new Worker([ 'high', 'medium', 'low' ]);
+        $worker = $this->factory->create([ 'high', 'medium', 'low' ]);
         $worker->registerWorker();
 
         // Queue the jobs in a different order
@@ -125,7 +135,7 @@ class WorkerTest extends TestCase
 
     public function testWildcardQueueWorkerWorksAllQueues(): void
     {
-        $worker = new Worker('*');
+        $worker = $this->factory->create('*');
         $worker->registerWorker();
 
         Resque::enqueue('queue1', 'TestJob1');
@@ -145,7 +155,7 @@ class WorkerTest extends TestCase
 
     public function testWorkerDoesNotWorkOnUnknownQueues(): void
     {
-        $worker = new Worker('queue1');
+        $worker = $this->factory->create('queue1');
         $worker->registerWorker();
         Resque::enqueue('queue2', TestJob::class);
 
@@ -155,7 +165,7 @@ class WorkerTest extends TestCase
     public function testWorkerClearsItsStatusWhenNotWorking(): void
     {
         Resque::enqueue('jobs', TestJob::class);
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
 
         $job = $worker->reserve();
         self::assertNotNull($job);
@@ -167,7 +177,7 @@ class WorkerTest extends TestCase
 
     public function testWorkerRecordsWhatItIsWorkingOn(): void
     {
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->registerWorker();
 
         $payload = [
@@ -191,7 +201,7 @@ class WorkerTest extends TestCase
         Resque::enqueue('jobs', TestJob::class);
         Resque::enqueue('jobs', 'InvalidJob');
 
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->work(0);
         $worker->work(0);
 
@@ -202,53 +212,47 @@ class WorkerTest extends TestCase
     public function testWorkerCleansUpDeadWorkersOnStartup(): void
     {
         // Register a good worker
-        $goodWorker = new Worker('jobs');
+        $goodWorker = $this->factory->create('jobs');
         $goodWorker->registerWorker();
-        $workerId = explode(':', $goodWorker);
 
         // Register some bad workers
-        $worker = new Worker('jobs');
-        $worker->setId($workerId[0] . ':1:jobs');
+        $worker = $this->factory->create('jobs', null, 1);
         $worker->registerWorker();
 
-        $worker = new Worker(['high', 'low']);
-        $worker->setId($workerId[0] . ':2:high,low');
+        $worker = $this->factory->create(['high', 'low'], null, 2);
         $worker->registerWorker();
 
-        self::assertEquals(3, count(Worker::all()));
+        self::assertEquals(3, count($this->factory->getAll()));
 
-        $goodWorker->pruneDeadWorkers();
+        $this->factory->prune();
 
         // There should only be $goodWorker left now
-        self::assertEquals(1, count(Worker::all()));
+        self::assertEquals(1, count($this->factory->getAll()));
     }
 
     public function testDeadWorkerCleanUpDoesNotCleanUnknownWorkers(): void
     {
         // Register a bad worker on this machine
-        $worker = new Worker('jobs');
-        $workerId = explode(':', $worker);
-        $worker->setId($workerId[0] . ':1:jobs');
-        $worker->registerWorker();
+        $badWorker = $this->factory->create('jobs', null, 1);
+        $badWorker->registerWorker();
 
         // Register some other false workers
-        $worker = new Worker('jobs');
-        $worker->setId('my.other.host:1:jobs');
+        $worker = $this->factory->create('jobs', 'my.other.host', 1);
         $worker->registerWorker();
 
-        self::assertEquals(2, count(Worker::all()));
+        self::assertEquals(2, count($this->factory->getAll()));
 
-        $worker->pruneDeadWorkers();
+        $this->factory->prune();
 
         // my.other.host should be left
-        $workers = Worker::all();
+        $workers = $this->factory->getAll();
         self::assertEquals(1, count($workers));
         self::assertEquals((string)$worker, (string)$workers[0]);
     }
 
     public function testWorkerFailsUncompletedJobsOnExit(): void
     {
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->registerWorker();
 
         $payload = [
@@ -268,7 +272,7 @@ class WorkerTest extends TestCase
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
 
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->logLevel = Worker::LOG_VERBOSE;
         $worker->logOutput = $memory;
 
@@ -294,7 +298,7 @@ class WorkerTest extends TestCase
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
 
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
         $worker->logOutput = $memory;
 
@@ -320,7 +324,7 @@ class WorkerTest extends TestCase
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
 
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->logLevel = Worker::LOG_NONE;
         $worker->logOutput = $memory;
 
@@ -346,7 +350,7 @@ class WorkerTest extends TestCase
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
 
-        $worker = new Worker('jobs');
+        $worker = $this->factory->create('jobs');
         $worker->logLevel = Worker::LOG_NORMAL;
         $worker->logOutput = $memory;
 
@@ -366,7 +370,7 @@ class WorkerTest extends TestCase
 
     public function testBlockingListPop(): void
     {
-        $worker = new Worker(['job1s', 'job2s']);
+        $worker = $this->factory->create(['job1s', 'job2s']);
         $worker->registerWorker();
 
         Resque::enqueue('job1s', 'TestJob1');

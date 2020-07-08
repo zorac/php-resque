@@ -168,13 +168,6 @@ class Worker
     public $gracefulDelayTwo = 2;
 
     /**
-     * @var bool Whether dead workers should be pruned on startup.
-     * @deprecated Use `$worker_factory->prune()`
-     * @see WorkerFactory
-     */
-    public $pruneDeadWorkersOnStartup = true;
-
-    /**
      * @var bool If true, a Redis error while trying to reserve a job will
      *      cause the worker to shut down.
      */
@@ -184,57 +177,6 @@ class Worker
      * @var CreatorInterface|null A job instance creator.
      */
     private $creator;
-
-    /**
-     * Return all workers known to Resque as instantiated instances.
-     *
-     * @return array<int,Worker> The workers.
-     * @deprecated Use `$worker_factory->getAll()`
-     * @see WorkerFactory
-     */
-    public static function all(): array
-    {
-        return WorkerFactory::getSingleton()->getAll();
-    }
-
-    /**
-     * Given a worker ID, check if it is registered/valid.
-     *
-     * @param string $workerId ID of the worker.
-     * @return bool True if the worker exists, false if not.
-     * @deprecated Use `$worker_factory->exists($workerId)`
-     * @see WorkerFactory
-     */
-    public static function exists(string $workerId): bool
-    {
-        return WorkerFactory::getSingleton()->exists($workerId);
-    }
-
-    /**
-     * Given a worker ID, find it and return an instantiated worker class for
-     * it.
-     *
-     * @param string $workerId The ID of the worker.
-     * @return Worker Instance of the worker. Null if the worker does not exist.
-     * @deprecated Use `$worker_factory->get($workerId)`
-     * @see WorkerFactory
-     */
-    public static function find(string $workerId): ?Worker
-    {
-        return WorkerFactory::getSingleton()->get($workerId);
-    }
-
-    /**
-     * Set the ID of this worker to a given ID string.
-     *
-     * @param string $workerId ID for the worker.
-     * @deprecated Specify the hotsname and PID in the constructor.
-     * @return void
-     */
-    public function setId(string $workerId): void
-    {
-        $this->id = $workerId;
-    }
 
     /**
      * Instantiate a new worker, given a list of queues that it should be
@@ -278,8 +220,6 @@ class Worker
             if ($pid === false) {
                 throw new ResqueException('Unable to determine PID');
             }
-        } else {
-            $this->pruneDeadWorkersOnStartup = false;
         }
 
         $this->queues = $queues;
@@ -727,11 +667,6 @@ class Worker
         ], LogLevel::INFO);
 
         $this->registerSigHandlers();
-
-        if ($this->pruneDeadWorkersOnStartup) {
-            WorkerFactory::getSingleton()->prune();
-        }
-
         Event::trigger('beforeFirstFork', $this);
         $this->registerWorker();
     }
@@ -934,42 +869,6 @@ class Worker
 
             $this->shutdown();
         }
-    }
-
-    /**
-     * Look for any workers which should be running on this server and if
-     * they're not, remove them from Redis.
-     *
-     * This is a form of garbage collection to handle cases where the
-     * server may have been killed and the Resque workers did not die gracefully
-     * and therefore leave state information in Redis.
-     *
-     * @return void
-     * @deprecated Use `$worker_factory->prune()`
-     * @see WorkerFactory
-     */
-    public function pruneDeadWorkers(): void
-    {
-        WorkerFactory::getSingleton()->prune();
-    }
-
-    /**
-     * Return an array of process IDs for all of the Resque workers currently
-     * running on this machine.
-     *
-     * @return array<string> Array of Resque worker process IDs.
-     * @deprecated To be removed in v3.0.
-     */
-    public function workerPids()
-    {
-        $pids = [];
-        exec('ps -A -o pid,comm | grep [r]esque', $cmdOutput);
-
-        foreach ($cmdOutput as $line) {
-            [$pids[]] = explode(' ', trim($line), 2);
-        }
-
-        return $pids;
     }
 
     /**

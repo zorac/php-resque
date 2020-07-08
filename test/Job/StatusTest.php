@@ -8,6 +8,7 @@ use Resque\Test\FailingJob;
 use Resque\Test\TestCase;
 use Resque\Test\TestJob;
 use Resque\Worker;
+use Resque\WorkerFactory;
 
 /**
  * Resque\Job\Status tests.
@@ -23,7 +24,9 @@ class StatusTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->worker = new Worker('jobs');
+
+        $factory = new WorkerFactory();
+        $this->worker = $factory->create('jobs');
     }
 
     public function testJobStatusCanBeTracked(): void

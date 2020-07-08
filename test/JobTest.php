@@ -27,7 +27,8 @@ class JobTest extends TestCase
         parent::setUp();
 
         // Register a worker to test with
-        $this->worker = new Worker('jobs');
+        $factory = new WorkerFactory();
+        $this->worker = $factory->create('jobs');
         $this->worker->registerWorker();
     }
 
