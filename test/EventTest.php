@@ -16,6 +16,7 @@ class EventTest extends TestCase
 {
     /** @var array<string> */
     private $callbacksHit = [];
+
     /** @var Worker */
     private $worker;
 
@@ -25,7 +26,8 @@ class EventTest extends TestCase
         TestJob::$called = false;
 
         // Register a worker to test with
-        $this->worker = new Worker('jobs');
+        $factory = new WorkerFactory();
+        $this->worker = $factory->create('jobs');
         $this->worker->registerWorker();
     }
 
