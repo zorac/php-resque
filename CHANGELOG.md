@@ -9,6 +9,7 @@
   thrown if fields are missing/incorrect (rather than something weird happening
   later on.)
 * Upgraded to PHPStan 1.x and fixed a number of issues it detected.
+* Removed the old demo and extras files as no applicable to version 3.
 
 ## 2.12.2 (2023-03-02)
 
