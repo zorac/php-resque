@@ -34,6 +34,14 @@ class Status
     public const STATUS_COMPLETE = 4;
 
     /**
+     * @var array<int,int> Array of statuses that are considered final/complete.
+     */
+    private const COMPLETE_STATUSES = [
+        self::STATUS_FAILED,
+        self::STATUS_COMPLETE
+    ];
+
+    /**
      * @var string The ID of the job this status class refers back to.
      */
     private $id;
@@ -44,14 +52,6 @@ class Status
      *      not checked yet.
      */
     private $isTracking = null;
-
-    /**
-     * @var array<int> Array of statuses that are considered final/complete.
-     */
-    private static $completeStatuses = [
-        self::STATUS_FAILED,
-        self::STATUS_COMPLETE
-    ];
 
     /**
      * Setup a new instance of the job monitor class for the supplied job ID.
@@ -130,7 +130,7 @@ class Status
         }
 
         // Expire the status for completed jobs after 24 hours
-        if (in_array($status, self::$completeStatuses, true)) {
+        if (in_array($status, self::COMPLETE_STATUSES, true)) {
             Resque::redis()->expire((string)$this, 86400);
         }
     }

@@ -3,6 +3,7 @@
 namespace Resque\Job;
 
 use Resque\Job;
+use Resque\ResqueException;
 
 /**
  * Interface for a Resque job creator
@@ -18,6 +19,7 @@ interface CreatorInterface
      * `perform()` method.
      *
      * @param Job $job The job to be processed.
+     * @throws ResqueException If a job instance could not be created.
      * @return PerformerInterface A job instance.
      */
     public function createJob(Job $job): object;

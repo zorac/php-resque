@@ -61,8 +61,8 @@ class Redis
     public const DEFAULT_DATABASE = 0;
 
     /**
-     * @var array<string> List of all commands in Redis that supply a key as their
-     *    first argument. Used to prefix keys with the Resque namespace.
+     * @var array<string> List of all commands in Redis that supply a key as
+     *      their first argument. Used to prefix keys with the Resque namespace.
      */
     private const KEY_COMMANDS = [
         'exists',
@@ -152,6 +152,8 @@ class Redis
     }
 
     /**
+     * Create a new Redis client instance.
+     *
      * @param string|array<mixed>|callable $server A DSN, parameter array, or
      *      callable. Special case: pass an array with keys 'parameters' and
      *      'options' to pass those separately to the Predis\Client constructor.

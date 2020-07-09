@@ -687,8 +687,8 @@ class Worker
     }
 
     /**
-     * Signal handler for SIGPIPE, in the event the redis connection has gone away.
-     * Attempts to reconnect to redis, or raises an Exception.
+     * Signal handler for SIGPIPE, in the event the redis connection has gone
+     * away. Attempts to reconnect to redis, or raises an Exception.
      *
      * @return void
      */
