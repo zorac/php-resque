@@ -17,7 +17,7 @@ class WorkerFactory
     /**
      * @var WorkerFactory|null The singleton instance, if set.
      */
-    private static ?WorkerFactory $singleton = null;
+    private static $singleton = null;
 
     /**
      * @var LoggerInterface|null A logger to pass to workers.

@@ -1,4 +1,4 @@
-## 2.10.0 (2020-07-12)
+## 2.10.1 (2020-07-12)
 
 * Greatly enhanced functionality of wildcards in the queue list, and added
   support for exclusions
