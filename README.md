@@ -1,6 +1,9 @@
 # Resque for PHP
 
-[![Build Status](https://travis-ci.com/zorac/php-resque.svg?branch=master)](https://travis-ci.com/zorac/php-resque)
+[![Software license][ico-license]](LICENSE)
+[![PHP version][ico-php]][link-php]
+[![Latest release][ico-packagist]][link-packagist]
+[![Build status][ico-travis]][link-travis]
 
 Resque is a Redis-backed library for creating background jobs, placing those
 jobs on multiple queues, and processing them later.
@@ -172,3 +175,11 @@ If one of these two environement variable is missing, it will default to
     port
 * [wa0x6e](https://github.com/wa0x6e/php-resque-ex) for php-resque-ex
 * zorac
+
+[ico-license]: https://img.shields.io/github/license/zorac/php-resque.svg?style=flat-square
+[ico-php]: https://img.shields.io/packagist/php-v/zorac/php-resque.svg?style=flat-square
+[ico-packagist]: https://img.shields.io/packagist/v/zorac/php-resque.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/zorac/php-resque.svg?style=flat-square
+[link-php]: https://www.php.net/
+[link-packagist]: https://packagist.org/packages/zorac/php-resque
+[link-travis]: https://travis-ci.org/zorac/php-resque
