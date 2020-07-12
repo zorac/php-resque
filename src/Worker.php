@@ -218,9 +218,11 @@ class Worker
      * working on. The list of queues should be supplied in the priority that
      * they should be checked for jobs (first come, first served.)
      *
-     * Passing a single '*' allows the worker to work on all queues in
-     * a random order. You can easily add new queues dynamically and have
-     * them worked on using this method.
+     * Passing a single `*` allows the worker to work on all queues in a
+     * random order. You can easily add new queues dynamically and have them
+     * worked on using this method. More complex rules can be added with
+     * multiple wildcard and exclusion patterns; see the `queues()` method for
+     * more details.
      *
      * @param string|array<string> $queues String with a single queue name,
      *      array with multiple.
@@ -545,22 +547,79 @@ class Worker
      * Return an array containing all of the queues that this worker should use
      * when searching for jobs.
      *
-     * If * is found in the list of queues, every queue will be searched in
-     * a random order. (@see $fetch)
+     * If any queue name contains on ore more wildcard `*` characters, then a
+     * list of all known queue names will be fetched from Redis, and that name
+     * will be replaced by all known queues which match that pattern, in a
+     * random order.
      *
-     * @param bool $fetch If true (the default), and the queue is set to *,
-     *      will fetch all queue names from Redis.
-     * @return array<string> Array of associated queues.
+     * For each queue name given which starts with `!`, the remainder of that
+     * name will be used as a pattern to remove entries from the list of all
+     * queues, bofore any other matching is performed. Exclusions do *not*
+     * affect explicitly named queues, and there position in the input is not
+     * important.
+     *
+     * For example, if the input array of queues passed to the constructor was:
+     * ```
+     * ['system:high', '*:high', '*', 'system:low', '!*:low']
+     * ```
+     * Then the queues returned by this method would be:
+     * 1. `system:high`
+     * 2. All other queues ending in `:high`, in a random order.
+     * 3. All other queues *not* ending in `:low`, in a random order.
+     * 4. `system:low`
+     *
+     * @param bool $fetch If set to false (the default is true), then `*` and
+     *      `!` characters in queue names will be treated as literals, and the
+     *      list of all queues will never be fetched from Redis.
+     * @return array<string> The queues to use, in order of priority.
      */
     public function queues(bool $fetch = true): array
     {
-        if ($fetch && in_array('*', $this->queues, true)) {
-            $queues = Resque::queues();
-            shuffle($queues);
-            return $queues;
-        } else {
+        if (!$fetch) {
             return $this->queues;
         }
+
+        $all = null;
+        $add = [];
+        $remove = null;
+        $filtered = [];
+
+        foreach ($this->queues as $queue) {
+            if (strlen($queue) === 0) {
+                continue;
+            } elseif ($queue[0] === '!') {
+                $q = str_replace('\\*', '.*', preg_quote(substr($queue, 1)));
+                $remove = isset($remove) ? "$remove|$q" : $q;
+                continue;
+            } elseif (!isset($all) && (strpos($queue, '*') !== false)) {
+                $all = Resque::queues();
+                shuffle($all);
+            }
+
+            $add[] = $queue;
+        }
+
+        if (!isset($all)) {
+            return $add;
+        } elseif (isset($remove)) {
+            $all = preg_grep("/^($remove)$/", $all, PREG_GREP_INVERT);
+        }
+
+        foreach ($add as $queue) {
+            if (strpos($queue, '*') === false) {
+                $filtered[] = $queue;
+                $all = array_filter($all, function ($q) use ($queue): bool {
+                    return $q !== $queue;
+                });
+            } else {
+                $pattern = '/^' . str_replace('\\*', '.*', preg_quote($queue))
+                    . '$/';
+                array_push($filtered, ...preg_grep($pattern, $all));
+                $all = preg_grep($pattern, $all, PREG_GREP_INVERT);
+            }
+        }
+
+        return $filtered;
     }
 
     /**

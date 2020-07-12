@@ -94,6 +94,26 @@ You can easily retrieve logs for a failed jobs in the redis database, their
 keys are named after their job ID. Each failed log will expire after 2 weeks to
 save space.
 
+### Advanced queue filtering
+
+Queue names can include the wildcard character `*`, which will cause the worker
+to fetch the lsit of all queues, and process all of those which match in a
+random order. Each `*` matches zero or more characters; you can have multiple
+wildcards, and specifically a queue name of just `*` whill match all queues.
+Additionally you can exclude queues by prefixing the name with a `!`; these
+exclusion patterns may also contain wildcards, and can appear anywhere in the
+queue list. Exclusions only affect wildcard patterns.
+
+As an example, if the queues are set as follows:
+```
+QUEUES="system:high,*:high,*,system:low,!*:low"
+```
+Then the queues will be processed by the worker will be (in order of priority):
+1. `system:high`
+2. All other queues ending in `:high`, in a random order.
+3. All other queues *not* ending in `:low`, in a random order.
+4. `system:low`
+
 ## Installation
 
 The easiest way is using composer, by adding the following to your
