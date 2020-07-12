@@ -1,10 +1,12 @@
-## 2.10.0 (WIP)
+## 2.10.0 (2020-07-12)
 
-* Marked many methods and properties as `@deprecated`; **all deprecated code
-  will be removed in version 3.0**
+* Greatly enhanced functionality of wildcards in the queue list, and added
+  support for exclusions
+* Marked many methods and properties of `Resque\Worker` as `@deprecated`;
+  **all deprecated code will be removed in version 3.0**
 * Added `WorkerFactory` as a dependency injection compatible way of creating
   `Worker`s, and migrated in code from `Worker`'s static and pruning methods
-* Cleaned up the changelog, and added an upgrading guide.
+* Cleaned up the changelog, and added an upgrading guide
 
 ## 2.9.1 (2020-04-21)
 
@@ -122,89 +124,89 @@
 > If you're starting your workers manually, use `php bin/resque` instead of
   `php bin/resque.php`
 
-## 1.2.4 (2013-04-141) ##
+## 1.2.4 (2013-04-141)
 
 * Fix #3 : Logging now honour verbose level
 
-## 1.2.3 (2012-01-31) ##
+## 1.2.3 (2012-01-31)
 
 * Fix fatal error when updating job status
 
-## 1.2.2 (2012-01-30) ##
+## 1.2.2 (2012-01-30)
 
 * Add missing autoloader path
 
-## 1.2.1 (2012-01-30) ##
+## 1.2.1 (2012-01-30)
 
 * Moved top-level resque.php to bin folder
 * Detect composer autoloader up to 3 directory level, and fail gracefully if
   not found
 * Change some functions scope to allow inheritance
 
-## 1.0.15 (2012-01-23) ##
+## 1.0.15 (2012-01-23)
 
 * Record job processing time
 
-## 1.0.14 (2012-10-23) ##
+## 1.0.14 (2012-10-23)
 
 * Add method to get failed jobs details
 * Merge v1.2 from parent
 
-## 1.0.13 (2012-10-17) ##
+## 1.0.13 (2012-10-17)
 
 * Pause and unpause events go into their own log category
 
-## 1.0.12 (2012-10-14) ##
+## 1.0.12 (2012-10-14)
 
 * Check that `$logger` is not null before using
 
-## 1.0.11 (2012-10-01) ##
+## 1.0.11 (2012-10-01)
 
 * Update Composer.json
 
-## 1.0.10 (2012-09-27) ##
+## 1.0.10 (2012-09-27)
 
 * Update Composer.json
 
-## 1.0.9 (2012-09-20) ##
+## 1.0.9 (2012-09-20)
 
 * Delegate all the MonologHandler creation to MonologInit. (requires a composer
   update).
 * Fix stop event that was not logged
 
-## 1.0.8 (2012-09-19) ##
+## 1.0.8 (2012-09-19)
 
 * In start log, add a new fields for recording queues names
 
-## 1.0.7 (2012-09-10) ##
+## 1.0.7 (2012-09-10)
 
 * Fix tests
 
-## 1.0.6 (2012-09-10) ##
+## 1.0.6 (2012-09-10)
 
 * Merge latest commits from php-resque
 
-## 1.0.5 (2012-08-29) ##
+## 1.0.5 (2012-08-29)
 
 * Add custom redis database and namespace support
 
-## 1.0.4 (2012-08-29) ##
+## 1.0.4 (2012-08-29)
 
 * Job creation will be delegated to Resque_Job_Creator class if found
 * Use persistent connection to Redis
 
-## 1.0.3 (2012-08-26) ##
+## 1.0.3 (2012-08-26)
 
 * Fix unknown self reference
 
-## 1.0.2 (2012-08-22) ##
+## 1.0.2 (2012-08-22)
 
 * Don't use persistent connection to redis, because of segfault bug
 
-## 1.0.1 (2012-08-21) ##
+## 1.0.1 (2012-08-21)
 
 * Output to STDOUT if no log Handler is defined
 
-## 1.0.0 (2012-08-21) ##
+## 1.0.0 (2012-08-21)
 
 * Initial release
