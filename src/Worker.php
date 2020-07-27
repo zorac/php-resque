@@ -379,18 +379,29 @@ class Worker
                 continue;
             }
 
+            $workerName = "$this->hostname:$this->pid";
+
+            $this->log([
+                'message' => "reserved ID:{$job->payload['id']} in $job->queue",
+                'data' => [
+                    'type' => 'reserved',
+                    'worker' => $workerName,
+                    'queue' => $job->queue,
+                    'job_id' => $job->payload['id'],
+                    'job_class' =>  $job->payload['class'],
+                ]
+            ], LogLevel::INFO);
+
             $this->log([
                 'message' => "got $job",
                 'data' => [
                     'type' => 'got',
                     'args' => $job
                 ]
-            ], LogLevel::INFO);
+            ], LogLevel::DEBUG);
 
             Event::trigger('beforeFork', $job);
             $this->workingOn($job);
-
-            $workerName = "$this->hostname:$this->pid";
 
             $this->child = $this->fork();
 
