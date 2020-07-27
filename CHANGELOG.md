@@ -1,3 +1,10 @@
+## 2.10.2 (2020-07-27)
+
+* Changed the existing worker 'got' log entry (which includes a JSON dump of
+  the complete job arguments, and thus may get *very* large) to be at the debug
+  level, and added a new 'reserverd' one at the info level.
+* Fixed the process title not getting set in blocking mode.
+
 ## 2.10.1 (2020-07-12)
 
 * Greatly enhanced functionality of wildcards in the queue list, and added
