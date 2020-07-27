@@ -339,6 +339,10 @@ class Worker
             $job = null;
 
             if (!$this->paused) {
+                if ($blocking) {
+                    $this->updateProcLine('Blocking on ' . implode(',', $this->queues));
+                }
+
                 try {
                     $job = $this->reserve($blocking, $interval);
                 } catch (RedisException $e) {
