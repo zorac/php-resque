@@ -486,7 +486,7 @@ class Worker
             ], LogLevel::INFO);
         } catch (Throwable $e) {
             $this->log([
-                'message' => "$job failed: " . $e->getMessage(),
+                'message' => "ID:{$job->payload['id']} failed: " . $e->getMessage(),
                 'data' => [
                     'type' => 'fail',
                     'log' => $e->getMessage(),
