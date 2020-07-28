@@ -351,8 +351,9 @@ class Worker
                         'data' => [
                             'type' => 'fail',
                             'log' => $e->getMessage(),
-                            'time' => time()
-                        ]
+                            'time' => time(),
+                            'exception' => $e,
+                        ],
                     ], LogLevel::ALERT);
                 }
             }
@@ -491,8 +492,9 @@ class Worker
                     'type' => 'fail',
                     'log' => $e->getMessage(),
                     'job_id' => $job->payload['id'],
-                    'time' => round(microtime(true) - $startTime, 3) * 1000
-                ]
+                    'time' => round(microtime(true) - $startTime, 3) * 1000,
+                    'exception' => $e,
+                ],
             ], LogLevel::ERROR);
 
             $job->fail($e);
