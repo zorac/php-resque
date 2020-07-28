@@ -1,8 +1,13 @@
+## 2.10.3 (2020-07-28)
+
+* Remove full arguments logging from 'failed' log entries.
+* Added PSR-compliant logging of exceptions.
+
 ## 2.10.2 (2020-07-27)
 
 * Changed the existing worker 'got' log entry (which includes a JSON dump of
   the complete job arguments, and thus may get *very* large) to be at the debug
-  level, and added a new 'reserverd' one at the info level.
+  level, and added a new 'reserved' one at the info level.
 * Fixed the process title not getting set in blocking mode.
 
 ## 2.10.1 (2020-07-12)
