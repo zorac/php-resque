@@ -368,8 +368,8 @@ class Worker
                         'message' => "Sleeping for $interval",
                         'data' => [
                             'type' => 'sleep',
-                            'second' => $interval
-                        ]
+                            'second' => $interval,
+                        ],
                     ], LogLevel::DEBUG);
 
                     if ($this->paused) {
@@ -394,15 +394,15 @@ class Worker
                     'queue' => $job->queue,
                     'job_id' => $job->payload['id'],
                     'job_class' =>  $job->payload['class'],
-                ]
+                ],
             ], LogLevel::INFO);
 
             $this->log([
                 'message' => "got $job",
                 'data' => [
                     'type' => 'got',
-                    'args' => $job
-                ]
+                    'args' => $job,
+                ],
             ], LogLevel::DEBUG);
 
             Event::trigger('beforeFork', $job);
@@ -420,8 +420,8 @@ class Worker
                     'data' => [
                         'type' => 'process',
                         'worker' => $workerName,
-                        'job_id' => $job->payload['id']
-                    ]
+                        'job_id' => $job->payload['id'],
+                    ],
                 ], LogLevel::INFO);
 
                 $this->perform($job);
@@ -439,8 +439,8 @@ class Worker
                     'data' => [
                         'type' => 'fork',
                         'worker' => $workerName,
-                        'job_id' => $job->payload['id']
-                    ]
+                        'job_id' => $job->payload['id'],
+                    ],
                 ], LogLevel::DEBUG);
 
                 // Wait until the child process finishes before continuing.
@@ -482,8 +482,8 @@ class Worker
                 'data' => [
                     'type' => 'done',
                     'job_id' => $job->payload['id'],
-                    'time' => round(microtime(true) - $startTime, 3) * 1000
-                ]
+                    'time' => round(microtime(true) - $startTime, 3) * 1000,
+                ],
             ], LogLevel::INFO);
         } catch (Throwable $e) {
             $this->log([
@@ -522,8 +522,8 @@ class Worker
                 'data' => [
                     'type' => 'check',
                     'queue' => $queues,
-                    'timeout' => $timeout
-                ]
+                    'timeout' => $timeout,
+                ],
             ], LogLevel::DEBUG);
 
             $job = Job::reserveBlocking($queues, $timeout);
@@ -533,8 +533,8 @@ class Worker
                     'message' => "Checking $queue",
                     'data' => [
                         'type' => 'check',
-                        'queue' => $queue
-                    ]
+                        'queue' => $queue,
+                    ],
                 ], LogLevel::DEBUG);
 
                 $job = Job::reserve($queue);
@@ -550,8 +550,8 @@ class Worker
                 'message' => "Found job on $job->queue",
                 'data' => [
                     'type' => 'found',
-                    'queue' => $job->queue
-                ]
+                    'queue' => $job->queue,
+                ],
             ], LogLevel::DEBUG);
 
             return $job;
@@ -668,8 +668,8 @@ class Worker
             'message' => "Starting worker $this",
             'data' => [
                 'type' => 'start',
-                'worker' => $this->id
-            ]
+                'worker' => $this->id,
+            ],
         ], LogLevel::INFO);
 
         $this->registerSigHandlers();
@@ -722,8 +722,8 @@ class Worker
         $this->log([
             'message' => 'Registered signals',
             'data' => [
-                'type' => 'signal'
-            ]
+                'type' => 'signal',
+            ],
         ], LogLevel::DEBUG);
     }
 
@@ -737,8 +737,8 @@ class Worker
         $this->log([
             'message' => 'USR2 received; pausing job processing',
             'data' => [
-                'type' => 'pause'
-            ]
+                'type' => 'pause',
+            ],
         ], LogLevel::INFO);
 
         $this->paused = true;
@@ -755,8 +755,8 @@ class Worker
         $this->log([
             'message' => 'CONT received; resuming job processing',
             'data' => [
-                'type' => 'resume'
-            ]
+                'type' => 'resume',
+            ],
         ], LogLevel::INFO);
 
         $this->paused = false;
@@ -773,8 +773,8 @@ class Worker
         $this->log([
             'message' => 'SIGPIPE received; attempting to reconnect',
             'data' => [
-                'type' => 'reconnect'
-            ]
+                'type' => 'reconnect',
+            ],
         ], LogLevel::INFO);
 
         Resque::redis()->connect();
@@ -793,8 +793,8 @@ class Worker
         $this->log([
             'message' => 'Exiting...',
             'data' => [
-                'type' => 'shutdown'
-            ]
+                'type' => 'shutdown',
+            ],
         ], LogLevel::INFO);
     }
 
@@ -835,8 +835,8 @@ class Worker
                 'message' => 'No child to kill.',
                 'data' => [
                     'type' => 'kill',
-                    'child' => null
-                ]
+                    'child' => null,
+                ],
             ], LogLevel::DEBUG);
 
             return;
@@ -846,8 +846,8 @@ class Worker
             'message' => "Killing child at $this->child",
             'data' => [
                 'type' => 'kill',
-                'child' => $this->child
-            ]
+                'child' => $this->child,
+            ],
         ], LogLevel::DEBUG);
 
         exec("ps -p $this->child", $output, $returnCode);
@@ -857,8 +857,8 @@ class Worker
                 'message' => "Killing child at $this->child",
                 'data' => [
                     'type' => 'kill',
-                    'child' => $this->child
-                ]
+                    'child' => $this->child,
+                ],
             ], LogLevel::DEBUG);
 
             posix_kill($this->child, SIGKILL);
@@ -868,8 +868,8 @@ class Worker
                 'message' => "Child $this->child not found, restarting.",
                 'data' => [
                     'type' => 'kill',
-                    'child' => $this->child
-                ]
+                    'child' => $this->child,
+                ],
             ], LogLevel::ERROR);
 
             $this->shutdown();
@@ -957,7 +957,7 @@ class Worker
         $json = Util::jsonEncode([
             'queue' => $job->queue,
             'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
-            'payload' => $job->payload
+            'payload' => $job->payload,
         ]);
 
         if ($json !== false) {
@@ -1039,7 +1039,7 @@ class Worker
 
         $json = Util::jsonEncode([
             $logger->handler,
-            $logger->target
+            $logger->target,
         ]);
 
         if ($json !== false) {

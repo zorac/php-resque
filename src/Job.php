@@ -307,7 +307,7 @@ class Job
             'queue' => $this->queue,
             'id'    => isset($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
-            'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]]
+            'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]],
         ]);
 
         if ($json !== false) {

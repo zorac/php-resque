@@ -38,7 +38,7 @@ class Status
      */
     private const COMPLETE_STATUSES = [
         self::STATUS_FAILED,
-        self::STATUS_COMPLETE
+        self::STATUS_COMPLETE,
     ];
 
     /**

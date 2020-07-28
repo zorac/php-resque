@@ -173,8 +173,8 @@ class WorkerFactory
             $worker->log([
                 'message' => "Pruning dead worker: $worker",
                 'data' => [
-                    'type' => 'prune'
-                ]
+                    'type' => 'prune',
+                ],
             ], Worker::LOG_TYPE_DEBUG);
 
             $worker->unregisterWorker();
