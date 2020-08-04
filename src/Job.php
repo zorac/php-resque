@@ -128,6 +128,12 @@ class Job
         array $queues,
         int $timeout = 0
     ): ?Job {
+        if (count($queues) === 0) {
+            // We can't BLPOP if we have no queues, so we just sleep instead
+            usleep(max($timeout, 5) * 1000000);
+            return null;
+        }
+
         [$queue, $payload] = Resque::blpop($queues, $timeout);
 
         if (isset($queue) && isset($payload)) {
