@@ -1,3 +1,9 @@
+## 2.10.4 (2020-08-04)
+
+* Prevent live-lock if blocking with no queues
+* Remove Resque version from process titles
+* Improvements to stack trace formatter
+
 ## 2.10.3 (2020-07-28)
 
 * Remove full arguments logging from 'failed' log entries.
