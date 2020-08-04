@@ -57,77 +57,128 @@ class Util
      */
     public static function formatStackTrace(Throwable $exception): array
     {
-        $seen = [];
-        $output = [];
-
-        self::formatStackTraceRecursive($exception, $seen, $output);
-
-        return $output;
+        return self::formatStackTraceRecursive($exception);
     }
 
     /**
      * Format an exception chain as a string for display.
      *
      * @param Throwable $e An exception.
-     * @param array<string,bool> $seen Stack elements which have already been
-     *      seen.
-     * @param array<string> $output The output lines.
-     * @return void
+     * @param array<string> $parent The trace of the parent exception.
+     * @return array<string> The stack trace
      */
     private static function formatStackTraceRecursive(
         Throwable $e,
-        array &$seen,
-        array &$output
-    ): void {
+        array $parent = []
+    ): array {
+        // Format the stack trace for this exception
+
         $stack = $e->getTrace() ?? [];
-        $cause = $e->getPrevious();
         $file = $e->getFile() ?? 'unknown file';
         $line = $e->getLine() ?? 0;
+        $output = [];
 
-        array_push(
-            $output,
-            ((count($seen) > 0) ? 'Caused by: ' : '')
-            . get_class($e) . ': ' . $e->getMessage()
-        );
-
-        while (true) {
-            $current = "$file:$line";
-
-            if ($seen[$current] ?? false) {
-                array_push($output, '  ... ' . (count($stack) + 1) . ' more');
-                break;
-            } else {
-                $seen[$current] = true;
-            }
-
-            $frame = array_shift($stack) ?? [];
+        do {
+            $frame = array_shift($stack);
             $class = $frame['class'] ?? null;
             $function = $frame['function'] ?? null;
 
-            array_push(
-                $output,
-                '  at '
+            $output[] = '  in '
                 . ($class ?? '')
                 . (isset($class) && isset($function) ? '::' : '')
                 . ($function ?? '[main]')
                 . ' ('
                 . (isset($line) ? (basename($file) . ':' . $line) : $file)
-                . ')'
-            );
+                . ')';
 
-            if (count($frame) === 0) {
-                break;
-            } elseif (isset($frame['file'])) {
-                $file = $frame['file'];
-                $line = $frame['line'] ?? 0;
-            } else {
-                $file = 'unknown file';
-                $line = 0;
+            $file = $frame['file'] ?? 'unknown file';
+            $line = $frame['line'] ?? 0;
+        } while (isset($frame));
+
+        // Fetch the stack trace(s) for any descendants.
+
+        $previous = $e->getPrevious();
+        $child = isset($previous)
+            ? self::formatStackTraceRecursive($previous, $output) : [];
+
+        // Remove any trailing lines which duplicate the parent trace
+
+        $output_pos = count($output) - 1;
+        $parent_pos = count($parent) - 1;
+        $seen = 0;
+
+        while (
+            ($output_pos >= 0)
+            && ($parent_pos >= 0)
+            && ($output[$output_pos] === $parent[$parent_pos])
+        ) {
+            $output_pos--;
+            $parent_pos--;
+            $seen++;
+        }
+
+        if ($seen > 0) {
+            $output = array_slice($output, 0, -$seen);
+            $output[] = "  ... $seen more";
+        }
+
+        // Check for recursion in the trace
+
+        $start = 0;
+        $pos = 1;
+        $count = count($output);
+
+        while ($pos < $count) {
+            for ($i = $start; $i < $pos; $i++) {
+                if ($output[$i] !== $output[$pos]) {
+                    continue;
+                }
+
+                $len = $pos - $i;
+                $reps = 1;
+
+                while ($reps < 999) { // Safety valve
+                    for ($j = 0; $j < $len; $j++) {
+                        $index = $i + $j + ($reps * $len);
+
+                        if (
+                            ($index >= $count)
+                            || ($output[$index] !== $output[$i + $j])
+                        ) {
+                            break 2;
+                        }
+                    }
+
+                    $reps++;
+                }
+
+                if ($reps > 1) {
+                    array_splice(
+                        $output,
+                        $i,
+                        $len * $reps,
+                        array_merge(
+                            ["  ... repeat $reps times:"],
+                            array_slice($output, $i, $len),
+                            ['  ... end repeat']
+                        )
+                    );
+
+                    $start = $i + $len + 2;
+                    $pos = $start;
+                    $count = count($output);
+                    break;
+                }
             }
+
+            $pos++;
         }
 
-        if (isset($cause)) {
-            self::formatStackTraceRecursive($cause, $seen, $output);
-        }
+        // Add the header line for this trace and return it
+
+        array_unshift($output, ((count($parent) === 0) ? '' : 'Caused by: ')
+            . get_class($e) . ': ' . $e->getMessage());
+
+        return array_merge($output, $child);
     }
 }
