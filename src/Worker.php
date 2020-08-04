@@ -77,7 +77,7 @@ class Worker
     public const LOG_TYPE_ALERT = 550;
 
     /**
-     * @var <int,string> Mapping from legacy lof type to PSR log level.
+     * @var <int,string> Mapping from legacy log type to PSR log level.
      */
     private const LOG_LEVEL_MAP = [
         self::LOG_TYPE_DEBUG    => LogLevel::DEBUG,
@@ -693,7 +693,7 @@ class Worker
     protected function updateProcLine(string $status): void
     {
         if (PHP_OS != 'Darwin') { // Not suppotted on macOS
-            cli_set_process_title('resque-' . Resque::VERSION . ": $status");
+            cli_set_process_title("resque: $status");
         }
     }
 
