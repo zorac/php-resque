@@ -387,20 +387,13 @@ class Worker
             $workerName = "$this->hostname:$this->pid";
 
             $this->log([
-                'message' => "reserved ID:{$job->payload['id']} in $job->queue",
+                'message' => "Got ID:{$job->payload['id']} in $job->queue",
                 'data' => [
-                    'type' => 'reserved',
+                    'type' => 'got',
                     'worker' => $workerName,
                     'queue' => $job->queue,
                     'job_id' => $job->payload['id'],
-                    'job_class' =>  $job->payload['class'],
-                ],
-            ], LogLevel::INFO);
-
-            $this->log([
-                'message' => "got $job",
-                'data' => [
-                    'type' => 'got',
+                    'job_class' => $job->payload['class'],
                     'args' => $job,
                 ],
             ], LogLevel::DEBUG);
@@ -410,8 +403,8 @@ class Worker
 
             $this->child = $this->fork();
 
-            // Forked and we're the child. Run the job.
             if ($this->child === 0) {
+                // Forked and we're the child. Run the job.
                 $status = "Processing ID:{$job->payload['id']} in $job->queue";
                 $this->updateProcLine($status);
 
@@ -420,16 +413,16 @@ class Worker
                     'data' => [
                         'type' => 'process',
                         'worker' => $workerName,
+                        'queue' => $job->queue,
                         'job_id' => $job->payload['id'],
+                        'job_class' => $job->payload['class'],
                     ],
                 ], LogLevel::INFO);
 
                 $this->perform($job);
 
                 exit(0);
-            }
-
-            if ($this->child > 0) {
+            } elseif ($this->child > 0) {
                 // Parent process, sit and wait
                 $status = "Forked $this->child for ID:{$job->payload['id']}";
                 $this->updateProcLine($status);
@@ -439,7 +432,9 @@ class Worker
                     'data' => [
                         'type' => 'fork',
                         'worker' => $workerName,
+                        'queue' => $job->queue,
                         'job_id' => $job->payload['id'],
+                        'job_class' => $job->payload['class'],
                     ],
                 ], LogLevel::DEBUG);
 
@@ -454,6 +449,18 @@ class Worker
                 if ($exitStatus !== 0) {
                     $job->fail(new DirtyExitException("Job exited with exit code $exitStatus"));
                 }
+            } else {
+                // Fork failed!
+                $this->log([
+                    'message' => "Fork failed $this->child for ID:{$job->payload['id']}",
+                    'data' => [
+                        'type' => 'fail',
+                        'worker' => $workerName,
+                        'queue' => $job->queue,
+                        'job_id' => $job->payload['id'],
+                        'job_class' => $job->payload['class'],
+                    ],
+                ], LogLevel::ERROR);
             }
 
             $this->child = null;
@@ -471,6 +478,7 @@ class Worker
      */
     public function perform(Job $job): void
     {
+        $workerName = "$this->hostname:$this->pid";
         $startTime = microtime(true);
 
         try {
@@ -478,10 +486,13 @@ class Worker
             $job->perform();
 
             $this->log([
-                'message' => "done ID:{$job->payload['id']}",
+                'message' => "Completed ID:{$job->payload['id']}",
                 'data' => [
                     'type' => 'done',
+                    'worker' => $workerName,
+                    'queue' => $job->queue,
                     'job_id' => $job->payload['id'],
+                    'job_class' => $job->payload['class'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000,
                 ],
             ], LogLevel::INFO);
@@ -491,7 +502,10 @@ class Worker
                 'data' => [
                     'type' => 'fail',
                     'log' => $e->getMessage(),
+                    'worker' => $workerName,
+                    'queue' => $job->queue,
                     'job_id' => $job->payload['id'],
+                    'job_class' => $job->payload['class'],
                     'time' => round(microtime(true) - $startTime, 3) * 1000,
                     'exception' => $e,
                 ],
