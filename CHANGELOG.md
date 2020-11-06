@@ -1,3 +1,10 @@
+## 2.10.5 (2020-11-06)
+
+* Merged the 'reserved' and 'got' log entries as type: got, level: debug.
+* Ensured that all job-execution log entries are decorated with worker name,
+  queue, and job class.
+* Added an error log entry in case of fork failure.
+
 ## 2.10.4 (2020-08-04)
 
 * Prevent live-lock if blocking with no queues
