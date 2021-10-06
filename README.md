@@ -166,7 +166,7 @@ If one of these two environement variable is missing, it will default to
 
 ## Requirements
 
-* PHP 7.1+
+* PHP 7.2+
 * Redis 2.2+
 
 ## Contributors
@@ -179,7 +179,7 @@ If one of these two environement variable is missing, it will default to
 [ico-license]: https://img.shields.io/github/license/zorac/php-resque.svg?style=flat-square
 [ico-php]: https://img.shields.io/packagist/php-v/zorac/php-resque.svg?style=flat-square
 [ico-packagist]: https://img.shields.io/packagist/v/zorac/php-resque.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/zorac/php-resque.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/com/zorac/php-resque.svg?style=flat-square
 [link-php]: https://www.php.net/
 [link-packagist]: https://packagist.org/packages/zorac/php-resque
-[link-travis]: https://travis-ci.org/zorac/php-resque
+[link-travis]: https://travis-ci.com/zorac/php-resque
