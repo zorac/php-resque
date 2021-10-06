@@ -1,3 +1,11 @@
+## 2.11.0 (2021-10-06)
+
+* **PHP 7.2 or later is now required.**
+* Fix Redis reconnection in the SIGPIPE handler not having been updated to
+  support Predis.
+* Fix a failing test on PHP 8.
+* Fix some issues flagged by phpstan.
+
 ## 2.10.5 (2020-11-06)
 
 * Merged the 'reserved' and 'got' log entries as type: got, level: debug.
