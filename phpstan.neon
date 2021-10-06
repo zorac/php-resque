@@ -11,7 +11,6 @@ parameters:
   ignoreErrors:
     - '#MonologInit\\Monolog\\Logger#'
     - '#Call to an undefined method object::perform\(\)#'
-    - '#type has no value type specified in iterable type Predis\\Client#'
     - '#Call to deprecated method .* of class Resque\\.*#'
     - '#Access to deprecated property .* of class Resque\\.*#'
     - '#Fetching deprecated class constant .* of class Resque\\.*#'

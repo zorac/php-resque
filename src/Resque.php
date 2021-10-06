@@ -85,7 +85,7 @@ class Resque
 
         if (self::$pid !== $pid) {
             self::$redis = null;
-            self::$pid = $pid;
+            self::$pid = ($pid === false) ? null : $pid;
         }
 
         if (isset(self::$redis)) {

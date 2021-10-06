@@ -77,7 +77,7 @@ class Worker
     public const LOG_TYPE_ALERT = 550;
 
     /**
-     * @var <int,string> Mapping from legacy log type to PSR log level.
+     * @var array<int,string> Mapping from legacy log type to PSR log level.
      */
     private const LOG_LEVEL_MAP = [
         self::LOG_TYPE_DEBUG    => LogLevel::DEBUG,
@@ -251,6 +251,10 @@ class Worker
 
         if (!isset($pid)) {
             $pid = getmypid();
+
+            if ($pid === false) {
+                throw new ResqueException('Unable to determine PID');
+            }
         } else {
             $this->pruneDeadWorkersOnStartup = false;
         }
@@ -637,6 +641,10 @@ class Worker
         }
 
         foreach ($add as $queue) {
+            if ($all === false) {
+                $all = [];
+            }
+
             if (strpos($queue, '*') === false) {
                 $filtered[] = $queue;
                 $all = array_filter($all, function ($q) use ($queue): bool {
@@ -645,7 +653,12 @@ class Worker
             } else {
                 $pattern = '/^' . str_replace('\\*', '.*', preg_quote($queue))
                     . '$/';
-                array_push($filtered, ...preg_grep($pattern, $all));
+                $matched = preg_grep($pattern, $all);
+
+                if ($matched !== false) {
+                    array_push($filtered, ...$matched);
+                }
+
                 $all = preg_grep($pattern, $all, PREG_GREP_INVERT);
             }
         }
@@ -936,8 +949,11 @@ class Worker
      */
     public function registerWorker(): void
     {
+        /** @var string */
+        $now = strftime('%a %b %d %H:%M:%S %Z %Y');
+
         Resque::redis()->sadd('workers', $this->id);
-        Resque::redis()->set("worker:$this:started", strftime('%a %b %d %H:%M:%S %Z %Y'));
+        Resque::redis()->set("worker:$this:started", $now);
     }
 
     /**
