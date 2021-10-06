@@ -142,7 +142,7 @@ class EventTest extends TestCase
     }
 
     /** @param array<int,string> $args */
-    public function afterEnqueueEventCallback(string $class, array $args) : void
+    public function afterEnqueueEventCallback(string $class, array $args, string $queue, string $id) : void
     {
         $this->callbacksHit[] = __FUNCTION__;
         self::assertEquals(TestJob::class, $class);
