@@ -791,7 +791,10 @@ class Worker
             ],
         ], LogLevel::INFO);
 
-        Resque::redis()->connect();
+        $redis = Resque::redis();
+
+        $redis->disconnect();
+        $redis->connect();
     }
 
     /**

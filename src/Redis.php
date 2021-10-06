@@ -12,7 +12,6 @@ use Predis\PredisException;
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  *
  * @method array<mixed> blpop(string|array<string> $keys, int $timeout)
- * @method void connect()
  * @method int decrby(string $key, int $decrement)
  * @method int del(string|array<string> $key)
  * @method int exists(string $key)
@@ -184,6 +183,37 @@ class Redis
             }
         } catch (PredisException $e) {
             throw new RedisException('Error communicating with Redis: '
+                . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Connect to Redis. Normally, there should be no need to call this
+     * directly.
+     *
+     * @return void
+     */
+    public function connect()
+    {
+        try {
+            $this->driver->connect();
+        } catch (PredisException $e) {
+            throw new RedisException('Connection to Redis failed: '
+                . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Disconnect from Redis.
+     *
+     * @return void
+     */
+    public function disconnect()
+    {
+        try {
+            $this->driver->disconnect();
+        } catch (PredisException $e) {
+            throw new RedisException('Disconnection from Redis failed: '
                 . $e->getMessage(), 0, $e);
         }
     }
