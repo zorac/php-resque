@@ -22,7 +22,7 @@ class JobTest extends TestCase
     /** @var Worker */
     private $worker;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -31,13 +31,13 @@ class JobTest extends TestCase
         $this->worker->registerWorker();
     }
 
-    public function testJobCanBeQueued() : void
+    public function testJobCanBeQueued(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class);
         self::assertIsString($token);
     }
 
-    public function testQeueuedJobCanBeReserved() : void
+    public function testQeueuedJobCanBeReserved(): void
     {
         Resque::enqueue('jobs', TestJob::class);
 
@@ -47,7 +47,7 @@ class JobTest extends TestCase
         self::assertEquals(TestJob::class, $job->payload['class']);
     }
 
-    public function testObjectArgumentsCannotBePassedToJob() : void
+    public function testObjectArgumentsCannotBePassedToJob(): void
     {
         $args = new stdClass();
         $args->test = 'somevalue';
@@ -56,7 +56,7 @@ class JobTest extends TestCase
         Resque::enqueue('jobs', TestJob::class, $args);
     }
 
-    public function testQueuedJobReturnsExactSamePassedInArguments() : void
+    public function testQueuedJobReturnsExactSamePassedInArguments(): void
     {
         $args = [
             'int'        => 123,
@@ -77,14 +77,14 @@ class JobTest extends TestCase
         self::assertEquals($args, $job->getArguments());
     }
 
-    public function testAfterJobIsReservedItIsRemoved() : void
+    public function testAfterJobIsReservedItIsRemoved(): void
     {
         Resque::enqueue('jobs', TestJob::class);
         Job::reserve('jobs');
         self::assertNull(Job::reserve('jobs'));
     }
 
-    public function testRecreatedJobMatchesExistingJob() : void
+    public function testRecreatedJobMatchesExistingJob(): void
     {
         $args = [
             'int'        => 123,
@@ -113,7 +113,7 @@ class JobTest extends TestCase
     }
 
 
-    public function testFailedJobExceptionsAreCaught() : void
+    public function testFailedJobExceptionsAreCaught(): void
     {
         $payload = [
             'class' => FailingJob::class,
@@ -129,7 +129,7 @@ class JobTest extends TestCase
         self::assertEquals(1, Stat::get('failed:' . $this->worker));
     }
 
-    public function testJobWithoutPerformMethodThrowsException() : void
+    public function testJobWithoutPerformMethodThrowsException(): void
     {
         Resque::enqueue('jobs', JobWithoutPerformMethod::class);
 
@@ -142,7 +142,7 @@ class JobTest extends TestCase
         $job->perform();
     }
 
-    public function testInvalidJobThrowsException() : void
+    public function testInvalidJobThrowsException(): void
     {
         Resque::enqueue('jobs', 'InvalidJob');
 
@@ -155,7 +155,7 @@ class JobTest extends TestCase
         $job->perform();
     }
 
-    public function testJobWithSetUpCallbackFiresSetUp() : void
+    public function testJobWithSetUpCallbackFiresSetUp(): void
     {
         $payload = [
             'class' => JobWithSetUp::class,
@@ -172,7 +172,7 @@ class JobTest extends TestCase
         self::assertTrue(JobWithSetUp::$called);
     }
 
-    public function testJobWithTearDownCallbackFiresTearDown() : void
+    public function testJobWithTearDownCallbackFiresTearDown(): void
     {
         $payload = [
             'class' => JobWithTearDown::class,
@@ -189,7 +189,7 @@ class JobTest extends TestCase
         self::assertTrue(JobWithTearDown::$called);
     }
 
-    public function testJobWithNamespace() : void
+    public function testJobWithNamespace(): void
     {
         self::connect('testResque2');
         $queue = 'jobs';
@@ -203,7 +203,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($queue), 0);
     }
 
-    public function testDequeueAll() : void
+    public function testDequeueAll(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue');
@@ -213,7 +213,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($queue), 0);
     }
 
-    public function testDequeueMakeSureNotDeleteOthers() : void
+    public function testDequeueMakeSureNotDeleteOthers(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue');
@@ -228,7 +228,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($other_queue), 2);
     }
 
-    public function testDequeueSpecificItem() : void
+    public function testDequeueSpecificItem(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue1');
@@ -239,7 +239,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($queue), 1);
     }
 
-    public function testDequeueSpecificMultipleItems() : void
+    public function testDequeueSpecificMultipleItems(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue1');
@@ -251,7 +251,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($queue), 1);
     }
 
-    public function testDequeueNonExistingItem() : void
+    public function testDequeueNonExistingItem(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue1');
@@ -263,7 +263,7 @@ class JobTest extends TestCase
         self::assertEquals(Resque::size($queue), 3);
     }
 
-    public function testDequeueNonExistingItem2() : void
+    public function testDequeueNonExistingItem2(): void
     {
         $queue = 'jobs';
         Resque::enqueue($queue, 'JobDequeue1');

@@ -20,13 +20,13 @@ class StatusTest extends TestCase
     /** @var Worker */
     private $worker;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         $this->worker = new Worker('jobs');
     }
 
-    public function testJobStatusCanBeTracked() : void
+    public function testJobStatusCanBeTracked(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
@@ -35,7 +35,7 @@ class StatusTest extends TestCase
         self::assertTrue($status->isTracking());
     }
 
-    public function testJobStatusIsReturnedViaJobInstance() : void
+    public function testJobStatusIsReturnedViaJobInstance(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
@@ -45,7 +45,7 @@ class StatusTest extends TestCase
         self::assertEquals(Status::STATUS_WAITING, $job->getStatus());
     }
 
-    public function testQueuedJobReturnsQueuedStatus() : void
+    public function testQueuedJobReturnsQueuedStatus(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
@@ -53,7 +53,7 @@ class StatusTest extends TestCase
         $status = new Status($token);
         self::assertEquals(Status::STATUS_WAITING, $status->get());
     }
-    public function testRunningJobReturnsRunningStatus() : void
+    public function testRunningJobReturnsRunningStatus(): void
     {
         $token = Resque::enqueue('jobs', FailingJob::class, null, true);
         self::assertNotNull($token);
@@ -66,7 +66,7 @@ class StatusTest extends TestCase
         self::assertEquals(Status::STATUS_RUNNING, $status->get());
     }
 
-    public function testFailedJobReturnsFailedStatus() : void
+    public function testFailedJobReturnsFailedStatus(): void
     {
         $token = Resque::enqueue('jobs', FailingJob::class, null, true);
         self::assertNotNull($token);
@@ -76,7 +76,7 @@ class StatusTest extends TestCase
         self::assertEquals(Status::STATUS_FAILED, $status->get());
     }
 
-    public function testCompletedJobReturnsCompletedStatus() : void
+    public function testCompletedJobReturnsCompletedStatus(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($token);
@@ -86,7 +86,7 @@ class StatusTest extends TestCase
         self::assertEquals(Status::STATUS_COMPLETE, $status->get());
     }
 
-    public function testStatusIsNotTrackedWhenToldNotTo() : void
+    public function testStatusIsNotTrackedWhenToldNotTo(): void
     {
         $token = Resque::enqueue('jobs', TestJob::class, null, false);
         self::assertNotNull($token);
@@ -95,7 +95,7 @@ class StatusTest extends TestCase
         self::assertFalse($status->isTracking());
     }
 
-    public function testStatusTrackingCanBeStopped() : void
+    public function testStatusTrackingCanBeStopped(): void
     {
         Status::create('test');
         $status = new Status('test');
@@ -105,7 +105,7 @@ class StatusTest extends TestCase
         self::assertFalse($status->get());
     }
 
-    public function testRecreatedJobWithTrackingStillTracksStatus() : void
+    public function testRecreatedJobWithTrackingStillTracksStatus(): void
     {
         $originalToken = Resque::enqueue('jobs', TestJob::class, null, true);
         self::assertNotNull($originalToken);

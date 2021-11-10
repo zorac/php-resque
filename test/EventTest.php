@@ -19,7 +19,7 @@ class EventTest extends TestCase
     /** @var Worker */
     private $worker;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         TestJob::$called = false;
@@ -29,13 +29,13 @@ class EventTest extends TestCase
         $this->worker->registerWorker();
     }
 
-    public function tearDown() : void
+    public function tearDown(): void
     {
         Event::clearListeners();
         $this->callbacksHit = [];
     }
 
-    public function getEventTestJob() : Job
+    public function getEventTestJob(): Job
     {
         $payload = [
             'class' => TestJob::class,
@@ -48,7 +48,7 @@ class EventTest extends TestCase
     }
 
     /** @return array<int,array<int,string>> */
-    public function eventCallbackProvider() : array
+    public function eventCallbackProvider(): array
     {
         return [
             ['beforePerform', 'beforePerformEventCallback'],
@@ -63,7 +63,7 @@ class EventTest extends TestCase
     public function testEventCallbacksFire(
         string $event,
         string $callback
-    ) : void {
+    ): void {
         /** @phpstan-ignore-next-line */
         Event::listen($event, [$this, $callback]);
 
@@ -74,7 +74,7 @@ class EventTest extends TestCase
         self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
-    public function testBeforeForkEventCallbackFires() : void
+    public function testBeforeForkEventCallbackFires(): void
     {
         $event = 'beforeFork';
         $callback = 'beforeForkEventCallback';
@@ -86,7 +86,7 @@ class EventTest extends TestCase
         self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
-    public function testBeforePerformEventCanStopWork() : void
+    public function testBeforePerformEventCanStopWork(): void
     {
         $callback = 'beforePerformEventDontPerformCallback';
         Event::listen('beforePerform', [$this, $callback]);
@@ -98,7 +98,7 @@ class EventTest extends TestCase
         self::assertFalse(TestJob::$called, 'Job was still performed though DontPerform was thrown');
     }
 
-    public function testAfterEnqueueEventCallbackFires() : void
+    public function testAfterEnqueueEventCallbackFires(): void
     {
         $callback = 'afterEnqueueEventCallback';
         $event = 'afterEnqueue';
@@ -108,7 +108,7 @@ class EventTest extends TestCase
         self::assertContains($callback, $this->callbacksHit, "$event callback ($callback) was not called");
     }
 
-    public function testStopListeningRemovesListener() : void
+    public function testStopListeningRemovesListener(): void
     {
         $callback = 'beforePerformEventCallback';
         $event = 'beforePerform';
@@ -128,13 +128,13 @@ class EventTest extends TestCase
     }
 
 
-    public function beforePerformEventDontPerformCallback(Job $instance) : void
+    public function beforePerformEventDontPerformCallback(Job $instance): void
     {
         $this->callbacksHit[] = __FUNCTION__;
         throw new DontPerform();
     }
 
-    public function assertValidEventCallback(string $function, Job $job) : void
+    public function assertValidEventCallback(string $function, Job $job): void
     {
         $this->callbacksHit[] = $function;
         $args = $job->getArguments();
@@ -142,29 +142,29 @@ class EventTest extends TestCase
     }
 
     /** @param array<int,string> $args */
-    public function afterEnqueueEventCallback(string $class, array $args, string $queue, string $id) : void
+    public function afterEnqueueEventCallback(string $class, array $args, string $queue, string $id): void
     {
         $this->callbacksHit[] = __FUNCTION__;
         self::assertEquals(TestJob::class, $class);
         self::assertEquals(['somevar'], $args);
     }
 
-    public function beforePerformEventCallback(Job $job) : void
+    public function beforePerformEventCallback(Job $job): void
     {
         self::assertValidEventCallback(__FUNCTION__, $job);
     }
 
-    public function afterPerformEventCallback(Job $job) : void
+    public function afterPerformEventCallback(Job $job): void
     {
         self::assertValidEventCallback(__FUNCTION__, $job);
     }
 
-    public function beforeForkEventCallback(Job $job) : void
+    public function beforeForkEventCallback(Job $job): void
     {
         self::assertValidEventCallback(__FUNCTION__, $job);
     }
 
-    public function afterForkEventCallback(Job $job) : void
+    public function afterForkEventCallback(Job $job): void
     {
         self::assertValidEventCallback(__FUNCTION__, $job);
     }

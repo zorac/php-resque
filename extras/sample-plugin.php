@@ -28,7 +28,7 @@ class My_Resque_Plugin
     public static function beforePerform($job)
     {
         echo "Cancelling " . $job . "\n";
-    //    throw new Resque\Job\DontPerform;
+        // throw new Resque\Job\DontPerform;
     }
 
     public static function afterPerform($job)

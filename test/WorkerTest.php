@@ -13,7 +13,7 @@ use Resque\Test\TestJob;
  */
 class WorkerTest extends TestCase
 {
-    public function testWorkerRegistersInList() : void
+    public function testWorkerRegistersInList(): void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
@@ -22,7 +22,7 @@ class WorkerTest extends TestCase
         self::assertTrue((bool)self::$redis->sismember('workers', (string)$worker));
     }
 
-    public function testGetAllWorkers() : void
+    public function testGetAllWorkers(): void
     {
         $num = 3;
 
@@ -36,7 +36,7 @@ class WorkerTest extends TestCase
         self::assertEquals($num, count(Worker::all()));
     }
 
-    public function testGetWorkerById() : void
+    public function testGetWorkerById(): void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
@@ -45,12 +45,12 @@ class WorkerTest extends TestCase
         self::assertEquals((string)$worker, (string)$newWorker);
     }
 
-    public function testInvalidWorkerDoesNotExist() : void
+    public function testInvalidWorkerDoesNotExist(): void
     {
         self::assertFalse(Worker::exists('blah'));
     }
 
-    public function testWorkerCanUnregister() : void
+    public function testWorkerCanUnregister(): void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
@@ -61,7 +61,7 @@ class WorkerTest extends TestCase
         self::assertEquals([], self::$redis->smembers('resque:workers'));
     }
 
-    public function testPausedWorkerDoesNotPickUpJobs() : void
+    public function testPausedWorkerDoesNotPickUpJobs(): void
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
@@ -71,7 +71,7 @@ class WorkerTest extends TestCase
         self::assertEquals(0, Stat::get('processed'));
     }
 
-    public function testResumedWorkerPicksUpJobs() : void
+    public function testResumedWorkerPicksUpJobs(): void
     {
         $worker = new Worker('*');
         $worker->pauseProcessing();
@@ -83,7 +83,7 @@ class WorkerTest extends TestCase
         self::assertEquals(1, Stat::get('processed'));
     }
 
-    public function testWorkerCanWorkOverMultipleQueues() : void
+    public function testWorkerCanWorkOverMultipleQueues(): void
     {
         $worker = new Worker([ 'queue1', 'queue2' ]);
         $worker->registerWorker();
@@ -99,7 +99,7 @@ class WorkerTest extends TestCase
         self::assertEquals('queue2', $job->queue);
     }
 
-    public function testWorkerWorksQueuesInSpecifiedOrder() : void
+    public function testWorkerWorksQueuesInSpecifiedOrder(): void
     {
         $worker = new Worker([ 'high', 'medium', 'low' ]);
         $worker->registerWorker();
@@ -123,7 +123,7 @@ class WorkerTest extends TestCase
         self::assertEquals('low', $job->queue);
     }
 
-    public function testWildcardQueueWorkerWorksAllQueues() : void
+    public function testWildcardQueueWorkerWorksAllQueues(): void
     {
         $worker = new Worker('*');
         $worker->registerWorker();
@@ -143,7 +143,7 @@ class WorkerTest extends TestCase
         self::assertContains('queue2', $queues);
     }
 
-    public function testWorkerDoesNotWorkOnUnknownQueues() : void
+    public function testWorkerDoesNotWorkOnUnknownQueues(): void
     {
         $worker = new Worker('queue1');
         $worker->registerWorker();
@@ -152,7 +152,7 @@ class WorkerTest extends TestCase
         self::assertNull($worker->reserve());
     }
 
-    public function testWorkerClearsItsStatusWhenNotWorking() : void
+    public function testWorkerClearsItsStatusWhenNotWorking(): void
     {
         Resque::enqueue('jobs', TestJob::class);
         $worker = new Worker('jobs');
@@ -165,7 +165,7 @@ class WorkerTest extends TestCase
         self::assertEquals([], $worker->job());
     }
 
-    public function testWorkerRecordsWhatItIsWorkingOn() : void
+    public function testWorkerRecordsWhatItIsWorkingOn(): void
     {
         $worker = new Worker('jobs');
         $worker->registerWorker();
@@ -182,7 +182,7 @@ class WorkerTest extends TestCase
         self::assertEquals($payload, $job['payload']);
     }
 
-    public function testWorkerErasesItsStatsWhenShutdown() : void
+    public function testWorkerErasesItsStatsWhenShutdown(): void
     {
         Resque::enqueue('jobs', TestJob::class);
         Resque::enqueue('jobs', 'InvalidJob');
@@ -195,7 +195,7 @@ class WorkerTest extends TestCase
         self::assertEquals(0, $worker->getStat('failed'));
     }
 
-    public function testWorkerCleansUpDeadWorkersOnStartup() : void
+    public function testWorkerCleansUpDeadWorkersOnStartup(): void
     {
         // Register a good worker
         $goodWorker = new Worker('jobs');
@@ -219,7 +219,7 @@ class WorkerTest extends TestCase
         self::assertEquals(1, count(Worker::all()));
     }
 
-    public function testDeadWorkerCleanUpDoesNotCleanUnknownWorkers() : void
+    public function testDeadWorkerCleanUpDoesNotCleanUnknownWorkers(): void
     {
         // Register a bad worker on this machine
         $worker = new Worker('jobs');
@@ -242,7 +242,7 @@ class WorkerTest extends TestCase
         self::assertEquals((string)$worker, (string)$workers[0]);
     }
 
-    public function testWorkerFailsUncompletedJobsOnExit() : void
+    public function testWorkerFailsUncompletedJobsOnExit(): void
     {
         $worker = new Worker('jobs');
         $worker->registerWorker();
@@ -259,7 +259,7 @@ class WorkerTest extends TestCase
         self::assertEquals(1, Stat::get('failed'));
     }
 
-    public function testWorkerLogAllMessageOnVerbose() : void
+    public function testWorkerLogAllMessageOnVerbose(): void
     {
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
@@ -285,7 +285,7 @@ class WorkerTest extends TestCase
         self::assertEquals(6, count($lines) - 1);
     }
 
-    public function testWorkerLogOnlyInfoMessageOnNonVerbose() : void
+    public function testWorkerLogOnlyInfoMessageOnNonVerbose(): void
     {
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
@@ -311,7 +311,7 @@ class WorkerTest extends TestCase
         self::assertEquals(5, count($lines) - 1);
     }
 
-    public function testWorkerLogNothingWhenLogNone() : void
+    public function testWorkerLogNothingWhenLogNone(): void
     {
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
@@ -337,7 +337,7 @@ class WorkerTest extends TestCase
         self::assertEquals(0, count($lines) - 1);
     }
 
-    public function testWorkerLogWithIsoTime() : void
+    public function testWorkerLogWithIsoTime(): void
     {
         $memory = fopen('php://memory', 'r+');
         self::assertNotFalse($memory);
@@ -360,7 +360,7 @@ class WorkerTest extends TestCase
         self::assertEquals("[$now] x", $lines[0]);
     }
 
-    public function testBlockingListPop() : void
+    public function testBlockingListPop(): void
     {
         $worker = new Worker(['job1s', 'job2s']);
         $worker->registerWorker();
@@ -370,8 +370,7 @@ class WorkerTest extends TestCase
 
         $i = 1;
 
-        while($job = $worker->reserve(true, 1))
-        {
+        while ($job = $worker->reserve(true, 1)) {
             self::assertEquals("TestJob$i", $job->payload['class']);
 
             if ($i == 2) {

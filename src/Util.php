@@ -19,8 +19,7 @@ class Util
         | JSON_OBJECT_AS_ARRAY; // TODO PHP 7.3 | JSON_THROW_ON_ERROR
     /** @var int Options to pass to json_encode. */
     private const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES
-        | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION;
-        // TODO PHP 7.3 | JSON_THROW_ON_ERROR
+        | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION; // TODO PHP 7.3 | JSON_THROW_ON_ERROR
 
     /**
      * Decode some JSON into a PHP value.
