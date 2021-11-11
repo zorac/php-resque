@@ -238,12 +238,33 @@ class Redis
             }
         }
 
-        try {
-            return $this->driver->__call($name, $args);
-        } catch (PredisException $e) {
-            throw new RedisException('Error communicating with Redis: '
-                . $e->getMessage(), 0, $e);
+        $loading_exception = null;
+
+        for ($i = 1; $i < 20; $i++) {
+            try {
+                return $this->driver->__call($name, $args);
+            } catch (PredisException $e) {
+                $message = $e->getMessage();
+
+                if (str_starts_with($message, 'LOADING')) {
+                    $loading_exception = $e;
+                } else {
+                    throw new RedisException(
+                        "Error communicating with Redis: $message",
+                        0,
+                        $e
+                    );
+                }
+            }
+
+            sleep($i);
         }
+
+        throw new RedisException(
+            'Error communicating with Redis: Still loading dataset after multiple attempts',
+            0,
+            $loading_exception
+        );
     }
 
     /**
