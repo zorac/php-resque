@@ -1,3 +1,11 @@
+## 2.11.1 (2021-11-11)
+
+* Retry Redis commands if the server is loading its dataset into memory. This
+  fixes a potential crash if a worker is started immediately after Redis and
+  there's a large amount of data for it to load.
+* Upgraded `php-cs-fixer` to the latest mahor version and resolved some linting
+  issues.
+
 ## 2.11.0 (2021-10-06)
 
 * **PHP 7.2 or later is now required.**

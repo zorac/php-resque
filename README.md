@@ -26,7 +26,8 @@ namespaced code and backports some other features from the lastest
 
 NB. Maintaining complete backwards compatability -- other than in respect to the
 data format in Redis -- is **not** a goal of this fork. Major version upgrades
-*will* include breaking changes.
+*will* include breaking changes. Support for discontinued version of PHP may be
+dropped in minor version upgradaes.
 
 ## Additional features
 
