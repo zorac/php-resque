@@ -950,7 +950,7 @@ class Worker
     public function registerWorker(): void
     {
         /** @var string */
-        $now = strftime('%a %b %d %H:%M:%S %Z %Y');
+        $now = date('D M d H:i:s e Y');
 
         Resque::redis()->sadd('workers', $this->id);
         Resque::redis()->set("worker:$this:started", $now);
@@ -989,7 +989,7 @@ class Worker
         $job->updateStatus(Status::STATUS_RUNNING);
         $json = Util::jsonEncode([
             'queue' => $job->queue,
-            'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
+            'run_at' => date('D M d H:i:s e Y'),
             'payload' => $job->payload,
         ]);
 
