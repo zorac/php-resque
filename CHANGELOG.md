@@ -1,3 +1,9 @@
+## 2.12.0 (2022-02-14)
+
+* Add support for multi-stage graceful shutdown by sending the worker's child
+  process a non-kill signal before finally killing it.
+* Add a config file for `php-cs-fixer` and fix some linting issues and typos.
+
 ## 2.11.1 (2021-11-11)
 
 * Retry Redis commands if the server is loading its dataset into memory. This
