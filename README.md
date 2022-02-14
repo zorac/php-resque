@@ -27,7 +27,7 @@ namespaced code and backports some other features from the lastest
 NB. Maintaining complete backwards compatability -- other than in respect to the
 data format in Redis -- is **not** a goal of this fork. Major version upgrades
 *will* include breaking changes. Support for discontinued version of PHP may be
-dropped in minor version upgradaes.
+dropped in minor version upgrades.
 
 ## Additional features
 
@@ -117,6 +117,21 @@ Then the queues will be processed by the worker will be (in order of priority):
 2. All other queues ending in `:high`, in a random order.
 3. All other queues *not* ending in `:low`, in a random order.
 4. `system:low`
+
+### Enhanced graceful shutdown
+
+The default graceful shutdown process (triggered by sending a `SIGTERM` to the
+worker process) waits for `$worker->gracefulDelay` seconds (default five)
+before forcibly killing the child process with a `SIGKILL`. This will allow
+short-running jobs to complete whilst still allowing the worker to exit in a
+reasonable amount of time.
+
+If you want your jobs to be able to gracefully shut themselves down, say to
+ensure that logging or cleanup is pefrormed even if the job has to be
+premeturely terminated, then you can set `$worker->gracefulSignal` to the
+signal you would like to be sent instead of `SIGKILL`. After a further delay of
+`$worker->gracefulDelayTwo` seconds (default two) a final kill signal will be
+sent to the child and the worker will exit.
 
 ## Installation
 

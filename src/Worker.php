@@ -141,6 +141,11 @@ class Worker
     protected $child = null;
 
     /**
+     * @var int The next kill signal which should be sent to a child.
+     */
+    protected $childSignal = SIGKILL;
+
+    /**
      * @var LoggerInterface|null A logger to use for this worker.
      */
     protected $logger = null;
@@ -149,6 +154,18 @@ class Worker
      * @var int Number of seconds to wait for a child in a graceful shutdown.
      */
     public $gracefulDelay = 5;
+
+    /**
+     * @var int|null If set, the given signal will be sent to the child worker
+     *      after the graceful delay, instead of KILL.
+     */
+    public $gracefulSignal = null;
+
+    /**
+     * @var int Number of seconds to wait for a child after sending it a
+     *      non-KILL signal, before sending KILL.
+     */
+    public $gracefulDelayTwo = 2;
 
     /**
      * @var bool Whether dead workers should be pruned on startup.
@@ -590,7 +607,7 @@ class Worker
      * For each queue name given which starts with `!`, the remainder of that
      * name will be used as a pattern to remove entries from the list of all
      * queues, bofore any other matching is performed. Exclusions do *not*
-     * affect explicitly named queues, and there position in the input is not
+     * affect explicitly named queues, and their position in the input is not
      * important.
      *
      * For example, if the input array of queues passed to the constructor was:
@@ -727,7 +744,7 @@ class Worker
     /**
      * Register signal handlers that a worker should respond to.
      *
-     * TERM: Shutdown immediately and stop processing jobs.
+     * TERM: Shutdown gracefully and stop processing jobs.
      * INT: Shutdown immediately and stop processing jobs.
      * QUIT: Shutdown after the current job finishes processing.
      * USR1: Kill the forked child immediately and continue processing jobs.
@@ -849,6 +866,11 @@ class Worker
     public function shutdownGraceful(): void
     {
         $this->shutdown();
+
+        if (isset($this->child, $this->gracefulSignal)) {
+            $this->childSignal = $this->gracefulSignal;
+        }
+
         pcntl_alarm($this->gracefulDelay);
     }
 
@@ -872,14 +894,6 @@ class Worker
             return;
         }
 
-        $this->log([
-            'message' => "Killing child at $this->child",
-            'data' => [
-                'type' => 'kill',
-                'child' => $this->child,
-            ],
-        ], LogLevel::DEBUG);
-
         exec("ps -p $this->child", $output, $returnCode);
 
         if ($returnCode === 0) {
@@ -891,8 +905,14 @@ class Worker
                 ],
             ], LogLevel::DEBUG);
 
-            posix_kill($this->child, SIGKILL);
-            $this->child = null;
+            posix_kill($this->child, $this->childSignal);
+
+            if ($this->childSignal === SIGKILL) {
+                $this->child = null;
+            } else {
+                $this->childSignal = SIGKILL;
+                pcntl_alarm($this->gracefulDelayTwo);
+            }
         } else {
             $this->log([
                 'message' => "Child $this->child not found, restarting.",
