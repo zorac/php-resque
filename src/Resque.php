@@ -94,13 +94,8 @@ class Resque
 
         self::$redis = new Redis(self::$redisServer, self::$redisDatabase);
 
-        if (isset(self::$redisDatabase)) {
-            self::$redis->select(self::$redisDatabase);
-        }
-
-        if (isset(self::$namespace)) {
-            Redis::prefix(self::$namespace);
-        }
+        self::$redis->select(self::$redisDatabase);
+        Redis::prefix(self::$namespace);
 
         return self::$redis;
     }
@@ -133,10 +128,11 @@ class Resque
         $json = self::redis()->lpop("queue:$queue");
 
         if (isset($json)) {
-            /** @var array<mixed> */
             $item = Util::jsonDecode($json);
 
-            return $item;
+            if (is_array($item)) {
+                return $item;
+            }
         }
 
         return null;
@@ -149,8 +145,9 @@ class Resque
      * @param array<string> $queues The name(s) of the queue(s) to fetch an
      *      item from.
      * @param int $timeout The number of seconds to wait.
-     * @return array<mixed> An array containing a queue name, and a decoded
-     *      item from the queue, or null if none found before the timeout.
+     * @return array{0:string,1:array<mixed>} An array containing a queue name,
+     *      and a decoded item from the queue, or null if none found before the
+     *      timeout.
      */
     public static function blpop(array $queues, int $timeout = 0): ?array
     {
@@ -158,14 +155,20 @@ class Resque
             return "queue:$queue";
         }, $queues);
 
+        /**
+         * @var string|null $queue
+         * @var string|null $json
+         */
         [$queue, $json] = self::redis()->blpop($keys, $timeout);
 
-        if (isset($queue) && isset($json)) {
+        if (isset($queue, $json)) {
             $queue = Redis::removePrefix($queue);
             $queue = substr($queue, 6); // remove queue:
             $item = Util::jsonDecode($json);
 
-            return [$queue, $item];
+            if (is_array($item)) {
+                return [$queue, $item];
+            }
         }
 
         return null;
@@ -332,7 +335,7 @@ class Resque
      */
     private static function matchItem(string $string, array $items): bool
     {
-        /** @var array<mixed> */
+        /** @var array{id:string,class:string,args:array<mixed>} */
         $decoded = Util::jsonDecode($string);
 
         foreach ($items as $key => $val) {

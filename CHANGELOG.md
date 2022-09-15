@@ -5,6 +5,10 @@
 * **psr/log 2.x or 3.x is now required.**
 * JSON en/decoding failures will now throw `JsonException`s internally; in
   practice this should only happen if the data in Redis is somehow corrupted.
+* The payload is now validated when instatiating a `Job`, and an exception
+  thrown if fields are missing/incorrect (rather than something weird happening
+  later on.)
+* Upgraded to PHPStan 1.x and fixed a number of issues it detected.
 
 ## 2.12.2 (2023-03-02)
 

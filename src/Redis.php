@@ -162,7 +162,10 @@ class Redis
     {
         try {
             if (is_callable($server)) {
-                $this->driver = call_user_func($server, $database);
+                /** @var Client */
+                $driver = call_user_func($server, $database);
+
+                $this->driver = $driver;
             } elseif (
                 is_array($server)
                 && array_key_exists('parameters', $server)

@@ -170,7 +170,11 @@ class WorkerTest extends TestCase
         $worker = new Worker('jobs');
         $worker->registerWorker();
 
-        $payload = [ 'class' => TestJob::class ];
+        $payload = [
+            'class' => TestJob::class,
+            'id'    => 'randomId',
+            'args'  => null,
+        ];
         $job = new Job('jobs', $payload);
         $worker->workingOn($job);
 

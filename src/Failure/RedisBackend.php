@@ -18,7 +18,8 @@ class RedisBackend implements Backend
     /**
      * Initialize a failed job class and save it (where appropriate).
      *
-     * @param array<mixed> $payload Object containing details of the failed job.
+     * @param array{id:string} $payload Object containing details of the
+     *      failed job.
      * @param Throwable $exception Instance of the exception that was thrown by
      *      the failed job.
      * @param Worker $worker Instance of Resque\Worker that received the job.

@@ -181,7 +181,7 @@ class Worker
     public $shutDownOnReserveError = false;
 
     /**
-     * @var CreatorInterface A job instance creator.
+     * @var CreatorInterface|null A job instance creator.
      */
     private $creator;
 
@@ -1053,7 +1053,7 @@ class Worker
     /**
      * Output a given log message to STDOUT.
      *
-     * @param array<mixed> $message Message to output.
+     * @param array{message:string,data:array<mixed>} $message Message to output.
      * @param int|string $code A log type code or a PSR log level.
      * @return bool True if the message is logged
      */

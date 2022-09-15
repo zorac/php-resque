@@ -144,7 +144,7 @@ class Status
             $json = Resque::redis()->get((string)$this);
 
             if (isset($json)) {
-                /** @var array<mixed> */
+                /** @var array{status:int} */
                 $status = Util::jsonDecode($json);
 
                 return $status['status'];

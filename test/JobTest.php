@@ -159,6 +159,7 @@ class JobTest extends TestCase
     {
         $payload = [
             'class' => JobWithSetUp::class,
+            'id'    => 'randomId',
             'args'  => [[
                 'somevar',
                 'somevar2',
@@ -176,6 +177,7 @@ class JobTest extends TestCase
     {
         $payload = [
             'class' => JobWithTearDown::class,
+            'id'    => 'randomId',
             'args'  => [[
                 'somevar',
                 'somevar2',
