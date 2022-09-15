@@ -3,6 +3,8 @@
 * **PHP 8.x is now required.**
 * **Predis 2.x is now required.**
 * **psr/log 2.x or 3.x is now required.**
+* JSON en/decoding failures will now throw `JsonException`s internally; in
+  practice this should only happen if the data in Redis is somehow corrupted.
 
 ## 2.12.2 (2023-03-02)
 

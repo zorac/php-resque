@@ -2,6 +2,7 @@
 
 namespace Resque;
 
+use JsonException;
 use Throwable;
 
 /**
@@ -16,15 +17,17 @@ class Util
     private const JSON_DECODE_DEPTH = 512;
     /** @var int Options to pass to json_decode. */
     private const JSON_DECODE_OPTIONS = JSON_BIGINT_AS_STRING
-        | JSON_OBJECT_AS_ARRAY; // TODO PHP 7.3 | JSON_THROW_ON_ERROR
+        | JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR;
     /** @var int Options to pass to json_encode. */
     private const JSON_ENCODE_OPTIONS = JSON_UNESCAPED_SLASHES
-        | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION; // TODO PHP 7.3 | JSON_THROW_ON_ERROR
+        | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION
+        | JSON_THROW_ON_ERROR;
 
     /**
      * Decode some JSON into a PHP value.
      *
      * @param string $json Some JSON text.
+     * @throws JsonException If the JSON text is not valid.
      * @return mixed The corresponding PHP value.
      */
     public static function jsonDecode(string $json)
@@ -41,7 +44,8 @@ class Util
      * Decode some JSON into a PHP value.
      *
      * @param mixed $value A PHP value.
-     * @return string|false Its JSON representation.
+     * @throws JsonException If the value could not be encoded.
+     * @return string Its JSON representation.
      */
     public static function jsonEncode($value)
     {

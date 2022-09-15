@@ -117,10 +117,8 @@ class Resque
     {
         $json = Util::jsonEncode($item);
 
-        if ($json !== false) { // TODO or throw?
-            self::redis()->sadd('queues', $queue);
-            self::redis()->rpush("queue:$queue", $json);
-        }
+        self::redis()->sadd('queues', $queue);
+        self::redis()->rpush("queue:$queue", $json);
     }
 
     /**
@@ -135,11 +133,10 @@ class Resque
         $json = self::redis()->lpop("queue:$queue");
 
         if (isset($json)) {
+            /** @var array<mixed> */
             $item = Util::jsonDecode($json);
 
-            if (isset($item)) {
-                return $item;
-            }
+            return $item;
         }
 
         return null;
@@ -168,9 +165,7 @@ class Resque
             $queue = substr($queue, 6); // remove queue:
             $item = Util::jsonDecode($json);
 
-            if (isset($item)) {
-                return [$queue, $item];
-            }
+            return [$queue, $item];
         }
 
         return null;
@@ -337,7 +332,8 @@ class Resque
      */
     private static function matchItem(string $string, array $items): bool
     {
-        $decoded = Util::jsonDecode($string); // TODO how to handle failure
+        /** @var array<mixed> */
+        $decoded = Util::jsonDecode($string);
 
         foreach ($items as $key => $val) {
             // class name only  ex: item[0] = ['class']

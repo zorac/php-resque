@@ -309,17 +309,11 @@ class Job
      */
     public function __toString()
     {
-        $json = Util::jsonEncode([
+        return Util::jsonEncode([
             'queue' => $this->queue,
             'id'    => isset($this->payload['id']) ? $this->payload['id'] : '',
             'class' => $this->payload['class'],
             'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]],
         ]);
-
-        if ($json !== false) {
-            return $json;
-        } else {
-            return ''; // TODO really?
-        }
     }
 }
