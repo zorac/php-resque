@@ -25,7 +25,8 @@ class Job
     public $worker;
 
     /**
-     * @var array<mixed> Array containing details of the job.
+     * @var array{id:string,class:string,args:array{0:array<mixed>}|null} Array
+     *      containing details of the job.
      */
     public $payload;
 
@@ -42,8 +43,26 @@ class Job
      */
     public function __construct(string $queue, array $payload)
     {
+        if (
+            !isset($payload['id'], $payload['class'])
+            || !is_string($payload['id'])
+            || !is_string($payload['class'])
+            || (isset($payload['args']) && (
+                !is_array($payload['args'])
+                || !array_is_list($payload['args'])
+                || !isset($payload['args'][0])
+                || !is_array($payload['args'][0])
+            ))
+        ) {
+            throw new ResqueException('Invalid payload');
+        }
+
         $this->queue = $queue;
-        $this->payload = $payload;
+        $this->payload = [
+            'id' => $payload['id'],
+            'class' => $payload['class'],
+            'args' => $payload['args'] ?? null,
+        ];
     }
 
     /**
@@ -70,7 +89,7 @@ class Job
         $new = true;
 
         if (isset($args['id'])) {
-            $id = $args['id'];
+            $id = strval($args['id']);
             unset($args['id']);
             $new = false;
         } elseif (!isset($id)) {
@@ -134,9 +153,9 @@ class Job
             return null;
         }
 
-        [$queue, $payload] = Resque::blpop($queues, $timeout);
+        [$queue, $payload] = Resque::blpop($queues, $timeout) ?? [null, null];
 
-        if (isset($queue) && isset($payload)) {
+        if (isset($queue, $payload)) {
             return new Job($queue, $payload);
         } else {
             return null;
@@ -152,10 +171,9 @@ class Job
      */
     public function updateStatus(int $status): void
     {
-        if (isset($this->payload['id'])) {
-            $statusInstance = new Status($this->payload['id']);
-            $statusInstance->update($status);
-        }
+        $statusInstance = new Status($this->payload['id']);
+
+        $statusInstance->update($status);
     }
 
     /**
@@ -311,7 +329,7 @@ class Job
     {
         return Util::jsonEncode([
             'queue' => $this->queue,
-            'id'    => isset($this->payload['id']) ? $this->payload['id'] : '',
+            'id'    => $this->payload['id'],
             'class' => $this->payload['class'],
             'args'  => isset($this->payload['args']) ? $this->payload['args'] : [[]],
         ]);

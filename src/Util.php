@@ -76,9 +76,9 @@ class Util
     ): array {
         // Format the stack trace for this exception
 
-        $stack = $e->getTrace() ?? [];
-        $file = $e->getFile() ?? 'unknown file';
-        $line = $e->getLine() ?? 0;
+        $stack = $e->getTrace();
+        $file = $e->getFile();
+        $line = $e->getLine();
         $output = [];
 
         do {
@@ -88,10 +88,10 @@ class Util
 
             $output[] = '  in '
                 . ($class ?? '')
-                . (isset($class) && isset($function) ? '::' : '')
+                . (isset($class, $function) ? '::' : '')
                 . ($function ?? '[main]')
                 . ' ('
-                . (isset($line) ? (basename($file) . ':' . $line) : $file)
+                . basename($file) . ':' . $line
                 . ')';
 
             $file = $frame['file'] ?? 'unknown file';

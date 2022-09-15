@@ -8,8 +8,9 @@ use Resque\Redis;
 
 class TestCase extends PHPUnitTestCase
 {
-    /** @var Redis */
-    protected static $redis;
+    private static bool $connected = false;
+    protected static Redis $redis;
+
     /** @var bool */
     private static $lastNamespaceWasCustom = false;
 
@@ -17,10 +18,10 @@ class TestCase extends PHPUnitTestCase
     {
         if (self::$lastNamespaceWasCustom && !isset($namespace)) {
             self::$lastNamespaceWasCustom = false;
-            unset(self::$redis);
+            self::$connected = false;
         }
 
-        if (!isset(self::$redis)) {
+        if (!self::$connected) {
             $backend = getenv('REDIS_BACKEND');
             $database = getenv('REDIS_DATABASE');
 
@@ -46,6 +47,7 @@ class TestCase extends PHPUnitTestCase
 
             Resque::setBackend($backend, $database, $namespace);
             self::$redis = Resque::redis();
+            self::$connected = true;
         }
 
         self::$redis->flushDb();
