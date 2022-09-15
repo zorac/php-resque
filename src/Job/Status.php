@@ -81,9 +81,7 @@ class Status
             'started' => time(),
         ]);
 
-        if ($json !== false) {
-            Resque::redis()->set("job:$id:status", $json);
-        }
+        Resque::redis()->set("job:$id:status", $json);
     }
 
     /**
@@ -125,9 +123,7 @@ class Status
             'updated' => time(),
         ]);
 
-        if ($json !== false) {
-            Resque::redis()->set((string)$this, $json);
-        }
+        Resque::redis()->set((string)$this, $json);
 
         // Expire the status for completed jobs after 24 hours
         if (in_array($status, self::COMPLETE_STATUSES, true)) {
@@ -148,11 +144,10 @@ class Status
             $json = Resque::redis()->get((string)$this);
 
             if (isset($json)) {
+                /** @var array<mixed> */
                 $status = Util::jsonDecode($json);
 
-                if (isset($status)) {
-                    return $status['status'];
-                }
+                return $status['status'];
             }
         }
 

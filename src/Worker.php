@@ -1023,9 +1023,7 @@ class Worker
             'payload' => $job->payload,
         ]);
 
-        if ($json !== false) {
-            Resque::redis()->set("worker:$this", $json);
-        }
+        Resque::redis()->set("worker:$this", $json);
     }
 
     /**
@@ -1105,9 +1103,7 @@ class Worker
             $logger->target,
         ]);
 
-        if ($json !== false) {
-            Resque::redis()->hset('workerLogger', $this->id, $json);
-        }
+        Resque::redis()->hset('workerLogger', $this->id, $json);
     }
 
     /**
@@ -1124,13 +1120,11 @@ class Worker
         $json = Resque::redis()->hget('workerLogger', $workerId);
 
         if (isset($json)) {
+            /** @var array<mixed> */
             $settings = Util::jsonDecode($json);
+            $logger = new MonologInit($settings[0], $settings[1]);
 
-            if (isset($settings)) {
-                $logger = new MonologInit($settings[0], $settings[1]);
-
-                return $logger->getInstance();
-            }
+            return $logger->getInstance();
         }
 
         return null;
@@ -1146,11 +1140,10 @@ class Worker
         $json = Resque::redis()->get("worker:$this");
 
         if (isset($json)) {
+            /** @var array<mixed> */
             $job = Util::jsonDecode($json);
 
-            if (isset($job)) {
-                return $job;
-            }
+            return $job;
         }
 
         return [];
