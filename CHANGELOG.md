@@ -1,3 +1,8 @@
+## 2.12.1 (2022-09-16)
+
+* Adjust the composer requirements for `psr/log` to avoid conflicts.
+* Remove Travis config for unsupported PHP versions.
+
 ## 2.12.0 (2022-02-14)
 
 * Add support for multi-stage graceful shutdown by sending the worker's child
