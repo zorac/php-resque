@@ -1,3 +1,9 @@
+## 2.12.2 (2023-03-02)
+
+* Add a new flag, `Worker::shutDownOnReserveError` which will cause the worker
+  to shut down if a Redis exception is thrown while trying to reserve a job.
+  Useful to trigger recreation of containers, for example.
+
 ## 2.12.1 (2022-09-16)
 
 * Adjust the composer requirements for `psr/log` to avoid conflicts.
