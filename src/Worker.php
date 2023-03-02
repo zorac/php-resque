@@ -175,6 +175,12 @@ class Worker
     public $pruneDeadWorkersOnStartup = true;
 
     /**
+     * @var bool If true, a Redis error while trying to reserve a job will
+     *      cause the worker to shut down.
+     */
+    public $shutDownOnReserveError = false;
+
+    /**
      * @var CreatorInterface A job instance creator.
      */
     private $creator;
@@ -376,6 +382,10 @@ class Worker
                             'exception' => $e,
                         ],
                     ], LogLevel::ALERT);
+
+                    if ($this->shutDownOnReserveError) {
+                        break;
+                    }
                 }
             }
 
