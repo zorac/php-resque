@@ -1,3 +1,5 @@
+## 3.0.0-alpha1 (UNRELEASED)
+
 ## 2.12.2 (2023-03-02)
 
 * Add a new flag, `Worker::shutDownOnReserveError` which will cause the worker

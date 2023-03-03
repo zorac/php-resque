@@ -10,6 +10,11 @@ jobs on multiple queues, and processing them later.
 
 See also the [change log](CHANGELOG.md) and [upgrade guide](UPGRADING.md).
 
+## Version 3 is currently in Alpha
+
+This is version 3.x-alpha of php-resque, and is in early development.
+Do **not** use this in production, as major breaking changes are expected.
+
 ## Background
 
 This version of php-resque is a fork of
@@ -140,7 +145,7 @@ The easiest way is using composer, by adding the following to your
 
 ```json
     "require": {
-        "zorac/php-resque": "^2.0"
+        "zorac/php-resque": "^3.0"
     }
 ```
 
