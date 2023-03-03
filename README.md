@@ -182,7 +182,7 @@ If one of these two environement variable is missing, it will default to
 
 ## Requirements
 
-* PHP 7.2+
+* PHP 7.3+
 * Redis 2.2+
 
 ## Contributors
