@@ -2,7 +2,9 @@
 
 namespace Resque\Test;
 
-class FailingJob
+use Resque\Job\AbstractLegacyPerformer;
+
+class FailingJob extends AbstractLegacyPerformer
 {
     public function perform(): void
     {

@@ -2,7 +2,9 @@
 
 namespace Resque\Test;
 
-class JobWithSetUp
+use Resque\Job\AbstractLegacyPerformer;
+
+class JobWithSetUp extends AbstractLegacyPerformer
 {
     /** @var bool */
     public static $called = false;

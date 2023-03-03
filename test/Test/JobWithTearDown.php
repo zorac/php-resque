@@ -2,7 +2,9 @@
 
 namespace Resque\Test;
 
-class JobWithTearDown
+use Resque\Job\AbstractLegacyPerformer;
+
+class JobWithTearDown extends AbstractLegacyPerformer
 {
     /** @var bool */
     public static $called = false;

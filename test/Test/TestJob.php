@@ -2,7 +2,9 @@
 
 namespace Resque\Test;
 
-class TestJob
+use Resque\Job\AbstractLegacyPerformer;
+
+class TestJob extends AbstractLegacyPerformer
 {
     /** @var bool */
     public static $called = false;
