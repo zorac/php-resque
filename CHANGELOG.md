@@ -12,6 +12,7 @@
 * Removed the old demo and extras files as no applicable to version 3.
 * Removed support for `Resque_Job_Creator`.
 * Removed deprecated properties and methods from `Worker` and `WorkerFactory`.
+* Consolidated `php-resque-scheduler` into this project.
 
 ## 2.12.2 (2023-03-02)
 
