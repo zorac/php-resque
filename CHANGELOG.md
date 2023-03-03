@@ -1,5 +1,9 @@
 ## 3.0.0-alpha1 (UNRELEASED)
 
+* **PHP 8.x is now required.**
+* **Predis 2.x is now required.**
+* **psr/log 2.x or 3.x is now required.**
+
 ## 2.12.2 (2023-03-02)
 
 * Add a new flag, `Worker::shutDownOnReserveError` which will cause the worker
