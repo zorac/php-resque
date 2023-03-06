@@ -175,6 +175,12 @@ class Worker
     public $pruneDeadWorkersOnStartup = true;
 
     /**
+     * @var int If greater than zero, a Redis error while trying to reserve a
+     *      job will trigger a sleep for that many seconds before retrying.
+     */
+    public $sleepOnReserveError = 0;
+
+    /**
      * @var bool If true, a Redis error while trying to reserve a job will
      *      cause the worker to shut down.
      */
@@ -385,6 +391,8 @@ class Worker
 
                     if ($this->shutDownOnReserveError) {
                         break;
+                    } elseif ($this->sleepOnReserveError > 0) {
+                        sleep($this->sleepOnReserveError);
                     }
                 }
             }
