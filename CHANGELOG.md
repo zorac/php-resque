@@ -1,6 +1,23 @@
+## 2.13.0 (2026-02-24)
+
+* **PHP 7.4 or later is now required.**
+* Updated dependency constraints to allow Predis 2.x and replace >= versions.
+* JSON en/decoding failures will now throw `JsonException`s internally; in
+  practice this should only happen if the data in Redis is somehow corrupted.
+* The payload is now validated when instatiating a `Job`, and an exception
+  thrown if fields are missing/incorrect (rather than something weird happening
+  later on.)
+* Add a new property, `Worker::sleepOnReserveError` which will cause the worker
+  to sleep if a Redis exception is thrown while trying to reserve a job. Useful
+  to avoid flooding logs during a Redis outage.
+* Add a new callback, `Worker::kickWatchdog` which will be triggered before
+  attempting to reserve a job, to allow resetting an external watchdog timer.
+* Upgraded to PHPStan 2.x and fixed a number of issues detected by linters.
+* Upgraded to PHPUnit 9.x
+
 ## 2.12.3 (2023-07-03)
 
-* Add `$redis->enqueueJob()` as a mockable alternative to `Resque::enqueue()`
+* Add `$resque->enqueueJob()` as a mockable alternative to `Resque::enqueue()`
   to improve testability of code using `php-resque`.
 
 ## 2.12.2 (2023-03-02)
