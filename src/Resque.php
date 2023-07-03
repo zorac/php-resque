@@ -244,6 +244,32 @@ class Resque
     }
 
     /**
+     * Create a new job and save it to the specified queue.
+     *
+     * This method simply proxies to the static `enqueue` method. It exists to
+     * improve testability of classes which enqueue Resque jobs by providing a
+     * mockable alternative to `enqueue`. It will be removed in 3.0 when all
+     * static methods are converted to instance ones.
+     *
+     * @param string $queue The name of the queue to place the job in.
+     * @param string $class The name of the class that contains the code to
+     *      execute the job.
+     * @param array<mixed> $args Any optional arguments that should be passed
+     *      when the job is executed.
+     * @param bool $trackStatus Set to true to be able to monitor the status of
+     *      a job.
+     * @return string The Job ID, or null if job creation was cancelled.
+     */
+    public function enqueueJob(
+        string $queue,
+        string $class,
+        array $args = null,
+        bool $trackStatus = false
+    ): ?string {
+        return self::enqueue($queue, $class, $args, $trackStatus);
+    }
+
+    /**
      * Reserve and return the next available job in the specified queue.
      *
      * @param string $queue Queue to fetch next available job from.
