@@ -1,3 +1,8 @@
+## 2.12.3 (2023-07-03)
+
+* Add `$redis->enqueueJob()` as a mockable alternative to `Resque::enqueue()`
+  to improve testability of code using `php-resque`.
+
 ## 2.12.2 (2023-03-02)
 
 * Add a new flag, `Worker::shutDownOnReserveError` which will cause the worker

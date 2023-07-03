@@ -15,7 +15,7 @@ class Resque
     /**
      * @var string Current version of php-resque.
      */
-    public const VERSION = '2.12.2';
+    public const VERSION = '2.12.3';
 
     /**
      * @var int Default interval (in seconds) for workers to check for jobs.
