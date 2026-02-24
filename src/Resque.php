@@ -367,22 +367,22 @@ class Resque
         foreach ($items as $key => $val) {
             // class name only  ex: item[0] = ['class']
             if (is_numeric($key)) {
-                if ($decoded['class'] == $val) {
+                if ($decoded['class'] === $val) {
                     return true;
                 }
             // class name with args , example: item[0] = ['class' => {'foo' => 1, 'bar' => 2}]
             } elseif (is_array($val)) {
                 $decodedArgs = (array)$decoded['args'][0];
                 if (
-                    ($decoded['class'] == $key)
+                    ($decoded['class'] === $key)
                     && (count($decodedArgs) > 0)
-                    && (count(array_diff($decodedArgs, $val)) == 0)
+                    && (count(array_diff($decodedArgs, $val)) === 0)
                 ) {
                     return true;
                 }
             // class name with ID, example: item[0] = ['class' => 'id']
             } else {
-                if (($decoded['class'] == $key) && ($decoded['id'] == $val)) {
+                if (($decoded['class'] === $key) && ($decoded['id'] === $val)) {
                     return true;
                 }
             }
@@ -402,7 +402,7 @@ class Resque
         $counter = self::size($queue);
         $result = self::redis()->del("queue:$queue");
 
-        return ($result == 1) ? $counter : 0;
+        return ($result === 1) ? $counter : 0;
     }
 
     /**

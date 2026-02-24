@@ -24,10 +24,11 @@ class LegacyCreator implements CreatorInterface
     {
         $class = $job->getClass();
         $arguments = $job->getArguments();
-        /** @var AbstractLegacyPerformer */
+        /** @var AbstractLegacyPerformer|null */
         $instance = null;
 
         if (class_exists('Resque_Job_Creator')) {
+            /** @var AbstractLegacyPerformer */
             $instance = \Resque_Job_Creator::createJob($class, $arguments);
         } elseif (!class_exists($class)) {
             throw new ResqueException(
@@ -38,6 +39,7 @@ class LegacyCreator implements CreatorInterface
                 "Job class $class does not contain a perform method."
             );
         } else {
+            /** @var AbstractLegacyPerformer */
             $instance = new $class();
         }
 

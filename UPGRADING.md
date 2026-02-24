@@ -13,7 +13,7 @@ development. The goals for the 3.x development cycle include:
 * Providing a modern CLI for working with Resque.
 * Adding a way to have regularly-scheduled jobs (like cron).
 
-**Important note: `php-resque` 3.x will require PHP 7.4 or later.**
+**Important note: `php-resque` 3.x will require at least PHP 8.2 or later.**
 
 Where possible, changes that will break backwards compatiblity will be built
 first for the 2.x branch. with existing methods and properties left in place
@@ -54,7 +54,7 @@ or one of the other forks of that project.
 
 ### Backwards-Incompatible Changes
 
-* PHP 7.1 or later is required (PHP 5.5 or later before 2.5.x).
+* PHP 7.4 or later is required (PHP 5.5 or later before 2.5.x).
 * [Composer](https://getcomposer.org) is the only supported method of including
   php-resque in a project.
 * All the code is now fully namespaced, for example the `Resque` is now

@@ -399,7 +399,7 @@ class Worker
 
             if (!isset($job)) {
                 // For an interval of 0, break now - helps with unit testing etc
-                if ($interval == 0) {
+                if ($interval === 0) {
                     break;
                 } elseif (!$blocking) {
                     // If no job was found, we sleep for $interval before continuing and checking again
@@ -444,11 +444,11 @@ class Worker
 
             if ($this->child === 0) {
                 // Forked and we're the child. Run the job.
-                $status = "Processing ID:{$job->payload['id']} in $job->queue";
-                $this->updateProcLine($status);
+                $message = "Processing ID:{$job->payload['id']} in $job->queue";
+                $this->updateProcLine($message);
 
                 $this->log([
-                    'message' => $status,
+                    'message' => $message,
                     'data' => [
                         'type' => 'process',
                         'worker' => $workerName,
@@ -463,11 +463,11 @@ class Worker
                 exit(0);
             } elseif ($this->child > 0) {
                 // Parent process, sit and wait
-                $status = "Forked $this->child for ID:{$job->payload['id']}";
-                $this->updateProcLine($status);
+                $message = "Forked $this->child for ID:{$job->payload['id']}";
+                $this->updateProcLine($message);
 
                 $this->log([
-                    'message' => $status,
+                    'message' => $message,
                     'data' => [
                         'type' => 'fork',
                         'worker' => $workerName,
@@ -483,7 +483,7 @@ class Worker
                     $pid = pcntl_wait($status);
                 } while ($pid <= 0);
 
-                $exitStatus = pcntl_wexitstatus($status);
+                $exitStatus = pcntl_wexitstatus($status); // @phpstan-ignore-line argument.type (false positive)
 
                 if ($exitStatus !== 0) {
                     $job->fail(new DirtyExitException("Job exited with exit code $exitStatus"));
@@ -688,6 +688,7 @@ class Worker
             } else {
                 $pattern = '/^' . str_replace('\\*', '.*', preg_quote($queue))
                     . '$/';
+                /** @var array<string>|false */
                 $matched = preg_grep($pattern, $all);
 
                 if ($matched !== false) {
@@ -754,7 +755,7 @@ class Worker
      */
     protected function updateProcLine(string $status): void
     {
-        if (PHP_OS != 'Darwin') { // Not suppotted on macOS
+        if (PHP_OS !== 'Darwin') { // Not suppotted on macOS
             cli_set_process_title("resque: $status");
         }
     }
@@ -987,7 +988,6 @@ class Worker
      */
     public function registerWorker(): void
     {
-        /** @var string */
         $now = date('D M d H:i:s e Y');
 
         Resque::redis()->sadd('workers', $this->id);

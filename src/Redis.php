@@ -37,7 +37,7 @@ use Predis\PredisException;
  * @method int sismember(string $key, string $member)
  * @method array<string> smembers(string $key)
  * @method int srem(string $key, string|array<string> $member)
- * @method int zadd(string $key, array $membersAndScoresDictionary)
+ * @method int zadd(string $key, array<mixed> $membersAndScoresDictionary)
  * @method int zcard(string $key)
  * @method int zrem(string $key, string $member)
  * @method array<string> zrangebyscore(string $key, string|int $min, string|int $max, array<mixed> $options = null)
@@ -143,7 +143,7 @@ class Redis
      */
     public static function prefix(string $namespace): void
     {
-        if (($namespace != '') && (substr($namespace, -1) !== ':')) {
+        if (($namespace !== '') && (substr($namespace, -1) !== ':')) {
             $namespace .= ':';
         }
 
@@ -233,11 +233,12 @@ class Redis
     {
         if (in_array(strtolower($name), self::KEY_COMMANDS, true)) {
             if (is_array($args[0])) {
+                /** @var string $v */
                 foreach ($args[0] as $i => $v) {
                     $args[0][$i] = self::$defaultNamespace . $v;
                 }
             } else {
-                $args[0] = self::$defaultNamespace . $args[0];
+                $args[0] = self::$defaultNamespace . $args[0]; // @phpstan-ignore-line binaryOp.invalid
             }
         }
 
@@ -290,7 +291,7 @@ class Redis
     {
         $prefix = self::getPrefix();
 
-        if (substr($string, 0, strlen($prefix)) == $prefix) {
+        if (substr($string, 0, strlen($prefix)) === $prefix) {
             $string = substr($string, strlen($prefix), strlen($string));
         }
 

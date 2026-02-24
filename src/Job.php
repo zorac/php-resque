@@ -58,7 +58,7 @@ class Job
         }
 
         $this->queue = $queue;
-        $this->payload = [
+        $this->payload = [ // @phpstan-ignore-line assign.propertyType (validated above)
             'id' => $payload['id'],
             'class' => $payload['class'],
             'args' => $payload['args'] ?? null,

@@ -377,7 +377,7 @@ class WorkerTest extends TestCase
         while ($job = $worker->reserve(true, 1)) {
             self::assertEquals("TestJob$i", $job->payload['class']);
 
-            if ($i == 2) {
+            if ($i === 2) {
                 break;
             }
 

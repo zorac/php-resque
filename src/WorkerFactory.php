@@ -163,9 +163,9 @@ class WorkerFactory
             [$host, $pid, $queues] = explode(':', (string)$worker, 3);
 
             if (
-                ($host != $hostname)
+                ($host !== $hostname)
                 || in_array($pid, $pids, true)
-                || $pid == getmypid()
+                || intval($pid) === getmypid()
             ) {
                 continue;
             }
