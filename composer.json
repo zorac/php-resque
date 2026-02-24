@@ -52,6 +52,16 @@
     "bin": [
         "bin/resque"
     ],
+    "scripts": {
+        "lint": [
+            "phpstan --memory-limit=1G analyse",
+            "phpcs -pn",
+            "php-cs-fixer check"
+        ],
+        "test": [
+            "phpunit"
+        ]
+    },
     "conflict": {
         "chrisboulton/php-resque": "*",
         "kamisama/php-resque-ex": "*",
