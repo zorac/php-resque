@@ -48,12 +48,12 @@ class WorkerFactory
     /**
      * Create a new worker factory.
      *
-     * @param LoggerInterface $logger A logger.
-     * @param CreatorInterface $creator A job creator.
+     * @param LoggerInterface|null $logger A logger.
+     * @param CreatorInterface|null $creator A job creator.
      */
     public function __construct(
-        LoggerInterface $logger = null,
-        CreatorInterface $creator = null
+        ?LoggerInterface $logger = null,
+        ?CreatorInterface $creator = null
     ) {
         $this->logger = $logger;
         $this->creator = $creator ?? new LegacyCreator();
@@ -65,16 +65,16 @@ class WorkerFactory
      *
      * @param string|array<string> $queues String with a single queue name, or
      *      an array with multiple.
-     * @param string $hostname A hostname to use for this worker; defaults to
-     *      the result of gethostname().
-     * @param int $pid A process ID to use for this worker; defaults to the
-     *      result of getmypid().
+     * @param string|null $hostname A hostname to use for this worker; defaults
+     *      to the result of gethostname().
+     * @param int|null $pid A process ID to use for this worker; defaults to
+     *      the result of getmypid().
      * @return Worker The newly-created worker instance.
      */
     public function create(
         $queues,
-        string $hostname = null,
-        int $pid = null
+        ?string $hostname = null,
+        ?int $pid = null
     ) {
         $worker = new Worker($queues, $hostname, $pid);
         $logger = $worker->getLogger((string)$worker);

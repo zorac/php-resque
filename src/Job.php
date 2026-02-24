@@ -71,25 +71,25 @@ class Job
      * @param string $queue The name of the queue to place the job in.
      * @param string $class The name of the class that contains the code to
      *      execute the job.
-     * @param array<mixed> $args Any optional arguments that should be passed
-     *      when the job is executed.
+     * @param array<mixed>|null $args Any optional arguments that should be
+     *      passed when the job is executed.
      * @param bool $monitor Set to true to be able to monitor the status of the
      *      job.
-     * @param string $id Unique identifier for tracking the job. Generated if
-     *      not supplied.
+     * @param string|null $id Unique identifier for tracking the job. Generated
+     *      if not supplied.
      * @return string The job ID.
      */
     public static function create(
         string $queue,
         string $class,
-        array $args = null,
+        ?array $args = null,
         bool $monitor = false,
-        string $id = null
+        ?string $id = null
     ): string {
         $new = true;
 
-        if (isset($args['id'])) {
-            $id = strval($args['id']);
+        if (isset($args['id']) && is_string($args['id'])) {
+            $id = $args['id'];
             unset($args['id']);
             $new = false;
         } elseif (!isset($id)) {

@@ -207,8 +207,8 @@ class Resque
      * @param string $queue The name of the queue to place the job in.
      * @param string $class The name of the class that contains the code to
      *      execute the job.
-     * @param array<mixed> $args Any optional arguments that should be passed
-     *      when the job is executed.
+     * @param array<mixed>|null $args Any optional arguments that should be
+     *      passed when the job is executed.
      * @param bool $trackStatus Set to true to be able to monitor the status of
      *      a job.
      * @return string The Job ID, or null if job creation was cancelled.
@@ -216,7 +216,7 @@ class Resque
     public static function enqueue(
         string $queue,
         string $class,
-        array $args = null,
+        ?array $args = null,
         bool $trackStatus = false
     ): ?string {
         $id = Resque::generateJobId();
@@ -252,8 +252,8 @@ class Resque
      * @param string $queue The name of the queue to place the job in.
      * @param string $class The name of the class that contains the code to
      *      execute the job.
-     * @param array<mixed> $args Any optional arguments that should be passed
-     *      when the job is executed.
+     * @param array<mixed>|null $args Any optional arguments that should be
+     *      passed when the job is executed.
      * @param bool $trackStatus Set to true to be able to monitor the status of
      *      a job.
      * @return string The Job ID, or null if job creation was cancelled.
@@ -261,7 +261,7 @@ class Resque
     public function enqueueJob(
         string $queue,
         string $class,
-        array $args = null,
+        ?array $args = null,
         bool $trackStatus = false
     ): ?string {
         return self::enqueue($queue, $class, $args, $trackStatus);

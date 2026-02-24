@@ -255,16 +255,16 @@ class Worker
      *
      * @param string|array<string> $queues String with a single queue name,
      *      array with multiple.
-     * @param string $hostname A hostname to use for this worker; defaults to
-     *      the result of gethostname().
-     * @param int $pid A process ID to use for this worker; defaults to the
-     *      result of getmypid(). Setting this will automatically disable
+     * @param string|null $hostname A hostname to use for this worker; defaults
+     *      to the result of gethostname().
+     * @param int|null $pid A process ID to use for this worker; defaults to
+     *      the result of getmypid(). Setting this will automatically disable
      *      dead worker pruning on startup.
      */
     public function __construct(
         $queues,
-        string $hostname = null,
-        int $pid = null
+        ?string $hostname = null,
+        ?int $pid = null
     ) {
         if (!is_array($queues)) {
             $queues = [$queues];

@@ -156,9 +156,9 @@ class Redis
      * @param string|array<mixed>|callable $server A DSN, parameter array, or
      *      callable. Special case: pass an array with keys 'parameters' and
      *      'options' to pass those separately to the Predis\Client constructor.
-     * @param int $database A database number to select.
+     * @param int|null $database A database number to select.
      */
-    public function __construct($server, int $database = null)
+    public function __construct($server, ?int $database = null)
     {
         try {
             if (is_callable($server)) {
