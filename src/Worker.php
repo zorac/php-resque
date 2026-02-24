@@ -187,6 +187,12 @@ class Worker
     public $shutDownOnReserveError = false;
 
     /**
+     * @var callable|null If set, this callback will be triggered before each
+     *      attempt to reserve a job, to confirm the process is still alive.
+     */
+    public $kickWatchdog = null;
+
+    /**
      * @var CreatorInterface|null A job instance creator.
      */
     private $creator;
@@ -366,6 +372,8 @@ class Worker
         while (true) {
             if ($this->shutdown) {
                 break;
+            } elseif (isset($this->kickWatchdog)) {
+                ($this->kickWatchdog)();
             }
 
             // Attempt to find and reserve a job
