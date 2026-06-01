@@ -376,7 +376,7 @@ class Resque
                 if (
                     ($decoded['class'] === $key)
                     && (count($decodedArgs) > 0)
-                    && (count(array_diff($decodedArgs, $val)) === 0)
+                    && (count(array_diff($decodedArgs, $val)) === 0) // @phpstan-ignore-line argument.type
                 ) {
                     return true;
                 }
