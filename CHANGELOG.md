@@ -1,3 +1,7 @@
+## 2.13.1 (2026-06-03)
+
+* Support Predis 3.x
+
 ## 2.13.0 (2026-02-24)
 
 * **PHP 7.4 or later is now required.**
